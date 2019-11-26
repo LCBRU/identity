@@ -1,0 +1,39 @@
+{% extends "_base.html" %}
+{% import "_formHelpers.html" as formhelper %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-8">
+
+        <div class="card study-card">
+            <div class="card-header">
+                <div>Submit {{ demographics_request.filename }}</div>
+            </div>
+    
+            <div class="card-body">
+    
+                <form id="demographics_define_columns" action="{{ url_for('ui.demographics_submit', id=demographics_request.id) }}" method="POST" class="form panel-body" enctype="multipart/form-data">
+                    <fieldset>
+                        {{ form.hidden_tag() }}
+        
+                        <p>
+                            The file '{{ demographics_request.filename }}' is ready for submission.
+                            Once the file is submitted it <strong>cannot be amended</strong>,
+                            but it <strong>can be deleted</strong>.
+                        </p>
+        
+                        <p>
+                            The file will take a while to process.  You will be
+                            emailed once the demographics lookup is complete.
+                        </p>
+                            
+                        {{ formhelper.render_button_bar('ui.demographics', submit_label="Submit") }}
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

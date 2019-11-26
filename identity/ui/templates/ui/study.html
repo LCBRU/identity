@@ -1,0 +1,97 @@
+{% extends "_base.html" %}
+{% import "_formHelpers.html" as formhelper %}
+
+{% block content %}
+
+{% if blinding_info %}
+    <div class="alert alert-success" role="alert">
+        <h3>{{blinding_info.blinding_set_name }} blind IDs created for ID '{{ blinding_info.unblind_id }}:'</h3>
+        <dl>
+            {% for key, value in blinding_info.blind_ids.items() %}
+                <dt>{{ key }}</dt>
+                <dd>{{ value }}</dd>
+            {% endfor %}
+        </dl>
+    </div>
+{% endif %}
+
+<div class="row">
+    <div class="col-sm-6 col-md-7 col-xl-9">
+        <section>
+            <h2>{{ study.name }}</h2>
+        </section>                
+    </div>
+    <div class="col-sm-6 col-md-5 col-xl-3">
+        {% if study.label_packs | length > 0 %}
+
+            <div class="card study-card">
+                <div class="card-header">Label Printing</div>
+
+                <div class="card-body text-center">
+                        {% for l in study.label_packs | sort(attribute='name') %}
+                            <div class="card-button-list">
+                                <div class="btn-group">
+                                    <a class="btn btn-primary" href="{{ url_for('ui.study_label_print', id=study.id, set=l.type, count=1) }}">{{ l.name}}</a>
+                                    <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="sr-only">Toggle Dropdown</span>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a href="{{ url_for('ui.study_label_print', id=study.id, set=l.type, count=5) }}">{{ l.name}} x5</a>
+                                        <a href="{{ url_for('ui.study_label_print', id=study.id, set=l.type, count=10) }}">{{ l.name}} x10</a>
+                                        <a href="{{ url_for('ui.study_label_print', id=study.id, set=l.type, count=50) }}">{{ l.name}} x50</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                </div>        
+            </div>
+            
+        {% endif %}
+
+        {% if blinding_form %}
+
+            <div class="card study-card">
+                <div class="card-header">Blinding</div>
+
+                <div class="card-body">
+                    <form id="study_data_upload" action="{{ url_for('ui.blinding', id=study.id) }}" method="POST" enctype="multipart/form-data">
+                        <fieldset>
+                            {{ blinding_form.hidden_tag() }}
+                            
+                            {% for f in blinding_form %}
+                                {{ formhelper.render_field(f) }}
+                            {% endfor %}
+                    
+                            {{ formhelper.render_button_bar(submit_label='Blind') }}
+                        </fieldset>                
+                    </form>
+                </div>
+            </div>
+            
+        {% endif %}
+
+        {% if unblinding_form %}
+
+        <div class="card study-card">
+            <div class="card-header">Unblinding</div>
+
+            <div class="card-body">
+
+                <form id="study_data_upload" action="{{ url_for('ui.unblinding', id=study.id) }}" method="POST" enctype="multipart/form-data">
+                    <fieldset>
+                        {{ unblinding_form.hidden_tag() }}
+                        
+                        {% for f in unblinding_form %}
+                            {{ formhelper.render_field(f) }}
+                        {% endfor %}
+                
+                        {{ formhelper.render_button_bar(submit_label='Unblind') }}
+                    </fieldset>                   
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

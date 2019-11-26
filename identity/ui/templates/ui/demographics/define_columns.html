@@ -1,0 +1,90 @@
+{% extends "_base.html" %}
+{% import "_formHelpers.html" as formhelper %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-8">
+        <div class="card study-card">
+            <div class="card-header">
+                <div class="float-right">
+                    <a class="fas fa-question-circle" data-toggle="modal" data-target="#help_modal"></a>
+                </div>
+                <div>Define Columns for {{ demographics_request.filename }}</div>
+            </div>
+    
+            <div class="card-body">
+    
+                <form id="demographics_define_columns" action="{{ url_for('ui.demographics_define_columns', id=demographics_request.id) }}" method="POST" class="form panel-body" enctype="multipart/form-data">
+                    <fieldset>
+                        {{ form.hidden_tag() }}
+    
+                        <p>
+                            Match the columns from your uploaded filename
+                            to the data types required by the matching
+                            methods.
+                        </p>
+    
+                        {% for f in form %}
+                            {{ formhelper.render_field(f) }}
+                        {% endfor %}
+    
+                        {{ formhelper.render_button_bar('ui.demographics', submit_label="Submit") }}
+                    </fieldset>                   
+                </form>
+            </div>
+        </div>            
+    </div>
+</div>
+
+<!-- Participant File Help dialog-->
+<div class="modal fade" id="help_modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 class="modal-title">Column Definitions</h3>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <h4>Demographics Matching Requirements</h4>
+                <p>
+                    There are two methods that can be used to match
+                    the demographics supplied to an individual patient.
+                    Each method for matching requires a different
+                    set of data.
+                </p>
+                
+                <h4>NHS Number Matching</h4>
+                <p>
+                    File should contain an NHS number and a date of birth.
+                    Participants without correct values for both of these
+                    fields will not be successfully matched.
+                </p>
+    
+                <h4>Demographics Matching</h4>
+                <p>
+                    File should contain as many of the following
+                    information as possible:
+                </p>
+                <ul>
+                    <li>First name</li>
+                    <li>Last name</li>
+                    <li>Date of Birth</li>
+                    <li>Sex</li>
+                    <li>Post Code</li>
+                </ul>
+                <p>
+                    Particpants without enough information, or
+                    whose details match multiple people, will
+                    not be successfully matched.
+                </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+    </div>
+      
+    {% endblock %}

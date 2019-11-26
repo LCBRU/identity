@@ -1,0 +1,124 @@
+import traceback
+import time
+from flask import (
+    render_template,
+    redirect,
+    url_for,
+    flash,
+    current_app,
+    abort,
+    session,
+)
+from flask_login import current_user
+from .. import blueprint, db
+from identity.printing.model import LabelPack
+from identity.blinding.model import BlindingSet, Blinding
+from identity.model import Study, PseudoRandomId
+from ..forms import BlindingForm, UnblindingForm
+from ..decorators import assert_study_user
+
+
+@blueprint.route("/study/<int:id>/labels/<string:set>/print/<int:count>")
+@assert_study_user()
+def study_label_print(id, set, count=1):
+    label_pack = LabelPack.query.filter_by(type=set).first()
+
+    if current_user not in label_pack.study.users:
+        abort(403)
+
+    try:
+        for _ in range(count):
+            label_pack.print()
+
+            db.session.commit()
+
+            time.sleep(current_app.config['PRINTING_SET_SLEEP'])
+
+        flash('Labels have been sent to the printer')
+    except:
+        current_app.logger.error(traceback.format_exc())
+        flash("An error occurred while printing.  Check that the printer has paper and ink, and that a jam has not occurred.", "error")
+    finally:
+        return redirect(url_for('ui.study', id=id))
+
+
+@blueprint.route("/study/<int:id>/blinding/", methods=['POST'])
+@assert_study_user()
+def blinding(id):
+    study = Study.query.get_or_404(id)
+    form = BlindingForm()
+
+    blinding_form = BlindingForm()
+    blinding_form.blinding_set_id.choices = [(s.id, s.name) for s in sorted(study.blinding_sets, key=lambda s: s.name)]
+
+    if blinding_form.validate_on_submit():        
+        blinding_set = BlindingSet.query.get_or_404(blinding_form.blinding_set_id.data)
+
+        ids = blinding_set.get_blind_ids(blinding_form.id.data, current_user)
+
+        db.session.add_all(ids)
+        db.session.commit()
+
+        blinding_info = {
+            'blinding_set_name': blinding_set.name,
+            'unblind_id': blinding_form.id.data,
+            'blind_ids': { id.blinding_type.name:id.pseudo_random_id.full_code for id in ids },
+        }
+
+        session['blinding_info'] = blinding_info
+
+    return redirect(url_for("ui.study", id=study.id))
+
+
+@blueprint.route("/study/<int:id>/unblinding/", methods=['POST'])
+@assert_study_user()
+def unblinding(id):
+    study = Study.query.get_or_404(id)
+
+    un_blinding_form = UnblindingForm()
+
+    if un_blinding_form.validate_on_submit():
+        blinding = Blinding.query.join(PseudoRandomId).filter_by(full_code=un_blinding_form.id.data).first()
+
+        if blinding is None or blinding.blinding_type.blinding_set.study != study:
+            flash(
+                'Blind ID "{}" not found for study {}'.format(
+                    un_blinding_form.id.data,
+                    study.name,
+                ),
+                'warning',
+            )
+        else:
+            flash(
+                '{} {} ID "{}" is unblinded to "{}"'.format(
+                    blinding.blinding_type.blinding_set.name,
+                    blinding.blinding_type.name,
+                    blinding.pseudo_random_id.full_code,
+                    blinding.unblind_id,
+                ),
+                'success',
+            )
+
+    return redirect(url_for("ui.study", id=study.id))
+
+
+@blueprint.route("/study/<int:id>")
+@assert_study_user()
+def study(id):
+    study = Study.query.get_or_404(id)
+    blinding_form = None
+    unblinding_form = None
+    blinding_info = session.pop('blinding_info', None)
+
+    if study.blinding_sets:
+        blinding_form = BlindingForm()
+        blinding_form.blinding_set_id.choices = [(s.id, s.name) for s in sorted(study.blinding_sets, key=lambda s: s.name)]
+        unblinding_form = UnblindingForm()
+
+    return render_template(
+        "ui/study.html",
+        study=study,
+        blinding_form=blinding_form,
+        unblinding_form=unblinding_form,
+        blinding_info=blinding_info,
+    )

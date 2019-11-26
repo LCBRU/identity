@@ -1,0 +1,31 @@
+<html>
+    <head>
+        <style>
+            body {
+                color: #333;
+                font-family: 'Raleway', sans-serif;
+            }
+
+            h1 {
+                font-size: 1.4em;
+            }
+
+            a {
+                color: #555;
+                text-decoration: underline;
+            }
+            a:hover {
+                color: rgb(36, 36, 136);
+                cursor: pointer;
+                text-decoration: underline;
+            }
+        </style>
+    </head>
+    <body>
+            <h1>NIHR Leicester Biomedical Research Centre: Identity</h1>
+            <p>
+                Your demographics request <a href="{{ url_for('ui.demographics', _external=True) }}">{{ request.filename }}</a> submitted on {{ request.submitted_datetime | date_format }} is complete.
+                Please click the link and download the results.
+            </p>
+    </body>
+</html>

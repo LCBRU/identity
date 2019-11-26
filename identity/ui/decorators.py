@@ -1,0 +1,18 @@
+from functools import wraps
+from flask import flash, abort
+from flask_login import current_user
+from ..model import Study
+
+def assert_study_user():
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            study = Study.query.get_or_404(kwargs.get('id'))
+
+            if study not in current_user.studies:
+                abort(403)
+
+            return f(*args, **kwargs)
+
+        return decorated_function
+    return decorator

@@ -1,0 +1,150 @@
+import os
+from io import BytesIO
+from flask import url_for, current_app
+from identity.demographics.model import DemographicsRequest, DemographicsRequestColumn
+from unittest.mock import patch
+from identity.demographics import (
+    extract_data,
+)
+from identity.database import db
+from tests import login
+
+
+def assert_uploaded_file(user, filename, content, headers):
+    dr = DemographicsRequest.query.filter(
+        DemographicsRequest.filename == filename
+        and DemographicsRequest.owner == user
+    ).first()
+
+    assert dr
+    assert len(dr.columns) == len(headers)
+
+    for h in headers:
+        assert DemographicsRequestColumn.query.filter(
+            DemographicsRequestColumn.demographics_request_id == dr.id
+            and DemographicsRequestColumn.name == h
+        ).first()
+
+    assert os.path.isfile(dr.filepath)
+
+    with open(dr.filepath, 'rb') as f:
+        assert f.read() == content
+
+    return dr
+
+
+def assert_uploaded_file_not_exists(user, filename, content, headers):
+    assert DemographicsRequest.query.filter(
+        DemographicsRequest.filename == filename
+        and DemographicsRequest.owner == user
+    ).count() == 0
+
+
+def do_create_request(client, faker, user, headers=None, data=None, extension='csv'):
+    if headers is None:
+        headers = faker.pylist(10, False, 'str')
+
+    if extension == 'csv':
+        content = faker.csv_string(headers=headers, data=data).encode('utf-8')
+    else:
+        content = faker.xslx_data(headers=headers, data=data)
+
+    filename = faker.file_name(extension=extension)
+
+    data = {
+        'upload': (
+            BytesIO(content),
+            filename,
+        )
+    }
+
+    response = do_upload(client, data)
+
+    dr = DemographicsRequest.query.filter(
+        DemographicsRequest.filename == filename
+        and DemographicsRequest.owner == user
+    ).first()
+
+    assert response.status_code == 302
+    assert response.location == url_for('ui.demographics_define_columns', id=dr.id, _external=True)
+
+    assert dr is not None
+
+    return dr
+
+
+def do_define_columns_post(client, id, nhs_number_column, family_name_column, given_name_column, gender_column, dob_column, postcode_column):
+    return client.post(
+        url_for('ui.demographics_define_columns', id=id, _external=True),
+        data = {
+            'nhs_number_column_id': nhs_number_column.id if nhs_number_column else 0,
+            'family_name_column_id': family_name_column.id if family_name_column else 0,
+            'given_name_column_id': given_name_column.id if given_name_column else 0,
+            'gender_column_id': gender_column.id if gender_column else 0,
+            'dob_column_id': dob_column.id if dob_column else 0,
+            'postcode_column_id': postcode_column.id if postcode_column else 0,
+        },
+    )
+
+
+def do_upload(client, data):
+    return client.post(
+        url_for("ui.demographics"),
+        buffered=True,
+        content_type="multipart/form-data",
+        data=data,
+    )
+
+
+def do_submit(client, id):
+    with patch('identity.ui.views.demographics.schedule_lookup_tasks') as mock_schedule_lookup_tasks:
+        return client.post(
+            url_for("ui.demographics_submit", id=id),
+            buffered=True,
+            content_type="multipart/form-data",
+            data={'id': id},
+        )
+
+        mock_schedule_lookup_tasks.delay.assert_called_once_with(id)
+
+
+def do_delete(client, id):
+    return client.post(
+        url_for("ui.demographics_delete", id=id),
+        buffered=True,
+        content_type="multipart/form-data",
+        data={'id': id},
+    )
+
+
+def do_extract_data(id):
+    with patch('identity.demographics.schedule_lookup_tasks') as mock_schedule_lookup_tasks:
+        extract_data(id)
+
+        mock_schedule_lookup_tasks.assert_called_once_with(id)
+
+
+def do_upload_data_and_extract(client, faker, data, extension='csv'):
+    dr = do_upload_data(client, faker, data, extension)
+
+    do_extract_data(dr.id)
+
+    return dr.data[0]
+
+
+def do_upload_data(client, faker, data, extension='csv'):
+    user = login(client, faker)
+
+    if data is None:
+        data = []
+    else:
+        data = [data]
+
+    headers = ['nhs_number', 'family_name', 'given_name', 'gender', 'dob', 'postcode']
+
+    dr = do_create_request(client, faker, user, headers, data, extension)
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+
+    do_submit(client, dr.id)
+
+    return dr

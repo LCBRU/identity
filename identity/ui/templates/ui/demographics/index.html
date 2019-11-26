@@ -1,0 +1,142 @@
+{% extends "_base.html" %}
+{% import "_formHelpers.html" as formhelper %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-8 col-lg-9">
+        <section>
+            <h2>Demographics</h2>
+            {{ formhelper.render_search(search_form, 'ui.demographics', placeholder='Search filename') }}
+        </section>
+        
+        <ul class="list-group">
+            {% for dr in demographics_requests.items %}
+                <li class="list-group-item">
+                    <div class='upload_details'>
+                        <header>
+                            <h1>{{ dr.filename }} <span class="pull-right badge">{{ dr.status }}</span></h1>
+                            <h2>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h2>
+                        </header>
+
+                        {% if not dr.deleted %}
+                            {% if not dr.submitted %}
+                                <a class="btn btn-success" href="{{ url_for('ui.demographics_define_columns', id=dr.id) }}">Define Columns</a>
+                            {% endif %}
+                            {% if dr.awaiting_submission %}
+                                <a class="btn btn-success" href="{{ url_for('ui.demographics_submit', id=dr.id) }}">Submit Request</a>
+                            {% endif %}
+                            {% if dr.submitted and not dr.result_created and current_user.is_admin %}
+                                <a class="btn btn-danger" href="{{ url_for('ui.demographics_resubmit', id=dr.id) }}">Resubmit/Unpause request</a>
+                                {% if not dr.paused %}
+                                    <a class="btn btn-danger" href="{{ url_for('ui.demographics_pause', id=dr.id) }}">Pause request</a>
+                                {% endif %}
+                            {% endif %}
+                            {% if dr.result_created %}
+                                <a class="btn btn-success" href="{{ url_for('ui.demographics_download_result', id=dr.id) }}">Download Result</a>
+                            {% else %}
+                                <a class="btn btn-danger" href="{{ url_for('ui.demographics_delete', id=dr.id) }}">Delete Request</a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+
+        {{ formhelper.render_pagination(demographics_requests, 'ui.demographics', search=search_form.search.data, show_deleted=search_form.show_deleted.data, show_downloaded=search_form.show_downloaded.data) }}
+    </div>
+
+      <div class="col-md-4 col-lg-3">
+        <div class="card study-card">
+            <div class="card-header">Upload Participant File</div>
+
+            <div class="card-body">
+                <form id="study_data_upload" action="{{ url_for('ui.demographics') }}" method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+
+                    <div class="input-group mb-2">
+                        {{ form.upload(class="form-control", placeholder="Participant Details") }}
+                        <span class="input-group-append" data-toggle="modal" data-target="#help_modal">
+                            <span class="input-group-text fas fa-question-circle"></span>
+                        </span>
+                    </div>
+
+                    {{ formhelper.render_button_bar(submit_label="Upload") }}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Participant File Help dialog-->
+<div class="modal fade" id="help_modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Participant File Format</h3>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body">
+            <h4>File Type</h4>
+            <p>
+                The participant file must be in CSV or Excel ('.xslx' only) format with
+                unique column names in the first row.
+            </p>
+
+            <h4>NHS Number Matching</h4>
+            <p>
+                File should contain an NHS number and a date of birth.
+                Participants without correct values for both of these
+                fields will not be successfully matched.
+            </p>
+
+            <h4>Demographics Matching</h4>
+            <p>
+                File should contain as many of the following
+                information as possible:
+            </p>
+            <ul>
+                <li>First name</li>
+                <li>Last name</li>
+                <li>Date of Birth</li>
+                <li>Sex</li>
+                <li>Post Code</li>
+            </ul>
+            <p>
+                Particpants without enough information, or
+                whose details match multiple people, will
+                not be successfully matched.
+            </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+</div>
+  
+<!-- Upload Progress Dialog Simple-->
+<div class="modal fade" id="uploadProgressModalSimple" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="uploadProgressModalSimple" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadProgressModalLabel">Uploading data</h5>
+            </div>
+            <div class="modal-body">
+                <div class="loader"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+
+<script>
+    $("form#study_data_upload").submit(function(e){
+        $('#uploadProgressModalSimple').modal('show');
+    });
+</script>
+
+{% endblock %}
