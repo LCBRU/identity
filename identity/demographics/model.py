@@ -1,6 +1,7 @@
 import os
 import csv
 import re
+import chardet
 from shutil import copyfile
 from itertools import takewhile
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
@@ -299,27 +300,32 @@ class DemographicsRequestCsv(DemographicsRequest):
     }
 
     def get_column_names(self):
-        with open(self.filepath, 'r') as f:
+        with open(self.filepath, 'r', encoding=self._get_encoding()) as f:
             d_reader = csv.DictReader(f)
 
             return d_reader.fieldnames
 
+    def _get_encoding(self):
+        rawdata = open(self.filepath, 'rb').read()
+        result = chardet.detect(rawdata)
+        return result['encoding']
+
     def iter_rows(self):
-        with open(self.filepath, 'r') as f:
+        with open(self.filepath, 'r', encoding=self._get_encoding()) as f:
             reader = csv.DictReader(f)
 
             for row in reader:
                 yield row
 
     def iter_result_rows(self):
-        with open(self.result_filepath, 'r') as f:
+        with open(self.result_filepath, 'r', encoding=self._get_encoding()) as f:
             reader = csv.DictReader(f)
 
             for row in reader:
                 yield row
 
     def create_result(self):
-        with open(self.result_filepath, 'w') as result_file:
+        with open(self.result_filepath, 'w', encoding=self._get_encoding()) as result_file:
 
             fieldnames = self.get_column_names()
             fieldnames.extend([
