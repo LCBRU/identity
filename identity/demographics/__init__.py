@@ -1,4 +1,5 @@
 import re
+import traceback
 from datetime import datetime
 from dateutil.parser import parse
 from flask import url_for, current_app, render_template
@@ -289,6 +290,7 @@ def schedule_lookup_tasks(demographics_request_id):
         current_app.logger.warning(sde)
     except Exception as e:
         log_exception(e)
+        save_demographics_error(demographics_request_id, e)
 
 
 @celery.task()
@@ -302,10 +304,11 @@ def process_demographics_request_data(data_id, request_id):
             raise Exception('Data not found for ID = {}'.format(data_id))
 
         spine_lookup(drd)
+
+        schedule_lookup_tasks(request_id)
     except Exception as e:
         log_exception(e)
-    finally:
-        schedule_lookup_tasks(request_id)
+        save_demographics_error(request_id, e)
 
 
 @celery.task()
@@ -313,26 +316,34 @@ def extract_data(request_id):
     current_app.logger.info(f'extract_data (request_id={request_id})')
 
     try:
+        current_app.logger.info('A')
         dr = DemographicsRequest.query.get(request_id)
+        current_app.logger.info('B')
 
         if dr is None:
+            current_app.logger.info('C')
             raise Exception('request not found')
 
+        current_app.logger.info('D')
         cd = dr.column_definition
 
+        current_app.logger.info('E')
         if len(dr.data) > 0:
             raise Exception(
                 'Attempting to extract data from DemographicsRequest ("{}") '
                 'that has already had data extracted.'.format(request_id)
             )
 
+        current_app.logger.info('F')
         if cd is None:
             raise Exception(
                 'Attempting to extract data from DemographicsRequest ("{}") '
                 'that did not have a column definition.'.format(request_id)
             )
 
+        current_app.logger.info('G')
         for i, r in enumerate(dr.iter_rows()):
+            current_app.logger.info('H')
             nhs_number = (str(r[cd.nhs_number_column.name]) or '').strip() if cd.nhs_number_column is not None else None
             family_name = (str(r[cd.family_name_column.name]) or '').strip() if cd.family_name_column is not None else None
             given_name = (str(r[cd.given_name_column.name]) or '').strip() if cd.given_name_column is not None else None
@@ -357,12 +368,13 @@ def extract_data(request_id):
         db.session.add(dr)
         db.session.commit()
 
-    except Exception as e:
-        db.session.rollback()
-        log_exception(e)
-    finally:
         schedule_lookup_tasks(request_id)
 
+    except Exception as e:
+        current_app.logger.info('J')
+        db.session.rollback()
+        log_exception(e)
+        save_demographics_error(request_id, e)
 
 
 @celery.task()
@@ -390,3 +402,13 @@ def produce_demographics_result(demographics_request_id):
     except Exception as e:
         db.session.rollback()
         log_exception(e)
+        save_demographics_error(demographics_request_id, e)
+
+
+def save_demographics_error(demographics_request_id, e):
+    dr = DemographicsRequest.query.get(demographics_request_id)
+    if dr is not None:
+        dr = DemographicsRequest.query.get(demographics_request_id)
+        dr.set_error(traceback.format_exc())
+        db.session.add(dr)
+        db.session.commit()

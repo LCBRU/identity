@@ -26,6 +26,8 @@ class DemographicsRequest(db.Model):
     lookup_completed_datetime = db.Column(db.DateTime)
     result_created_datetime = db.Column(db.DateTime)
     result_downloaded_datetime = db.Column(db.DateTime)
+    error_datetime = db.Column(db.DateTime)
+    error_message = db.Column(db.Text)
     last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User, foreign_keys=[last_updated_by_user_id])
@@ -103,9 +105,39 @@ class DemographicsRequest(db.Model):
         return self.lookup_completed_datetime is not None
 
     @property
+    def in_error(self):
+        return self.error_datetime is not None
+
+    @property
+    def requires_column_definition(self):
+        return not self.deleted and not self.submitted and not self.in_error
+    
+    @property
+    def requires_submission(self):
+        return not self.deleted and self.awaiting_submission and not self.in_error
+    
+    @property
+    def can_be_resubmitted(self):
+        return not self.deleted and self.submitted and not self.result_created and not self.in_error
+    
+    @property
+    def can_be_paused(self):
+        return not self.deleted and self.submitted and not self.result_created and not self.paused and not self.in_error
+    
+    @property
+    def can_be_downloaded(self):
+        return not self.deleted and self.result_created and not self.in_error
+    
+    @property
+    def can_be_deleted(self):
+        return not self.deleted
+
+    @property
     def status(self):
         if self.deleted:
             return 'Deleted'
+        elif self.in_error:
+            return 'Error'
         elif self.paused:
             return 'Paused'
         if not self.columns_defined:
@@ -168,6 +200,10 @@ class DemographicsRequest(db.Model):
         repat = re.compile(regular_expression, re.IGNORECASE)
         ids = (c.id for c in self.columns if re.search(repat, c.name))
         return next(ids, 0)
+
+    def set_error(self, message):
+        self.error_datetime = datetime.utcnow()
+        self.error_message = message
 
 
 class DemographicsRequestXslx(DemographicsRequest):

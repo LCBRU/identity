@@ -72,26 +72,12 @@ pytest
 To create a migration run the command
 
 ```bash
-./manage_dev.py script "{Description of change}"
+./manage.py script "{Description of change}"
 ```
 
 You will then need to change the newly-created script created in the
 `migrations` directory to make the necessary upgrade and downgrade
 changes.
-
-#### Apply Migrations to Database
-
-After amending the models, run the following command to create the
-migrations and apply them to the database:
-
-```bash
-./manage_dev.py upgrade
-```
-
-### Database
-
-The database upgrades are handled by SQLAlchemy-migrate and are run using the `manage.py` program
-once the configuration has been copied into place and the database created.
 
 #### Installation
 
