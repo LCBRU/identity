@@ -43,7 +43,7 @@ a:hover {
 
 #content {
   padding: 0px 0px 40px 0px;
-  flex: 1;
+  flex: 1 0 auto;
 }
 
 footer {
@@ -105,10 +105,10 @@ header.pageheader h1 {
   color: white;
 }
 
-.navbar .navbar-brand {
+.navbar a.navbar-brand {
   font-size: 15px;
   background-color: #193e72;
-  color: white;
+  color: white !important;
 }
 
 .navbar .navbar-brand:hover {
