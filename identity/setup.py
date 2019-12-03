@@ -36,6 +36,8 @@ from .blinding.model import (
 
 
 PSEUDORANDOM_ID_PROVIDERS = {
+    'ALLEVIATE Participants': 'AllPt',
+    'ALLEVIATE Samples': 'AllSa',
     'BRAVE Participants': 'BavPt',
     'BRAVE Samples': 'BavSa',
     'BRAVE Families': 'BavFm',
