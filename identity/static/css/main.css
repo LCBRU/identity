@@ -16,6 +16,10 @@ a:hover {
   text-decoration: none;
 }
 
+.dropdown-menu a {
+  display: block;
+}
+
 .page-link {
   color: #46a86c;
 }
