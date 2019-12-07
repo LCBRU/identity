@@ -123,6 +123,8 @@ def load_legacy_briccs_ids(admin):
                     last_updated_by_user_id=admin.id,
                 ))
 
+        engine.dispose()
+
         db.session.bulk_save_objects(legacy_ids)
 
     db.session.commit()
@@ -156,6 +158,8 @@ def load_legacy_bioresource_ids(admin):
                 print('Creating:', new_id.full_code)
 
                 bioresource_ids.append(new_id)
+
+        engine.dispose()
 
         db.session.bulk_save_objects(bioresource_ids)
 
@@ -211,6 +215,8 @@ def load_legacy_pseudorandom_ids(admin):
 
             db.session.bulk_save_objects(pseudo_random_ids)
 
+        engine.dispose()
+
     db.session.commit()
 
 
@@ -249,6 +255,8 @@ def load_legacy_blind_ids(admin):
                     print('Creating Blinding:', blinding)
 
                     db.session.add(blinding)
+
+            engine.dispose()
 
     db.session.commit()
 
