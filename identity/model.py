@@ -1,9 +1,12 @@
+import ldap
 import random
 import sqlalchemy
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import datetime
+from flask import current_app
 from flask_login import UserMixin
 from .database import db
+from identity.utils import log_exception
 
 
 users_studies = db.Table(
@@ -63,16 +66,61 @@ class User(db.Model, UserMixin):
 
     @property
     def full_name(self):
-        full_name = " ".join(filter(None, [self.first_name, self.last_name]))
-
-        return full_name or self.username
+        user = self._search_ldap(self.username)
+        return f"{user['given_name']} {user['surname']}"
 
     @property
     def email(self):
-        return '{}@uhl-tr.nhs.uk'.format(self.username)
+        user = self._search_ldap(self.username)
+        return user['email']
 
     def __str__(self):
-        return "{} {}".format(self.first_name, self.last_name)
+        return self.email
+
+    def _search_ldap(self, username):
+        l = ldap.initialize(current_app.config['LDAP_URI'])
+        l.protocol_version = 3
+        l.set_option(ldap.OPT_REFERRALS, 0)
+
+        try:
+            l.simple_bind_s(
+                current_app.config['LDAP_USER'],
+                current_app.config['LDAP_PASSWORD'],
+            )
+
+            search_result = l.search_s(
+                'DC=xuhl-tr,DC=nhs,DC=uk',
+                ldap.SCOPE_SUBTREE,
+                'sAMAccountName={}'.format(username),
+            )
+
+        except ldap.LDAPError as e:
+            log_exception(e)
+
+        if isinstance(search_result[0][1], dict):
+            user = search_result[0][1]
+            return {
+                'username': user['sAMAccountName'][0].decode("utf-8"),
+                'email': user['mail'][0].decode("utf-8"),
+                'name': user['name'][0].decode("utf-8"),
+                'surname': user['sn'][0].decode("utf-8"),
+                'given_name': user['givenName'][0].decode("utf-8"),
+            }
+        else:
+            return None
+
+    def validate_password(self, password):
+        l = ldap.initialize(current_app.config['LDAP_URI'])
+        l.protocol_version = 3
+        l.set_option(ldap.OPT_REFERRALS, 0)
+
+        try:
+            l.simple_bind_s(self.email, password)
+            return True
+
+        except ldap.LDAPError as e:
+            print(e)
+            return False
 
 
 class Role(db.Model):

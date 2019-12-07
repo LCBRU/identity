@@ -2,6 +2,7 @@
 
 import time
 import ldap
+import pprint
 from functools import wraps
 from flask import g, current_app
 from flask_login import (
@@ -81,30 +82,13 @@ def login(username, password):
 
     if user:
         if user.is_active:
-            if validate_ldap(username, password):
+            if user.validate_password(password):
                 login_user(user)
                 current_app.logger.info('User logged in: %s', user.username)
                 return user
     
     time.sleep(2)
     
-
-def validate_ldap(username, password):
-    l = ldap.initialize(current_app.config['LDAP_URI'])
-    l.protocol_version = 3
-    l.set_option(ldap.OPT_REFERRALS, 0)
-
-    try:
-        l.simple_bind_s(
-            '{}{}'.format(username, current_app.config['LDAP_USER_SUFFIX']),
-            password
-        )
-        return True
-
-    except ldap.LDAPError as e:
-        print(e)
-        return False
-
 
 def must_be_admin():
     def decorator(f):

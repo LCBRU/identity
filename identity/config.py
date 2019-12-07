@@ -17,6 +17,8 @@ class BaseConfig(object):
     MAIL_SERVER = os.environ["SMTP_SERVER"]
     LDAP_URI = os.environ["LDAP_URI"]
     LDAP_USER_SUFFIX = os.environ["LDAP_USER_SUFFIX"]
+    LDAP_USER = os.environ["LDAP_USER"]
+    LDAP_PASSWORD = os.environ["LDAP_PASSWORD"]
     SECRET_KEY = os.environ["SECRET_KEY"]
 
     PRINTER_CVRC_LAB_SAMPLE = os.environ["PRINTER_CVRC_LAB_SAMPLE"]
