@@ -188,11 +188,12 @@ def convert_nhs_number(nhs_number):
     
 
 def convert_gender(gender):
-    gender = gender.lower()
-
     if not gender:
         return None, ''
-    elif gender == 'f' or gender =='female':
+
+    gender = gender.lower()
+
+    if gender == 'f' or gender =='female':
         return None, SMSP_SEX_FEMALE
     elif gender == 'm' or gender == 'male':
         return None, SMSP_SEX_MALE

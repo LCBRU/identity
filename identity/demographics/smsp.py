@@ -219,15 +219,21 @@ def get_demographics_from_search(family_name, given_name, gender, dob, postcode)
     else:
         postcodes = ['']
 
-    for p in postcodes:
-        for g in genders:
-            response = client.service.getPatientBySearch(
-                familyName=family_name,
-                givenName=given_name,
-                gender=g,
-                dob=dob,
-                postcode=p,
-            )
+    if given_name:
+        given_names = [given_name, '']
+    else:
+        given_names = ['']
+
+    for gn in given_names:
+        for p in postcodes:
+            for gen in genders:
+                response = client.service.getPatientBySearch(
+                    familyName=family_name,
+                    givenName=gn,
+                    gender=gen,
+                    dob=dob,
+                    postcode=p,
+                )
 
             if response.responseCode == _SMSP_OK:
                 return SmspPatient(response.nhsNumber, response.subject._value_1[0])
