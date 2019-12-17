@@ -67,6 +67,7 @@ class User(db.Model, UserMixin):
     @property
     def full_name(self):
         user = self._search_ldap(self.username)
+
         return f"{user['given_name']} {user['surname']}"
 
     @property
@@ -78,6 +79,15 @@ class User(db.Model, UserMixin):
         return self.email
 
     def _search_ldap(self, username):
+        if current_app.config['TESTING']:
+            return {
+                'username': username,
+                'email': '',
+                'name': '',
+                'surname': '',
+                'given_name': '',
+            }
+
         l = ldap.initialize(current_app.config['LDAP_URI'])
         l.protocol_version = 3
         l.set_option(ldap.OPT_REFERRALS, 0)
@@ -107,7 +117,13 @@ class User(db.Model, UserMixin):
                 'given_name': user['givenName'][0].decode("utf-8"),
             }
         else:
-            return None
+            return {
+                'username': username,
+                'email': '',
+                'name': '',
+                'surname': '',
+                'given_name': '',
+            }
 
     def validate_password(self, password):
         l = ldap.initialize(current_app.config['LDAP_URI'])

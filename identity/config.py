@@ -53,6 +53,9 @@ class BaseConfig(object):
     SMSP_PASSWORD=os.environ["SMSP_PASSWORD"]
     SMSP_URL=os.environ["SMSP_URL"]
 
+    # PMI
+    PMI_DB_URI=os.environ["PMI_DB_URI"]
+
 
 class TestConfig(BaseConfig):
     """Configuration for general testing"""

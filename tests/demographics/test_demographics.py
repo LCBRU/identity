@@ -4,7 +4,7 @@ import os
 import pytest
 import shutil
 import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, PropertyMock
 from flask import current_app
 from identity.database import db
 from identity.demographics import (
@@ -12,6 +12,7 @@ from identity.demographics import (
     spine_lookup,
     process_demographics_request_data,
     produce_demographics_result,
+    get_pmi_details,
 )
 from identity.demographics.model import (
     DemographicsRequest,
@@ -37,6 +38,26 @@ from tests.demographics import (
     do_upload_data_and_extract,
 )
 
+PMI_DETAILS = {
+    'nhs_number': '12345678',
+    'uhl_s_number': 'S154367',
+    'family_name': 'Smith',
+    'given_name': 'Frances',
+    'gender': 'F',
+    'dob': '01-01-1976',
+    'postcode': 'LE5 9UH',
+}
+
+PMI_DETAILS_2 = {
+    'nhs_number': '87654321',
+    'uhl_s_number': 'S6543217',
+    'family_name': 'Jones',
+    'given_name': 'Martin',
+    'gender': 'M',
+    'dob': '02-02-1985',
+    'postcode': 'LE3 9HY',
+}
+
 @pytest.fixture(autouse=True)
 def cleanup_files(client):
     yield
@@ -45,6 +66,81 @@ def cleanup_files(client):
         current_app.config["FILE_UPLOAD_DIRECTORY"],
         ignore_errors=True,
     )
+
+
+def test__get_pmi_details__correct(client, faker):
+    with patch('identity.demographics.pmi_engine') as mock_engine:
+        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = [PMI_DETAILS]
+
+        result = get_pmi_details('100')
+
+        mock_engine.return_value.__enter__.return_value.execute.assert_called_once()
+    
+    assert result == PMI_DETAILS
+
+
+def test__get_pmi_details__not_found(client, faker):
+    with patch('identity.demographics.pmi_engine') as mock_engine:
+        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = []
+
+        result = get_pmi_details('100')
+
+        mock_engine.return_value.__enter__.return_value.execute.assert_called_once()
+    
+    assert result is None
+
+
+def test__get_pmi_details__multiple_found(client, faker):
+    with patch('identity.demographics.pmi_engine') as mock_engine:
+        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = [PMI_DETAILS, PMI_DETAILS_2]
+
+        with pytest.raises(Exception):
+            get_pmi_details('100')
+
+        mock_engine.return_value.__enter__.return_value.execute.assert_called_once()
+
+
+def test__get_pmi_details__multi_ids__both_not_found(client, faker):
+    with patch('identity.demographics.pmi_engine') as mock_engine:
+        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = []
+
+        result = get_pmi_details('100', '200')
+
+        assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
+    
+    assert result is None
+
+
+def test__get_pmi_details__multi_ids__first_found(client, faker):
+    with patch('identity.demographics.pmi_engine') as mock_engine:
+        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[PMI_DETAILS], []]
+
+        result = get_pmi_details('100', '200')
+
+        assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
+    
+    assert result == PMI_DETAILS
+
+
+def test__get_pmi_details__multi_ids__second_found(client, faker):
+    with patch('identity.demographics.pmi_engine') as mock_engine:
+        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[], [PMI_DETAILS]]
+
+        result = get_pmi_details('100', '200')
+
+        assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
+    
+    assert result == PMI_DETAILS
+
+
+def test__get_pmi_details__multi_ids__mismatch(client, faker):
+    with patch('identity.demographics.pmi_engine') as mock_engine:
+        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[PMI_DETAILS_2], [PMI_DETAILS]]
+
+        with pytest.raises(Exception):
+            get_pmi_details('100', '200')
+
+        assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
 
 
 @pytest.mark.parametrize(
@@ -72,7 +168,12 @@ def test__extract_data(client, faker, extension, header_count, column_count, row
 
     do_submit(client, dr.id)
 
-    do_extract_data(dr.id)
+    with patch('identity.demographics.get_pmi_details') as mock_pmi_details:
+        mock_pmi_details.return_value = PMI_DETAILS
+
+        do_extract_data(dr.id)
+
+        assert mock_pmi_details.call_count == row_count
 
     dr = DemographicsRequest.query.get(dr.id)
     assert len(dr.data) == len(expected_data)
@@ -86,6 +187,14 @@ def test__extract_data(client, faker, extension, header_count, column_count, row
         assert e[3] == a.gender
         assert e[4] == a.dob
         assert e[5] == a.postcode
+
+        assert a.pmi_nhs_number == PMI_DETAILS['nhs_number']
+        assert a.pmi_uhl_s_number == PMI_DETAILS['uhl_s_number']
+        assert a.pmi_family_name == PMI_DETAILS['family_name']
+        assert a.pmi_given_name == PMI_DETAILS['given_name']
+        assert a.pmi_gender == PMI_DETAILS['gender']
+        assert a.pmi_dob == PMI_DETAILS['dob']
+        assert a.pmi_postcode == PMI_DETAILS['postcode']
 
 
 _MT_NHS_NUMBER = 0
@@ -1005,7 +1114,6 @@ def test__spine_lookup(client, faker, data, messages, match_type, parameters):
 
         spine_lookup(drd)
 
-        print(data)
         if match_type == _MT_NHS_NUMBER:
             mock_get_demographics_from_nhs_number.assert_called_once_with(**parameters)
             mock_get_demographics_from_search.assert_not_called()
@@ -1033,7 +1141,6 @@ def test__spine_lookup(client, faker, data, messages, match_type, parameters):
     assert actual_messages == messages
 
     if match_type != _MT_INSUFFICIENT:
-        print(data)
         assert drd.response is not None
         assert drd.response.title == 'Ms'
         assert drd.response.forename == 'Janet'
@@ -1218,9 +1325,7 @@ def test__process_demographics_request_data_exception(client, faker):
         process_demographics_request_data(drd.id, drd.demographics_request.id)
 
         mock_spine_lookup.assert_called_once_with(drd)
-        mock_schedule_lookup_tasks.assert_called_once_with(
-            drd.demographics_request.id,
-        )
+        mock_schedule_lookup_tasks.assert_not_called()
         mock_log_exception.assert_called_once_with(e)
 
 
@@ -1424,7 +1529,11 @@ def test__produce_demographics_result(client, faker, data, lookup_response, exte
     dr = do_create_request(client, faker, user, headers, data, extension)
     do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
     do_submit(client, dr.id)
-    do_extract_data(dr.id)
+
+    with patch('identity.demographics.get_pmi_details') as mock_pmi_details:
+        mock_pmi_details.return_value = PMI_DETAILS
+
+        do_extract_data(dr.id)
 
     for d, l in zip(dr.data, lookup_response):
 
@@ -1460,3 +1569,11 @@ def test__produce_demographics_result(client, faker, data, lookup_response, exte
         assert (row['spine_is_deceased'] == 'True') == expected['is_deceased']
         assert row['spine_current_gp_practice_code'] == expected['current_gp_practice_code']
         assert row['spine_message'] or '' == expected['expected_message']
+
+        assert row['pmi_nhs_number'] == PMI_DETAILS['nhs_number']
+        assert row['pmi_uhl_s_number'] == PMI_DETAILS['uhl_s_number']
+        assert row['pmi_family_name'] == PMI_DETAILS['family_name']
+        assert row['pmi_given_name'] == PMI_DETAILS['given_name']
+        assert row['pmi_gender'] == PMI_DETAILS['gender']
+        assert row['pmi_dob'] == PMI_DETAILS['dob']
+        assert row['pmi_postcode'] == PMI_DETAILS['postcode']

@@ -261,6 +261,13 @@ class DemographicsRequestXslx(DemographicsRequest):
             'spine_date_of_death',
             'spine_is_deceased',
             'spine_current_gp_practice_code',
+            'pmi_nhs_number',
+            'pmi_uhl_s_number',
+            'pmi_family_name',
+            'pmi_given_name',
+            'pmi_gender',
+            'pmi_dob',
+            'pmi_postcode',
             'spine_message',
         ]
 
@@ -288,8 +295,17 @@ class DemographicsRequestXslx(DemographicsRequest):
                     ws.cell(row=i + 2, column=insert_col + 9).value = ''
                 ws.cell(row=i + 2, column=insert_col + 10).value = 'True' if indexed_data[i].response.is_deceased else 'False'
                 ws.cell(row=i + 2, column=insert_col + 11).value = indexed_data[i].response.current_gp_practice_code
-            
-            ws.cell(row=i + 2, column=insert_col + 12).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in indexed_data[i].messages])
+
+                ws.cell(row=i + 2, column=insert_col + 12).value = indexed_data[i].pmi_nhs_number
+                ws.cell(row=i + 2, column=insert_col + 13).value = indexed_data[i].pmi_uhl_s_number
+                ws.cell(row=i + 2, column=insert_col + 14).value = indexed_data[i].pmi_family_name
+                ws.cell(row=i + 2, column=insert_col + 15).value = indexed_data[i].pmi_given_name
+                ws.cell(row=i + 2, column=insert_col + 16).value = indexed_data[i].pmi_gender
+                ws.cell(row=i + 2, column=insert_col + 17).value = indexed_data[i].pmi_dob
+                ws.cell(row=i + 2, column=insert_col + 18).value = indexed_data[i].pmi_postcode
+
+            ws.cell(row=i + 2, column=insert_col + 19).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in indexed_data[i].messages])
+
 
         wb.save(filename=self.result_filepath)
 
@@ -341,6 +357,13 @@ class DemographicsRequestCsv(DemographicsRequest):
                 'spine_date_of_death',
                 'spine_is_deceased',
                 'spine_current_gp_practice_code',
+                'pmi_nhs_number',
+                'pmi_uhl_s_number',
+                'pmi_family_name',
+                'pmi_given_name',
+                'pmi_gender',
+                'pmi_dob',
+                'pmi_postcode',
                 'spine_message',
             ])
 
@@ -368,6 +391,14 @@ class DemographicsRequestCsv(DemographicsRequest):
                         row['spine_date_of_death'] = response.date_of_death.strftime('%d-%b-%Y')
                     row['spine_is_deceased'] = 'True' if response.is_deceased else 'False'
                     row['spine_current_gp_practice_code'] = response.current_gp_practice_code
+
+                row['pmi_nhs_number'] = indexed_data[i].pmi_nhs_number
+                row['pmi_uhl_s_number'] = indexed_data[i].pmi_uhl_s_number
+                row['pmi_family_name'] = indexed_data[i].pmi_family_name
+                row['pmi_given_name'] = indexed_data[i].pmi_given_name
+                row['pmi_gender'] = indexed_data[i].pmi_gender
+                row['pmi_dob'] = indexed_data[i].pmi_dob
+                row['pmi_postcode'] = indexed_data[i].pmi_postcode
 
                 row['spine_message'] = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in indexed_data[i].messages])
 
@@ -430,11 +461,20 @@ class DemographicsRequestData(db.Model):
     response = db.relationship("DemographicsRequestDataResponse", uselist=False, back_populates="demographics_request_data")
 
     nhs_number = db.Column(db.String)
+    uhl_s_number = db.Column(db.String)
     family_name = db.Column(db.String)
     given_name = db.Column(db.String)
     gender = db.Column(db.String)
     dob = db.Column(db.String)
     postcode = db.Column(db.String)
+
+    pmi_nhs_number = db.Column(db.String)
+    pmi_uhl_s_number = db.Column(db.String)
+    pmi_family_name = db.Column(db.String)
+    pmi_given_name = db.Column(db.String)
+    pmi_gender = db.Column(db.String)
+    pmi_dob = db.Column(db.String)
+    pmi_postcode = db.Column(db.String)
 
     created_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     processed_datetime = db.Column(db.DateTime)

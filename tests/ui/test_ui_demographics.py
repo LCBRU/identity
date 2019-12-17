@@ -603,6 +603,8 @@ def _assert_uploaded_file_on_index(client, filename, id, status):
 
     assert response.soup.find(string=re.compile(filename)) is not None
 
+    print(response.soup)
+
     if status == AWAITING_DEFINE_COLUMNS:
         assert response.soup.find('a', href=url_for('ui.demographics_define_columns', id=id)) is not None
         assert response.soup.find('a', href=url_for('ui.demographics_submit', id=id)) is None
@@ -618,7 +620,7 @@ def _assert_uploaded_file_on_index(client, filename, id, status):
     elif status == RESULT_CREATED:
         assert response.soup.find('a', href=url_for('ui.demographics_define_columns', id=id)) is None
         assert response.soup.find('a', href=url_for('ui.demographics_submit', id=id)) is None
-        assert response.soup.find('a', href=url_for('ui.demographics_delete', id=id)) is None
+        assert response.soup.find('a', href=url_for('ui.demographics_delete', id=id)) is not None
         assert response.soup.find('a', href=url_for('ui.demographics_download_result', id=id)) is not None
 
 

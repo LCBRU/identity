@@ -3,7 +3,8 @@ import traceback
 from datetime import datetime
 from dateutil.parser import parse
 from flask import url_for, current_app, render_template
-from identity.database import db
+from sqlalchemy.sql import text
+from identity.database import db, pmi_engine
 from identity.celery import celery
 from identity.demographics.model import (
     DemographicsRequest,
@@ -302,6 +303,7 @@ def process_demographics_request_data(data_id, request_id):
         drd = DemographicsRequestData.query.get(data_id)
 
         if drd is None:
+            schedule_lookup_tasks(request_id)
             raise Exception('Data not found for ID = {}'.format(data_id))
 
         spine_lookup(drd)
@@ -344,6 +346,10 @@ def extract_data(request_id):
             dob = (str(r[cd.dob_column.name]) or '').strip() if cd.dob_column is not None else None
             postcode = (str(r[cd.postcode_column.name]) or '').strip() if cd.postcode_column is not None else None
 
+            pmi_details = get_pmi_details(nhs_number)
+
+            current_app.logger.info(f'PMI_DETAILS are {pmi_details}')
+
             d = DemographicsRequestData(
                 demographics_request=dr,
                 row_number=i,
@@ -353,6 +359,13 @@ def extract_data(request_id):
                 gender=gender,
                 dob=dob,
                 postcode=postcode,
+                pmi_nhs_number=pmi_details['nhs_number'] if pmi_details else None,
+                pmi_uhl_s_number=pmi_details['uhl_s_number'] if pmi_details else None,
+                pmi_family_name=pmi_details['family_name'] if pmi_details else None,
+                pmi_given_name=pmi_details['given_name'] if pmi_details else None,
+                pmi_gender=pmi_details['gender'] if pmi_details else None,
+                pmi_dob=pmi_details['dob'] if pmi_details else None,
+                pmi_postcode=pmi_details['postcode'] if pmi_details else None,
             )
 
             dr.data.append(d)
@@ -404,3 +417,44 @@ def save_demographics_error(demographics_request_id, e):
         dr.set_error(traceback.format_exc())
         db.session.add(dr)
         db.session.commit()
+
+
+def get_pmi_details(*ids):
+    result = None
+    with pmi_engine() as conn:
+        for id in ids:
+            pmi_result = conn.execute(text("""
+                SELECT
+                    nhs_number,
+                    main_pat_id as uhl_s_number,
+                    last_name as family_name,
+                    first_name as given_name,
+                    gender,
+                    dob,
+                    postcode
+                FROM [dbo].[UHL_PMI_QUERY_BY_ID](:id)
+                """), id=id)
+
+            pmi_records = pmi_result.fetchall()
+
+            if len(pmi_records) > 1:
+                raise Exception(f"More than one participant found with id='{id}' in the UHL PMI")
+
+            if len(pmi_records) == 1:
+                pmi_record = pmi_records[0]
+                pmi_details = {
+                    'nhs_number': pmi_record['nhs_number'],
+                    'uhl_s_number': pmi_record['uhl_s_number'],
+                    'family_name': pmi_record['family_name'],
+                    'given_name': pmi_record['given_name'],
+                    'gender': pmi_record['gender'],
+                    'dob': pmi_record['dob'],
+                    'postcode': pmi_record['postcode'],
+                }
+                if result is None:
+                    result = pmi_details
+                else:
+                    if result != pmi_details:
+                        raise Exception(f"Participant PMI mismatch for IDs '{ids}'")
+
+    return result

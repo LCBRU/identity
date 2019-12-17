@@ -16,3 +16,4 @@ openpyxl==3.0.0
 python-dateutil==2.8.0
 celery==4.3.0
 chardet
+pyodbc
