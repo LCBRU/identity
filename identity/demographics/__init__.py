@@ -469,7 +469,7 @@ def get_pmi_details(*ids):
             pmi_result = conn.execute(text("""
                 SELECT
                     nhs_number,
-                    main_pat_id as uhl_s_number,
+                    main_pat_id as uhl_system_number,
                     last_name as family_name,
                     first_name as given_name,
                     gender,
@@ -487,7 +487,7 @@ def get_pmi_details(*ids):
                 pmi_record = pmi_records[0]
                 pmi_details = DemographicsRequestPmiData(
                     nhs_number=pmi_record['nhs_number'],
-                    uhl_s_number=pmi_record['uhl_s_number'],
+                    uhl_system_number=pmi_record['uhl_system_number'],
                     family_name=pmi_record['family_name'],
                     given_name=pmi_record['given_name'],
                     gender=pmi_record['gender'],

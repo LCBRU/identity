@@ -43,7 +43,7 @@ from tests.demographics import (
 
 PMI_DETAILS = {
     'nhs_number': '12345678',
-    'uhl_s_number': 'S154367',
+    'uhl_system_number': 'S154367',
     'family_name': 'Smith',
     'given_name': 'Frances',
     'gender': 'F',
@@ -53,7 +53,7 @@ PMI_DETAILS = {
 
 EXPECTED_PMI_DETAILS = DemographicsRequestPmiData(
     nhs_number=PMI_DETAILS['nhs_number'],
-    uhl_s_number=PMI_DETAILS['uhl_s_number'],
+    uhl_system_number=PMI_DETAILS['uhl_system_number'],
     family_name=PMI_DETAILS['family_name'],
     given_name=PMI_DETAILS['given_name'],
     gender=PMI_DETAILS['gender'],
@@ -63,7 +63,7 @@ EXPECTED_PMI_DETAILS = DemographicsRequestPmiData(
 
 PMI_DETAILS_2 = {
     'nhs_number': '87654321',
-    'uhl_s_number': 'S6543217',
+    'uhl_system_number': 'S6543217',
     'family_name': 'Jones',
     'given_name': 'Martin',
     'gender': 'M',
@@ -1552,7 +1552,7 @@ def test__produce_demographics_result(client, faker, data, lookup_response, exte
         mock_get_pmi_details.side_effect = [
             DemographicsRequestPmiData(
                 nhs_number=PMI_DETAILS['nhs_number'],
-                uhl_s_number=PMI_DETAILS['uhl_s_number'],
+                uhl_system_number=PMI_DETAILS['uhl_system_number'],
                 family_name=PMI_DETAILS['family_name'],
                 given_name=PMI_DETAILS['given_name'],
                 gender=PMI_DETAILS['gender'],
@@ -1598,7 +1598,7 @@ def test__produce_demographics_result(client, faker, data, lookup_response, exte
         assert row['spine_message'] or '' == expected['expected_message']
 
         assert row['pmi_nhs_number'] == PMI_DETAILS['nhs_number']
-        assert row['pmi_uhl_s_number'] == PMI_DETAILS['uhl_s_number']
+        assert row['pmi_uhl_system_number'] == PMI_DETAILS['uhl_system_number']
         assert row['pmi_family_name'] == PMI_DETAILS['family_name']
         assert row['pmi_given_name'] == PMI_DETAILS['given_name']
         assert row['pmi_gender'] == PMI_DETAILS['gender']

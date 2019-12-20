@@ -51,7 +51,7 @@ def cleanup_files(client):
 
 PMI_DETAILS = {
     'nhs_number': '12345678',
-    'uhl_s_number': 'S154367',
+    'uhl_system_number': 'S154367',
     'family_name': 'Smith',
     'given_name': 'Frances',
     'gender': 'F',
@@ -61,7 +61,7 @@ PMI_DETAILS = {
 
 EXPECTED_PMI_DETAILS = DemographicsRequestPmiData(
     nhs_number=PMI_DETAILS['nhs_number'],
-    uhl_s_number=PMI_DETAILS['uhl_s_number'],
+    uhl_system_number=PMI_DETAILS['uhl_system_number'],
     family_name=PMI_DETAILS['family_name'],
     given_name=PMI_DETAILS['given_name'],
     gender=PMI_DETAILS['gender'],

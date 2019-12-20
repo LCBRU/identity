@@ -273,7 +273,7 @@ class DemographicsRequestXslx(DemographicsRequest):
             'spine_is_deceased',
             'spine_current_gp_practice_code',
             'pmi_nhs_number',
-            'pmi_uhl_s_number',
+            'pmi_uhl_system_number',
             'pmi_family_name',
             'pmi_given_name',
             'pmi_gender',
@@ -313,7 +313,7 @@ class DemographicsRequestXslx(DemographicsRequest):
                 if pmi_data is not None:
                     current_app.logger.info('pmi_data')
                     ws.cell(row=i + 2, column=insert_col + 12).value = pmi_data.nhs_number
-                    ws.cell(row=i + 2, column=insert_col + 13).value = pmi_data.uhl_s_number
+                    ws.cell(row=i + 2, column=insert_col + 13).value = pmi_data.uhl_system_number
                     ws.cell(row=i + 2, column=insert_col + 14).value = pmi_data.family_name
                     ws.cell(row=i + 2, column=insert_col + 15).value = pmi_data.given_name
                     ws.cell(row=i + 2, column=insert_col + 16).value = pmi_data.gender
@@ -375,7 +375,7 @@ class DemographicsRequestCsv(DemographicsRequest):
                 'spine_is_deceased',
                 'spine_current_gp_practice_code',
                 'pmi_nhs_number',
-                'pmi_uhl_s_number',
+                'pmi_uhl_system_number',
                 'pmi_family_name',
                 'pmi_given_name',
                 'pmi_gender',
@@ -415,7 +415,7 @@ class DemographicsRequestCsv(DemographicsRequest):
                 if pmi_data is not None:
                     current_app.logger.info('pmi_data')
                     row['pmi_nhs_number'] = pmi_data.nhs_number
-                    row['pmi_uhl_s_number'] = pmi_data.uhl_s_number
+                    row['pmi_uhl_system_number'] = pmi_data.uhl_system_number
                     row['pmi_family_name'] = pmi_data.family_name
                     row['pmi_given_name'] = pmi_data.given_name
                     row['pmi_gender'] = pmi_data.gender
@@ -484,7 +484,7 @@ class DemographicsRequestData(db.Model):
     pmi_data = db.relationship("DemographicsRequestPmiData", uselist=False, back_populates="demographics_request_data")
 
     nhs_number = db.Column(db.String)
-    uhl_s_number = db.Column(db.String)
+    uhl_system_number = db.Column(db.String)
     family_name = db.Column(db.String)
     given_name = db.Column(db.String)
     gender = db.Column(db.String)
@@ -506,7 +506,7 @@ class DemographicsRequestPmiData(db.Model):
     demographics_request_data = db.relationship(DemographicsRequestData, foreign_keys=[demographics_request_data_id], back_populates="pmi_data")
 
     nhs_number = db.Column(db.String)
-    uhl_s_number = db.Column(db.String)
+    uhl_system_number = db.Column(db.String)
     family_name = db.Column(db.String)
     given_name = db.Column(db.String)
     gender = db.Column(db.String)
@@ -520,7 +520,7 @@ class DemographicsRequestPmiData(db.Model):
         if isinstance(other, DemographicsRequestPmiData):
             return (
                 self.nhs_number == other.nhs_number and
-                self.uhl_s_number == other.uhl_s_number and
+                self.uhl_system_number == other.uhl_system_number and
                 self.family_name == other.family_name and
                 self.given_name == other.given_name and
                 self.gender == other.gender and
