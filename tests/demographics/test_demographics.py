@@ -1558,35 +1558,7 @@ def test__produce_demographics_result(client, faker, data, lookup_response, exte
                 gender=PMI_DETAILS['gender'],
                 date_of_birth=parse(PMI_DETAILS['dob'], dayfirst=True),
                 postcode=PMI_DETAILS['postcode'],
-            ),
-            DemographicsRequestPmiData(
-                nhs_number=PMI_DETAILS['nhs_number'],
-                uhl_s_number=PMI_DETAILS['uhl_s_number'],
-                family_name=PMI_DETAILS['family_name'],
-                given_name=PMI_DETAILS['given_name'],
-                gender=PMI_DETAILS['gender'],
-                date_of_birth=parse(PMI_DETAILS['dob'], dayfirst=True),
-                postcode=PMI_DETAILS['postcode'],
-            ),
-            DemographicsRequestPmiData(
-                nhs_number=PMI_DETAILS['nhs_number'],
-                uhl_s_number=PMI_DETAILS['uhl_s_number'],
-                family_name=PMI_DETAILS['family_name'],
-                given_name=PMI_DETAILS['given_name'],
-                gender=PMI_DETAILS['gender'],
-                date_of_birth=parse(PMI_DETAILS['dob'], dayfirst=True),
-                postcode=PMI_DETAILS['postcode'],
-            ),
-            DemographicsRequestPmiData(
-                nhs_number=PMI_DETAILS['nhs_number'],
-                uhl_s_number=PMI_DETAILS['uhl_s_number'],
-                family_name=PMI_DETAILS['family_name'],
-                given_name=PMI_DETAILS['given_name'],
-                gender=PMI_DETAILS['gender'],
-                date_of_birth=parse(PMI_DETAILS['dob'], dayfirst=True),
-                postcode=PMI_DETAILS['postcode'],
-            ),
-        ]
+            ) for _ in range(4)]
         
         extract_pmi_details(dr.id)
 
