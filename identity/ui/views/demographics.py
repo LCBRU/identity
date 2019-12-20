@@ -132,6 +132,8 @@ def demographics_define_columns(id):
     for f in form:
         f.choices = [(0, '')] + [(c.id, c.name) for c in columns]
 
+    if not form.uhl_system_number_column_id.data:
+        form.uhl_system_number_column_id.data = dr.get_most_likely_uhl_system_number_column_id()
     if not form.nhs_number_column_id.data:
         form.nhs_number_column_id.data = dr.get_most_likely_nhs_number_column_id()
     if not form.family_name_column_id.data:
@@ -150,6 +152,11 @@ def demographics_define_columns(id):
             dr.column_definition = DemographicsRequestColumnDefinition()
 
         dr.column_definition.last_updated_by_user = current_user
+
+        print(form.uhl_system_number_column_id.data)
+        print(f'demographics_define_columns (form.uhl_system_number_column_id.data={form.uhl_system_number_column_id.data})')
+
+        dr.column_definition.uhl_system_number_column_id = form.uhl_system_number_column_id.data if form.uhl_system_number_column_id.data > 0 else None
         dr.column_definition.nhs_number_column_id = form.nhs_number_column_id.data if form.nhs_number_column_id.data > 0 else None
         dr.column_definition.family_name_column_id = form.family_name_column_id.data if form.family_name_column_id.data > 0 else None
         dr.column_definition.given_name_column_id = form.given_name_column_id.data if form.given_name_column_id.data > 0 else None

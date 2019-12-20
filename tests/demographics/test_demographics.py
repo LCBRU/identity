@@ -160,7 +160,7 @@ def test__get_pmi_details__multi_ids__mismatch(client, faker):
 
 
 def test__extract_pmi_details(client, faker):
-    drd = do_upload_data_and_extract(client, faker, ['3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    drd = do_upload_data_and_extract(client, faker, ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
 
     with patch('identity.demographics.get_pmi_details') as mock_get_pmi_details:
         mock_get_pmi_details.return_value = EXPECTED_PMI_DETAILS
@@ -196,7 +196,7 @@ def test__extract_data(client, faker, extension, header_count, column_count, row
     expected_data = [faker.pylist(column_count, False, 'str') for _ in range(row_count)]
 
     dr = do_create_request(client, faker, user, headers, expected_data, extension)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
     do_submit(client, dr.id)
 
@@ -208,12 +208,13 @@ def test__extract_data(client, faker, extension, header_count, column_count, row
     assert dr.data_extracted_datetime is not None
 
     for e, a in zip(expected_data, dr.data):
-        assert e[0] == a.nhs_number
-        assert e[1] == a.family_name
-        assert e[2] == a.given_name
-        assert e[3] == a.gender
-        assert e[4] == a.dob
-        assert e[5] == a.postcode
+        assert e[0] == a.uhl_system_number
+        assert e[1] == a.nhs_number
+        assert e[2] == a.family_name
+        assert e[3] == a.given_name
+        assert e[4] == a.gender
+        assert e[5] == a.dob
+        assert e[6] == a.postcode
 
 
 _MT_NHS_NUMBER = 0
@@ -226,7 +227,7 @@ _MT_INSUFFICIENT = 2
     [
         # A valid example with all: Female
         (
-            ['3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -235,7 +236,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['3333333333', 'Smith', 'Jane', 'F', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Jane', 'F', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -244,7 +245,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['3333333333', 'Smith', 'Jane', ' F ', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Jane', ' F ', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -254,7 +255,7 @@ _MT_INSUFFICIENT = 2
         ),
         # A valid example with all: Male
         (
-            ['3333333333', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -263,7 +264,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['3333333333', 'Smith', 'Dave', 'M', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -273,7 +274,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Missing NHS Number
         (
-            ['', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_SEARCH,
             {
@@ -285,7 +286,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['    ', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '    ', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_SEARCH,
             {
@@ -297,7 +298,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            [None, 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', None, 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_SEARCH,
             {
@@ -310,7 +311,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Invalid NHS Number
         (
-            ['3333987934', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '3333987934', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -330,7 +331,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Missing Family Name
         (
-            ['', '', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', '', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_SEARCH,
             {
@@ -342,7 +343,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', '      ', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', '      ', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_SEARCH,
             {
@@ -354,7 +355,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', None, 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', None, 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_SEARCH,
             {
@@ -367,7 +368,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Invalid Family Name
         (
-            ['', 'N', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', 'N', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -387,7 +388,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Missing Given Name
         (
-            ['', 'Smith', '', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', 'Smith', '', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_SEARCH,
             {
@@ -399,7 +400,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', '      ', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', 'Smith', '      ', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_SEARCH,
             {
@@ -411,7 +412,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', None, 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', 'Smith', None, 'Male', '01-Jan-1970', 'LE10 8HG'],
             [],
             _MT_SEARCH,
             {
@@ -424,7 +425,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Invalid Given Name
         (
-            ['', 'Smith', 'D', 'Male', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', 'Smith', 'D', 'Male', '01-Jan-1970', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -444,7 +445,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Missing Gender
         (
-            ['3333333333', 'Smith', 'Frankie', '', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Frankie', '', '01-Jan-1970', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -460,7 +461,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', '', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', 'Smith', 'Frankie', '', '01-Jan-1970', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -479,7 +480,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', '    ', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', 'Smith', 'Frankie', '    ', '01-Jan-1970', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -498,7 +499,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', None, '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', 'Smith', 'Frankie', None, '01-Jan-1970', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -518,7 +519,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Invalid gender
         (
-            ['', 'Smith', 'Dave', 'Fred', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', 'Smith', 'Dave', 'Fred', '01-Jan-1970', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -537,7 +538,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Dave', 'Malevolent', '01-Jan-1970', 'LE10 8HG'],
+            ['S1234567', '', 'Smith', 'Dave', 'Malevolent', '01-Jan-1970', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -557,7 +558,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Invalid DOBs
         (
-            ['3333333333', 'Smith', 'Dave', 'M', '31-Dec-1899', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '31-Dec-1899', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -576,7 +577,7 @@ _MT_INSUFFICIENT = 2
             {},
         ),
         (
-            ['3333333333', 'Smith', 'Dave', 'M', '01-Jan-2100', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01-Jan-2100', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -595,7 +596,7 @@ _MT_INSUFFICIENT = 2
             {},
         ),
         (
-            ['3333333333', 'Smith', 'Dave', 'M', '01-Fred-2000', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01-Fred-2000', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -614,7 +615,7 @@ _MT_INSUFFICIENT = 2
             {},
         ),
         (
-            ['3333333333', 'Smith', 'Dave', 'M', '30-02-2000', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '30-02-2000', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -633,7 +634,7 @@ _MT_INSUFFICIENT = 2
             {},
         ),
         (
-            ['3333333333', 'Smith', 'Dave', 'M', '13-13-2000', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '13-13-2000', 'LE10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -653,7 +654,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Valid DOBs
         (
-            ['3333333333', 'Smith', 'Dave', 'M', '01-Jan-2000', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01-Jan-2000', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -662,7 +663,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['3333333333', 'Smith', 'Dave', 'M', 'January 1st 2000', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', 'January 1st 2000', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -671,7 +672,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['3333333333', 'Smith', 'Dave', 'M', '01 January 2000', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01 January 2000', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -680,7 +681,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['3333333333', 'Smith', 'Dave', 'M', 'Monday 01 January 2000', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', 'Monday 01 January 2000', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -689,7 +690,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['3333333333', 'Smith', 'Dave', 'M', '01/02/2000', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01/02/2000', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -698,7 +699,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['3333333333', 'Smith', 'Dave', 'M', '20000203', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '20000203', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -707,7 +708,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['3333333333', 'Smith', 'Dave', 'M', '2000-02-03', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '2000-02-03', 'LE10 8HG'],
             [],
             _MT_NHS_NUMBER,
             {
@@ -717,7 +718,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Missing DOB
         (
-            ['3333333333', 'Smith', 'Frankie', 'F', '', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Frankie', 'F', '', 'LE10 8HG'],
             [
                 {
                     'type': 'error',
@@ -730,7 +731,7 @@ _MT_INSUFFICIENT = 2
             {},
         ),
         (
-            ['3333333333', 'Smith', 'Frankie', 'F', '     ', 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Frankie', 'F', '     ', 'LE10 8HG'],
             [
                 {
                     'type': 'error',
@@ -743,7 +744,7 @@ _MT_INSUFFICIENT = 2
             {},
         ),
         (
-            ['3333333333', 'Smith', 'Frankie', 'Female', None, 'LE10 8HG'],
+            ['S1234567', '3333333333', 'Smith', 'Frankie', 'Female', None, 'LE10 8HG'],
             [
                 {
                     'type': 'error',
@@ -757,7 +758,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Invalid postcodes
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'LE101 8HG'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'LE101 8HG'],
             [
                 {
                     'type': 'warning',
@@ -776,7 +777,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', '10 8HG'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', '10 8HG'],
             [
                 {
                     'type': 'warning',
@@ -795,7 +796,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', 'Female', '20000203', 'LE10 887HG'],
+            ['S1234567', '', 'Smith', 'Frankie', 'Female', '20000203', 'LE10 887HG'],
             [
                 {
                     'type': 'warning',
@@ -814,7 +815,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', 'Female', '20000203', 'LE10A 8HG'],
+            ['S1234567', '', 'Smith', 'Frankie', 'Female', '20000203', 'LE10A 8HG'],
             [
                 {
                     'type': 'warning',
@@ -833,7 +834,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', 'Female', '20000203', 'LE10 8HG and something else'],
+            ['S1234567', '', 'Smith', 'Frankie', 'Female', '20000203', 'LE10 8HG and something else'],
             [
                 {
                     'type': 'warning',
@@ -854,7 +855,7 @@ _MT_INSUFFICIENT = 2
         # Valid postcodes
         # - 149 Piccadilly, London. House of the Duke of Wellington
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'W1J 7NT'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'W1J 7NT'],
             [],
             _MT_SEARCH,
             {
@@ -867,7 +868,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - 17 Burton Road Coton in the Elms, Derbyshire. The Black Horse Pub, possibly the furthest pub from the sea in the UK.
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'DE12 8HJ'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'DE12 8HJ'],
             [],
             _MT_SEARCH,
             {
@@ -880,7 +881,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - Buckingham Palace
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'SW1A 1AA'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'SW1A 1AA'],
             [],
             _MT_SEARCH,
             {
@@ -893,7 +894,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - covers 7 streets; the most in the UK
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'HD7 5UZ'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'HD7 5UZ'],
             [],
             _MT_SEARCH,
             {
@@ -906,7 +907,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - the longest addresses in terms of numbers of elements
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'CH5 3QW'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'CH5 3QW'],
             [],
             _MT_SEARCH,
             {
@@ -919,7 +920,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - the Post Town is CLARBESTON ROAD
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'SA63 4QJ'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'SA63 4QJ'],
             [],
             _MT_SEARCH,
             {
@@ -932,7 +933,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - When all the premises get expanded you'll get the longest 'premise string' in the UK
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'W2 1JB'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'W2 1JB'],
             [],
             _MT_SEARCH,
             {
@@ -945,7 +946,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - Devon and Cornwall Police vs Devon and Cornwall Constabulary
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'PL7 1RF'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'PL7 1RF'],
             [],
             _MT_SEARCH,
             {
@@ -958,7 +959,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - special case Postcode for Girobank at Bootle
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'GIR 0AA'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'GIR 0AA'],
             [],
             _MT_SEARCH,
             {
@@ -971,7 +972,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - You will find that 'towns and large villages' are classed as Localities; Jersey; the Isle of Man and Guernsey are the Post Towns.
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'JE3 1EP'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'JE3 1EP'],
             [],
             _MT_SEARCH,
             {
@@ -984,7 +985,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - You will find that 'towns and large villages' are classed as Localities; Jersey; the Isle of Man and Guernsey are the Post Towns.
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'JE2 3XP'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'JE2 3XP'],
             [],
             _MT_SEARCH,
             {
@@ -997,7 +998,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - You will find that 'towns and large villages' are classed as Localities; Jersey; the Isle of Man and Guernsey are the Post Towns.
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'IM9 4EB'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'IM9 4EB'],
             [],
             _MT_SEARCH,
             {
@@ -1010,7 +1011,7 @@ _MT_INSUFFICIENT = 2
         ),
         # - has no street
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'IM9 4AJ'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'IM9 4AJ'],
             [],
             _MT_SEARCH,
             {
@@ -1022,7 +1023,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'WC1A 1AA'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'WC1A 1AA'],
             [],
             _MT_SEARCH,
             {
@@ -1034,7 +1035,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'M1 1AA'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'M1 1AA'],
             [],
             _MT_SEARCH,
             {
@@ -1046,7 +1047,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'AB10 1JB'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'AB10 1JB'],
             [],
             _MT_SEARCH,
             {
@@ -1058,7 +1059,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', 'ZE3 9JZ'],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'ZE3 9JZ'],
             [],
             _MT_SEARCH,
             {
@@ -1071,7 +1072,7 @@ _MT_INSUFFICIENT = 2
         ),
         # Missing postcode
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', ''],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', ''],
             [],
             _MT_SEARCH,
             {
@@ -1083,7 +1084,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', '      '],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', '      '],
             [],
             _MT_SEARCH,
             {
@@ -1095,7 +1096,7 @@ _MT_INSUFFICIENT = 2
             },
         ),
         (
-            ['', 'Smith', 'Frankie', 'F', '20000203', None],
+            ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', None],
             [],
             _MT_SEARCH,
             {
@@ -1186,7 +1187,7 @@ def test__spine_lookup(client, faker, data, messages, match_type, parameters):
     ],
 )
 def test__spine_nhs_lookup_exceptions(client, faker, exception_class):
-    drd = do_upload_data_and_extract(client, faker, ['3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    drd = do_upload_data_and_extract(client, faker, ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
 
     with patch('identity.demographics.get_demographics_from_nhs_number') as mock_get_demographics_from_nhs_number:
 
@@ -1217,7 +1218,7 @@ def test__spine_nhs_lookup_exceptions(client, faker, exception_class):
     ],
 )
 def test__spine_search_exceptions(client, faker, exception_class):
-    drd = do_upload_data_and_extract(client, faker, ['', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    drd = do_upload_data_and_extract(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
 
     with patch('identity.demographics.get_demographics_from_search') as mock_get_demographics_from_search:
 
@@ -1237,7 +1238,7 @@ def test__spine_search_exceptions(client, faker, exception_class):
 
 
 def test__spine_nhs_lookup_response(client, faker):
-    drd = do_upload_data_and_extract(client, faker, ['3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    drd = do_upload_data_and_extract(client, faker, ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
 
     with patch('identity.demographics.get_demographics_from_nhs_number') as mock_get_demographics_from_nhs_number:
 
@@ -1277,7 +1278,7 @@ def test__spine_nhs_lookup_response(client, faker):
 
 
 def test__spine_search_response(client, faker):
-    drd = do_upload_data_and_extract(client, faker, ['', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    drd = do_upload_data_and_extract(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
 
     with patch('identity.demographics.get_demographics_from_search') as mock_get_demographics_from_search:
 
@@ -1317,7 +1318,7 @@ def test__spine_search_response(client, faker):
 
 
 def test__process_demographics_request_data(client, faker):
-    drd = do_upload_data_and_extract(client, faker, ['', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    drd = do_upload_data_and_extract(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
 
     with patch('identity.demographics.spine_lookup') as mock_spine_lookup, \
         patch('identity.demographics.schedule_lookup_tasks') as mock_schedule_lookup_tasks, \
@@ -1333,7 +1334,7 @@ def test__process_demographics_request_data(client, faker):
 
 
 def test__process_demographics_request_data_exception(client, faker):
-    drd = do_upload_data_and_extract(client, faker, ['', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    drd = do_upload_data_and_extract(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
 
     with patch('identity.demographics.spine_lookup') as mock_spine_lookup, \
         patch('identity.demographics.schedule_lookup_tasks') as mock_schedule_lookup_tasks, \
@@ -1350,7 +1351,7 @@ def test__process_demographics_request_data_exception(client, faker):
 
 
 def test__process_demographics_request_data__data_not_found(client, faker):
-    drd = do_upload_data_and_extract(client, faker, ['', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    drd = do_upload_data_and_extract(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
 
     with patch('identity.demographics.spine_lookup') as mock_spine_lookup, \
         patch('identity.demographics.schedule_lookup_tasks') as mock_schedule_lookup_tasks, \
@@ -1370,7 +1371,7 @@ def test__process_demographics_request_data__data_not_found(client, faker):
     [
         (
             [
-                ['3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'],
+                ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'],
             ],
             [
                 {
@@ -1394,8 +1395,8 @@ def test__process_demographics_request_data__data_not_found(client, faker):
         ),
         (
             [
-                ['3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'],
-                ['4444444444', 'Jones', 'Ben', 'Male', '01-Jan-1971', 'LE8 1HG'],
+                ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'],
+                ['S1234567', '4444444444', 'Jones', 'Ben', 'Male', '01-Jan-1971', 'LE8 1HG'],
             ],
             [
                 {
@@ -1455,7 +1456,7 @@ def test__process_demographics_request_data__data_not_found(client, faker):
         ),
         (
             [
-                ['3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'],
+                ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'],
             ],
             [
                 {
@@ -1479,8 +1480,8 @@ def test__process_demographics_request_data__data_not_found(client, faker):
         ),
         (
             [
-                ['3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'],
-                ['4444444444', 'Jones', 'Ben', 'Male', '01-Jan-1971', 'LE8 1HG'],
+                ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'],
+                ['S1234567', '4444444444', 'Jones', 'Ben', 'Male', '01-Jan-1971', 'LE8 1HG'],
             ],
             [
                 {
@@ -1544,10 +1545,10 @@ def test__produce_demographics_result(client, faker, data, lookup_response, exte
 
     user = login(client, faker)
 
-    headers = ['nhs_number', 'family_name', 'given_name', 'gender', 'dob', 'postcode']
+    headers = ['uhl_system_number', 'nhs_number', 'family_name', 'given_name', 'gender', 'dob', 'postcode']
 
     dr = do_create_request(client, faker, user, headers, data, extension)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
     do_submit(client, dr.id)
     do_extract_data(dr.id)
 

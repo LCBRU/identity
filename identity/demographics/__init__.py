@@ -364,6 +364,7 @@ def extract_data(request_id):
             )
 
         for i, r in enumerate(dr.iter_rows()):
+            uhl_system_number = (str(r[cd.uhl_system_number_column.name]) or '').strip() if cd.uhl_system_number_column is not None else None
             nhs_number = (str(r[cd.nhs_number_column.name]) or '').strip() if cd.nhs_number_column is not None else None
             family_name = (str(r[cd.family_name_column.name]) or '').strip() if cd.family_name_column is not None else None
             given_name = (str(r[cd.given_name_column.name]) or '').strip() if cd.given_name_column is not None else None
@@ -374,6 +375,7 @@ def extract_data(request_id):
             d = DemographicsRequestData(
                 demographics_request=dr,
                 row_number=i,
+                uhl_system_number=uhl_system_number,
                 nhs_number=nhs_number,
                 family_name=family_name,
                 given_name=given_name,

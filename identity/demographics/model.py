@@ -189,6 +189,9 @@ class DemographicsRequest(db.Model):
                 label("fetched_count")
                 )
 
+    def get_most_likely_uhl_system_number_column_id(self):
+        return self._get_most_likely_column_id('(uhl|\bs).*(number|no)')
+
     def get_most_likely_nhs_number_column_id(self):
         return self._get_most_likely_column_id('nhs.*(number|no)')
 
@@ -446,6 +449,8 @@ class DemographicsRequestColumnDefinition(db.Model):
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User, foreign_keys=[last_updated_by_user_id])
 
+    uhl_system_number_column_id = db.Column(db.Integer, db.ForeignKey(DemographicsRequestColumn.id))
+    uhl_system_number_column = db.relationship(DemographicsRequestColumn, foreign_keys=[uhl_system_number_column_id])
     nhs_number_column_id = db.Column(db.Integer, db.ForeignKey(DemographicsRequestColumn.id))
     nhs_number_column = db.relationship(DemographicsRequestColumn, foreign_keys=[nhs_number_column_id])
     family_name_column_id = db.Column(db.Integer, db.ForeignKey(DemographicsRequestColumn.id))

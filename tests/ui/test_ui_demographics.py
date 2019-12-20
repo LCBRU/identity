@@ -158,23 +158,25 @@ def test__ui_demographics_define_columns_get__not_owner(client, faker):
 
 
 @pytest.mark.parametrize(
-    "nhs_column_idx,family_name_idx,given_name_idx,gender_idx,dob_idx,postcode_idx,is_valid",
+    "uhl_system_number_column_idx, nhs_column_idx,family_name_idx,given_name_idx,gender_idx,dob_idx,postcode_idx,is_valid",
     [
-        (0, -1, -1, -1, -1, -1, False),
-        (-1, 0, -1, -1, -1, -1, False),
-        (-1, -1, 0, -1, -1, -1, False),
-        (-1, -1, -1, 0, -1, -1, False),
-        (-1, -1, -1, -1, 0, -1, False),
-        (-1, -1, -1, -1, -1, 0, False),
-        (0, -1, -1, -1, 1, -1, True),
-        (-1, 0, 1, 2, 3, 4, True),
+        (0, -1, -1, -1, -1, -1, -1, False),
+        (-1, 0, -1, -1, -1, -1, -1, False),
+        (-1, -1, 0, -1, -1, -1, -1, False),
+        (-1, -1, -1, 0, -1, -1, -1, False),
+        (-1, -1, -1, -1, 0, -1, -1, False),
+        (-1, -1, -1, -1, -1, 0, -1, False),
+        (-1, -1, -1, -1, -1, -1, 0, False),
+        (-1, 0, -1, -1, -1, 1, -1, True),
+        (-1, -1, 0, 1, 2, 3, 4, True),
     ],
 )
-def test__ui_demographics_define_columns_post(client, faker, nhs_column_idx, family_name_idx, given_name_idx, gender_idx, dob_idx, postcode_idx, is_valid):
+def test__ui_demographics_define_columns_post(client, faker, uhl_system_number_column_idx, nhs_column_idx, family_name_idx, given_name_idx, gender_idx, dob_idx, postcode_idx, is_valid):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
 
+    ex_uhl_system_number_column = dr.columns[uhl_system_number_column_idx] if uhl_system_number_column_idx >= 0 else None
     ex_nhs_number_column = dr.columns[nhs_column_idx] if nhs_column_idx >= 0 else None
     ex_family_name_column = dr.columns[family_name_idx] if family_name_idx >= 0 else None
     ex_given_name_column = dr.columns[given_name_idx] if given_name_idx >= 0 else None
@@ -182,7 +184,7 @@ def test__ui_demographics_define_columns_post(client, faker, nhs_column_idx, fam
     ex_dob_column = dr.columns[dob_idx] if dob_idx >= 0 else None
     ex_postcode_column = dr.columns[postcode_idx] if postcode_idx >= 0 else None
 
-    response = do_define_columns_post(client, dr.id, ex_nhs_number_column, ex_family_name_column, ex_given_name_column, ex_gender_column, ex_dob_column, ex_postcode_column)
+    response = do_define_columns_post(client, dr.id, ex_uhl_system_number_column, ex_nhs_number_column, ex_family_name_column, ex_given_name_column, ex_gender_column, ex_dob_column, ex_postcode_column)
 
     if (not is_valid):
         assert response.status_code == 200
@@ -194,6 +196,13 @@ def test__ui_demographics_define_columns_post(client, faker, nhs_column_idx, fam
         dr = DemographicsRequest.query.get(dr.id)
         
         assert dr.column_definition is not None
+
+        if ex_uhl_system_number_column:
+            assert dr.column_definition.uhl_system_number_column_id == ex_uhl_system_number_column.id
+            assert dr.column_definition.uhl_system_number_column == ex_uhl_system_number_column
+        else:
+            assert dr.column_definition.uhl_system_number_column_id is None
+            assert dr.column_definition.uhl_system_number_column is None
 
         if ex_nhs_number_column:
             assert dr.column_definition.nhs_number_column_id == ex_nhs_number_column.id
@@ -251,6 +260,7 @@ def test__ui_demographics_define_columns_post__not_owner(client, faker):
     response = client.post(
         url_for('ui.demographics_define_columns', id=dr.id, _external=True),
         data = {
+            'uhl_system_number_column_id': 0,
             'nhs_number_column_id': 0,
             'family_name_column_id': 0,
             'given_name_column_id': 0,
@@ -267,14 +277,14 @@ def test__ui_demographics_define_columns_update(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
-    response = do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    response = do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics_submit', id=dr.id, _external=True)
 
     response = client.get(url_for('ui.demographics_define_columns', id=dr.id, _external=True))
 
-    for i, name in enumerate(['nhs_number_column_id', 'family_name_column_id', 'given_name_column_id', 'gender_column_id', 'dob_column_id', 'postcode_column_id']):
+    for i, name in enumerate(['uhl_system_number_column_id', 'nhs_number_column_id', 'family_name_column_id', 'given_name_column_id', 'gender_column_id', 'dob_column_id', 'postcode_column_id']):
         select = response.soup.find('select', {'name': name})
         assert select is not None
         option = select.find('option', {"value": dr.columns[i].id})
@@ -288,7 +298,7 @@ def test__ui_demographics_submit_get(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
     response = client.get(url_for('ui.demographics_submit', id=dr.id, _external=True))
     assert response.status_code == 200
@@ -299,7 +309,7 @@ def test__ui_demographics_submit_get__not_owner(client, faker):
     headers = faker.pylist(10, False, 'str')
 
     dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
     user2 = login(client, faker)
     response = client.get(url_for('ui.demographics_submit', id=dr.id, _external=True))
@@ -310,7 +320,7 @@ def test__ui_demographics_submit_post(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
     response = do_submit(client, dr.id)
 
@@ -324,7 +334,7 @@ def test__ui_demographics_submit_post__not_owner(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
     user2 = login(client, faker)
     response = do_submit(client, dr.id)
@@ -335,7 +345,7 @@ def test__ui_demographics_no_result_created(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
     response = do_submit(client, dr.id)
 
@@ -347,7 +357,7 @@ def test__ui_demographics_result_created__download(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
     response = do_submit(client, dr.id)
 
@@ -381,7 +391,7 @@ def test__ui_demographics_delete_get(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
     do_submit(client, dr.id)
 
     response = client.get(url_for('ui.demographics_delete', id=dr.id, _external=True))
@@ -397,7 +407,7 @@ def test__ui_demographics_delete_post(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
     do_submit(client, dr.id)
 
     response = do_delete(client, dr.id)
@@ -417,7 +427,7 @@ def test__ui_demographics_delete_post__not_owner(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
     do_submit(client, dr.id)
 
     user2 = login(client, faker)
@@ -437,7 +447,7 @@ def test__ui_demographics_define_columns_get_404(client, faker):
 def test__ui_demographics_define_columns_post_404(client, faker):
     user = login(client, faker)
 
-    response = do_define_columns_post(client, 999, None, None, None, None, None, None)
+    response = do_define_columns_post(client, 999, None, None, None, None, None, None, None)
 
     assert response.status_code == 404
 
@@ -478,7 +488,7 @@ def test__ui_demographics_define_columns_get_submitted(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
     do_submit(client, dr.id)
     response = client.get(url_for('ui.demographics_define_columns', id=dr.id, _external=True))
 
@@ -492,9 +502,9 @@ def test__ui_demographics_define_columns_post_submitted(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
     do_submit(client, dr.id)
-    response = do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    response = do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
@@ -519,7 +529,7 @@ def test__ui_demographics_define_columns_post_deleted(client, faker):
 
     dr = do_create_request(client, faker, user)
     do_delete(client, dr.id)
-    response = do_define_columns_post(client, dr.id, None, None, None, None, None, None)
+    response = do_define_columns_post(client, dr.id, None, None, None, None, None, None, None)
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)

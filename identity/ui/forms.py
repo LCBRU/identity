@@ -74,6 +74,7 @@ class DemographicsLookupForm(FlashingForm):
     )
 
 class DemographicsDefineColumnsForm(FlashingForm):
+    uhl_system_number_column_id = SelectField('UHL System Number', coerce=int)
     nhs_number_column_id = SelectField('NHS Number', coerce=int)
     family_name_column_id = SelectField('Family Name', coerce=int)
     given_name_column_id = SelectField('Given Name', coerce=int)

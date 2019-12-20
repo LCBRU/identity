@@ -73,10 +73,11 @@ def do_create_request(client, faker, user, headers=None, data=None, extension='c
     return dr
 
 
-def do_define_columns_post(client, id, nhs_number_column, family_name_column, given_name_column, gender_column, dob_column, postcode_column):
+def do_define_columns_post(client, id, uhl_system_number_column, nhs_number_column, family_name_column, given_name_column, gender_column, dob_column, postcode_column):
     return client.post(
         url_for('ui.demographics_define_columns', id=id, _external=True),
         data = {
+            'uhl_system_number_column_id': uhl_system_number_column.id if uhl_system_number_column else 0,
             'nhs_number_column_id': nhs_number_column.id if nhs_number_column else 0,
             'family_name_column_id': family_name_column.id if family_name_column else 0,
             'given_name_column_id': given_name_column.id if given_name_column else 0,
@@ -140,10 +141,10 @@ def do_upload_data(client, faker, data, extension='csv'):
     else:
         data = [data]
 
-    headers = ['nhs_number', 'family_name', 'given_name', 'gender', 'dob', 'postcode']
+    headers = ['uhl_system_number', 'nhs_number', 'family_name', 'given_name', 'gender', 'dob', 'postcode']
 
     dr = do_create_request(client, faker, user, headers, data, extension)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
+    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
     do_submit(client, dr.id)
 

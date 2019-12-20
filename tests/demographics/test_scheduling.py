@@ -71,7 +71,7 @@ EXPECTED_PMI_DETAILS = DemographicsRequestPmiData(
 
 
 def test__schedule_lookup_tasks__schedule(client, faker):
-    dr = do_upload_data(client, faker, ['', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    dr = do_upload_data(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
 
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
         patch('identity.demographics.email') as mock_email, \
@@ -91,7 +91,7 @@ def test__schedule_lookup_tasks__schedule(client, faker):
 
 
 def test__schedule_lookup_tasks__data_extracted(client, faker):
-    drd = do_upload_data_and_extract(client, faker, ['', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    drd = do_upload_data_and_extract(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
     dr = drd.demographics_request
 
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
@@ -110,7 +110,7 @@ def test__schedule_lookup_tasks__data_extracted(client, faker):
 
 
 def test__schedule_lookup_tasks__pmi_extracted_pre(client, faker):
-    drd = do_upload_data_and_extract(client, faker, ['', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    drd = do_upload_data_and_extract(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
     dr = drd.demographics_request
 
     with patch('identity.demographics.get_pmi_details') as mock_get_pmi_details:
@@ -212,7 +212,7 @@ def test__schedule_lookup_tasks__data_request_not_found(client, faker):
 
 
 def test__schedule_lookup_tasks__exception(client, faker):
-    drd = do_upload_data_and_extract(client, faker, ['', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    drd = do_upload_data_and_extract(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
     dr = drd.demographics_request
 
     dr.pmi_data_pre_completed_datetime = datetime.datetime.utcnow()
@@ -242,7 +242,7 @@ def test__schedule_lookup_tasks__exception(client, faker):
 
 
 def test__schedule_lookup_tasks__deleted(client, faker):
-    dr = do_upload_data(client, faker, ['', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+    dr = do_upload_data(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
 
     dr.deleted_datetime = datetime.datetime.utcnow()
     db.session.add(dr)
