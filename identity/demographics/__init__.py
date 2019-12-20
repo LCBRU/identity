@@ -9,6 +9,7 @@ from identity.celery import celery
 from identity.demographics.model import (
     DemographicsRequest,
     DemographicsRequestData,
+    DemographicsRequestPmiData,
     DemographicsRequestDataMessage,
     DemographicsRequestDataResponse,
 )
@@ -266,27 +267,51 @@ def schedule_lookup_tasks(demographics_request_id):
         if dr.result_created:
             raise ScheduleException('Request id={} result already created'.format(demographics_request_id))
 
-        if dr.lookup_completed:
-            current_app.logger.warning('Request id={} lookup already completed'.format(demographics_request_id))
+        next_drd_id = db.session.query(DemographicsRequestData.id).filter(
+            DemographicsRequestData.demographics_request_id == demographics_request_id
+        ).filter(
+            DemographicsRequestData.processed_datetime.is_(None)
+        ).first()
 
         if not dr.data_extracted:
-            extract_data.delay(dr.id)
-        else:
-            next_drd_id = db.session.query(DemographicsRequestData.id).filter(
-                DemographicsRequestData.demographics_request_id == demographics_request_id
-            ).filter(
-                DemographicsRequestData.processed_datetime.is_(None)
-            ).first()
+            current_app.logger.info(f'Scheduling data extraction for demographics_request_id={demographics_request_id})')
+            extract_data.delay(demographics_request_id)
+        elif not dr.pmi_data_pre_completed:
+            current_app.logger.info(f'Scheduling PMI download pre for demographics_request_id={demographics_request_id})')
 
-            if next_drd_id is None:
-                dr.lookup_completed_datetime = datetime.utcnow()
-                db.session.add(dr)
-                db.session.commit()
+            extract_pmi_details.delay(demographics_request_id)
 
-                produce_demographics_result.delay(demographics_request_id)
-            else:
-                next_drd_id, = next_drd_id
-                process_demographics_request_data.delay(data_id=next_drd_id, request_id=demographics_request_id)
+            dr.pmi_data_pre_completed_datetime = datetime.utcnow()
+            db.session.add(dr)
+            db.session.commit()
+
+        elif not dr.lookup_completed and next_drd_id is None:
+            dr.lookup_completed_datetime = datetime.utcnow()
+            db.session.add(dr)
+            db.session.commit()
+
+            schedule_lookup_tasks(demographics_request_id)
+
+        elif not dr.lookup_completed and next_drd_id is not None:
+            current_app.logger.info(f'Scheduling demographics download for demographics_request_id={demographics_request_id})')
+
+            next_drd_id, = next_drd_id
+            process_demographics_request_data.delay(data_id=next_drd_id, request_id=demographics_request_id)
+
+        elif not dr.pmi_data_post_completed:
+            current_app.logger.info(f'Scheduling PMI download post for demographics_request_id={demographics_request_id})')
+
+            extract_pmi_details.delay(demographics_request_id)
+
+            dr.pmi_data_post_completed_datetime = datetime.utcnow()
+            db.session.add(dr)
+            db.session.commit()
+
+        elif not dr.result_created_datetime:
+            current_app.logger.info(f'Scheduling result creation demographics_request_id={demographics_request_id})')
+
+            produce_demographics_result.delay(demographics_request_id)
+
 
     except ScheduleException as sde:
         current_app.logger.warning(sde)
@@ -346,10 +371,6 @@ def extract_data(request_id):
             dob = (str(r[cd.dob_column.name]) or '').strip() if cd.dob_column is not None else None
             postcode = (str(r[cd.postcode_column.name]) or '').strip() if cd.postcode_column is not None else None
 
-            pmi_details = get_pmi_details(nhs_number)
-
-            current_app.logger.info(f'PMI_DETAILS are {pmi_details}')
-
             d = DemographicsRequestData(
                 demographics_request=dr,
                 row_number=i,
@@ -359,19 +380,41 @@ def extract_data(request_id):
                 gender=gender,
                 dob=dob,
                 postcode=postcode,
-                pmi_nhs_number=pmi_details['nhs_number'] if pmi_details else None,
-                pmi_uhl_s_number=pmi_details['uhl_s_number'] if pmi_details else None,
-                pmi_family_name=pmi_details['family_name'] if pmi_details else None,
-                pmi_given_name=pmi_details['given_name'] if pmi_details else None,
-                pmi_gender=pmi_details['gender'] if pmi_details else None,
-                pmi_dob=pmi_details['dob'] if pmi_details else None,
-                pmi_postcode=pmi_details['postcode'] if pmi_details else None,
             )
 
             dr.data.append(d)
-        
+
         dr.data_extracted_datetime = datetime.utcnow()
         db.session.add(dr)
+        db.session.commit()
+
+        schedule_lookup_tasks(request_id)
+
+    except Exception as e:
+        db.session.rollback()
+        log_exception(e)
+        save_demographics_error(request_id, e)
+
+
+@celery.task()
+def extract_pmi_details(request_id):
+    current_app.logger.info(f'extract_pmi_details (request_id={request_id})')
+
+    try:
+        dr = DemographicsRequest.query.get(request_id)
+
+        if dr is None:
+            raise Exception('request not found')
+
+        for d in dr.data:
+            current_app.logger.info('looking up PMI data')
+            pmi_details = get_pmi_details([d.nhs_number])
+
+            current_app.logger.info(f'PMI data found: {pmi_details is not None}')
+
+            pmi_details.demographics_request_data = d
+            db.session.add(pmi_details)
+
         db.session.commit()
 
         schedule_lookup_tasks(request_id)
@@ -442,19 +485,20 @@ def get_pmi_details(*ids):
 
             if len(pmi_records) == 1:
                 pmi_record = pmi_records[0]
-                pmi_details = {
-                    'nhs_number': pmi_record['nhs_number'],
-                    'uhl_s_number': pmi_record['uhl_s_number'],
-                    'family_name': pmi_record['family_name'],
-                    'given_name': pmi_record['given_name'],
-                    'gender': pmi_record['gender'],
-                    'dob': pmi_record['dob'],
-                    'postcode': pmi_record['postcode'],
-                }
+                pmi_details = DemographicsRequestPmiData(
+                    nhs_number=pmi_record['nhs_number'],
+                    uhl_s_number=pmi_record['uhl_s_number'],
+                    family_name=pmi_record['family_name'],
+                    given_name=pmi_record['given_name'],
+                    gender=pmi_record['gender'],
+                    date_of_birth=parse(pmi_record['dob'], dayfirst=True),
+                    postcode=pmi_record['postcode'],
+                )
                 if result is None:
                     result = pmi_details
                 else:
                     if result != pmi_details:
                         raise Exception(f"Participant PMI mismatch for IDs '{ids}'")
 
+        
     return result

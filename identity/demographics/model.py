@@ -24,6 +24,8 @@ class DemographicsRequest(db.Model):
     deleted_datetime = db.Column(db.DateTime)
     paused_datetime = db.Column(db.DateTime)
     data_extracted_datetime = db.Column(db.DateTime)
+    pmi_data_pre_completed_datetime =  db.Column(db.DateTime)
+    pmi_data_post_completed_datetime =  db.Column(db.DateTime)
     lookup_completed_datetime = db.Column(db.DateTime)
     result_created_datetime = db.Column(db.DateTime)
     result_downloaded_datetime = db.Column(db.DateTime)
@@ -96,6 +98,14 @@ class DemographicsRequest(db.Model):
     @property
     def result_created(self):
         return self.result_created_datetime is not None
+
+    @property
+    def pmi_data_pre_completed(self):
+        return self.pmi_data_pre_completed_datetime is not None
+
+    @property
+    def pmi_data_post_completed(self):
+        return self.pmi_data_post_completed_datetime is not None
 
     @property
     def result_downloaded(self):
@@ -240,6 +250,7 @@ class DemographicsRequestXslx(DemographicsRequest):
             yield dict(zip(column_names, r))
 
     def create_result(self):
+        current_app.logger.info('DemographicsRequestXslx.create_result')
         copyfile(self.filepath, self.result_filepath)
 
         wb = load_workbook(filename=self.result_filepath)
@@ -276,7 +287,9 @@ class DemographicsRequestXslx(DemographicsRequest):
             ws.cell(row=1, column=insert_col).value = fn
 
         for i, row in enumerate(self.iter_result_rows()):
+            current_app.logger.info('row')
             if indexed_data[i].response:
+                current_app.logger.info('response')
                 ws.cell(row=i + 2, column=insert_col).value = indexed_data[i].response.nhs_number
                 ws.cell(row=i + 2, column=insert_col + 1).value = indexed_data[i].response.title
                 ws.cell(row=i + 2, column=insert_col + 2).value = indexed_data[i].response.forename
@@ -296,13 +309,16 @@ class DemographicsRequestXslx(DemographicsRequest):
                 ws.cell(row=i + 2, column=insert_col + 10).value = 'True' if indexed_data[i].response.is_deceased else 'False'
                 ws.cell(row=i + 2, column=insert_col + 11).value = indexed_data[i].response.current_gp_practice_code
 
-                ws.cell(row=i + 2, column=insert_col + 12).value = indexed_data[i].pmi_nhs_number
-                ws.cell(row=i + 2, column=insert_col + 13).value = indexed_data[i].pmi_uhl_s_number
-                ws.cell(row=i + 2, column=insert_col + 14).value = indexed_data[i].pmi_family_name
-                ws.cell(row=i + 2, column=insert_col + 15).value = indexed_data[i].pmi_given_name
-                ws.cell(row=i + 2, column=insert_col + 16).value = indexed_data[i].pmi_gender
-                ws.cell(row=i + 2, column=insert_col + 17).value = indexed_data[i].pmi_dob
-                ws.cell(row=i + 2, column=insert_col + 18).value = indexed_data[i].pmi_postcode
+                pmi_data = indexed_data[i].pmi_data
+                if pmi_data is not None:
+                    current_app.logger.info('pmi_data')
+                    ws.cell(row=i + 2, column=insert_col + 12).value = pmi_data.nhs_number
+                    ws.cell(row=i + 2, column=insert_col + 13).value = pmi_data.uhl_s_number
+                    ws.cell(row=i + 2, column=insert_col + 14).value = pmi_data.family_name
+                    ws.cell(row=i + 2, column=insert_col + 15).value = pmi_data.given_name
+                    ws.cell(row=i + 2, column=insert_col + 16).value = pmi_data.gender
+                    ws.cell(row=i + 2, column=insert_col + 17).value = pmi_data.date_of_birth
+                    ws.cell(row=i + 2, column=insert_col + 18).value = pmi_data.postcode
 
             ws.cell(row=i + 2, column=insert_col + 19).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in indexed_data[i].messages])
 
@@ -341,6 +357,7 @@ class DemographicsRequestCsv(DemographicsRequest):
                 yield row
 
     def create_result(self):
+        current_app.logger.info('DemographicsRequestCsv.create_result')
         with open(self.result_filepath, 'w', encoding=self._get_encoding()) as result_file:
 
             fieldnames = self.get_column_names()
@@ -373,10 +390,12 @@ class DemographicsRequestCsv(DemographicsRequest):
             indexed_data = {d.row_number:d for d in self.data}
 
             for i, row in enumerate(self.iter_rows()):
+                current_app.logger.info('row')
 
                 response = indexed_data[i].response
 
                 if response:
+                    current_app.logger.info('response')
                     row['spine_nhs_number'] = response.nhs_number
                     row['spine_title'] = response.title
                     row['spine_forename'] = response.forename
@@ -392,13 +411,16 @@ class DemographicsRequestCsv(DemographicsRequest):
                     row['spine_is_deceased'] = 'True' if response.is_deceased else 'False'
                     row['spine_current_gp_practice_code'] = response.current_gp_practice_code
 
-                row['pmi_nhs_number'] = indexed_data[i].pmi_nhs_number
-                row['pmi_uhl_s_number'] = indexed_data[i].pmi_uhl_s_number
-                row['pmi_family_name'] = indexed_data[i].pmi_family_name
-                row['pmi_given_name'] = indexed_data[i].pmi_given_name
-                row['pmi_gender'] = indexed_data[i].pmi_gender
-                row['pmi_dob'] = indexed_data[i].pmi_dob
-                row['pmi_postcode'] = indexed_data[i].pmi_postcode
+                pmi_data = indexed_data[i].pmi_data
+                if pmi_data is not None:
+                    current_app.logger.info('pmi_data')
+                    row['pmi_nhs_number'] = pmi_data.nhs_number
+                    row['pmi_uhl_s_number'] = pmi_data.uhl_s_number
+                    row['pmi_family_name'] = pmi_data.family_name
+                    row['pmi_given_name'] = pmi_data.given_name
+                    row['pmi_gender'] = pmi_data.gender
+                    row['pmi_dob'] = pmi_data.date_of_birth
+                    row['pmi_postcode'] = pmi_data.postcode
 
                 row['spine_message'] = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in indexed_data[i].messages])
 
@@ -459,6 +481,7 @@ class DemographicsRequestData(db.Model):
     row_number = db.Column(db.Integer, nullable=False)
     demographics_request = db.relationship(DemographicsRequest, backref=db.backref("data"))
     response = db.relationship("DemographicsRequestDataResponse", uselist=False, back_populates="demographics_request_data")
+    pmi_data = db.relationship("DemographicsRequestPmiData", uselist=False, back_populates="demographics_request_data")
 
     nhs_number = db.Column(db.String)
     uhl_s_number = db.Column(db.String)
@@ -468,14 +491,6 @@ class DemographicsRequestData(db.Model):
     dob = db.Column(db.String)
     postcode = db.Column(db.String)
 
-    pmi_nhs_number = db.Column(db.String)
-    pmi_uhl_s_number = db.Column(db.String)
-    pmi_family_name = db.Column(db.String)
-    pmi_given_name = db.Column(db.String)
-    pmi_gender = db.Column(db.String)
-    pmi_dob = db.Column(db.String)
-    pmi_postcode = db.Column(db.String)
-
     created_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     processed_datetime = db.Column(db.DateTime)
 
@@ -483,6 +498,40 @@ class DemographicsRequestData(db.Model):
     def processed(self):
         return self.processed_datetime is not None
 
+
+
+class DemographicsRequestPmiData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    demographics_request_data_id = db.Column(db.Integer, db.ForeignKey(DemographicsRequestData.id))
+    demographics_request_data = db.relationship(DemographicsRequestData, foreign_keys=[demographics_request_data_id], back_populates="pmi_data")
+
+    nhs_number = db.Column(db.String)
+    uhl_s_number = db.Column(db.String)
+    family_name = db.Column(db.String)
+    given_name = db.Column(db.String)
+    gender = db.Column(db.String)
+    date_of_birth = db.Column(db.Date)
+    date_of_death = db.Column(db.Date)
+    postcode = db.Column(db.String)
+
+    created_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __eq__(self, other):
+        if isinstance(other, DemographicsRequestPmiData):
+            return (
+                self.nhs_number == other.nhs_number and
+                self.uhl_s_number == other.uhl_s_number and
+                self.family_name == other.family_name and
+                self.given_name == other.given_name and
+                self.gender == other.gender and
+                self.date_of_birth == other.date_of_birth and
+                self.date_of_death == other.date_of_death and
+                self.postcode == other.postcode
+            )
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class DemographicsRequestDataMessage(db.Model):

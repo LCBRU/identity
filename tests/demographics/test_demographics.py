@@ -4,6 +4,7 @@ import os
 import pytest
 import shutil
 import datetime
+from dateutil.parser import parse
 from unittest.mock import patch, MagicMock, PropertyMock
 from flask import current_app
 from identity.database import db
@@ -13,10 +14,12 @@ from identity.demographics import (
     process_demographics_request_data,
     produce_demographics_result,
     get_pmi_details,
+    extract_pmi_details,
 )
 from identity.demographics.model import (
     DemographicsRequest,
     DemographicsRequestData,
+    DemographicsRequestPmiData,
     DemographicsRequestDataMessage,
 )
 from identity.demographics.smsp import (
@@ -44,9 +47,19 @@ PMI_DETAILS = {
     'family_name': 'Smith',
     'given_name': 'Frances',
     'gender': 'F',
-    'dob': '01-01-1976',
+    'dob': '1976-01-01',
     'postcode': 'LE5 9UH',
 }
+
+EXPECTED_PMI_DETAILS = DemographicsRequestPmiData(
+    nhs_number=PMI_DETAILS['nhs_number'],
+    uhl_s_number=PMI_DETAILS['uhl_s_number'],
+    family_name=PMI_DETAILS['family_name'],
+    given_name=PMI_DETAILS['given_name'],
+    gender=PMI_DETAILS['gender'],
+    date_of_birth=parse(PMI_DETAILS['dob'], dayfirst=True),
+    postcode=PMI_DETAILS['postcode'],
+)
 
 PMI_DETAILS_2 = {
     'nhs_number': '87654321',
@@ -54,7 +67,7 @@ PMI_DETAILS_2 = {
     'family_name': 'Jones',
     'given_name': 'Martin',
     'gender': 'M',
-    'dob': '02-02-1985',
+    'dob': '1985-02-02',
     'postcode': 'LE3 9HY',
 }
 
@@ -76,7 +89,7 @@ def test__get_pmi_details__correct(client, faker):
 
         mock_engine.return_value.__enter__.return_value.execute.assert_called_once()
     
-    assert result == PMI_DETAILS
+    assert result == EXPECTED_PMI_DETAILS
 
 
 def test__get_pmi_details__not_found(client, faker):
@@ -119,7 +132,7 @@ def test__get_pmi_details__multi_ids__first_found(client, faker):
 
         assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
     
-    assert result == PMI_DETAILS
+    assert result == EXPECTED_PMI_DETAILS
 
 
 def test__get_pmi_details__multi_ids__second_found(client, faker):
@@ -130,7 +143,7 @@ def test__get_pmi_details__multi_ids__second_found(client, faker):
 
         assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
     
-    assert result == PMI_DETAILS
+    assert result == EXPECTED_PMI_DETAILS
 
 
 def test__get_pmi_details__multi_ids__mismatch(client, faker):
@@ -141,6 +154,22 @@ def test__get_pmi_details__multi_ids__mismatch(client, faker):
             get_pmi_details('100', '200')
 
         assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
+
+
+def test__extract_pmi_details(client, faker):
+    drd = do_upload_data_and_extract(client, faker, ['3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+
+    with patch('identity.demographics.get_pmi_details') as mock_get_pmi_details:
+        mock_get_pmi_details.return_value = EXPECTED_PMI_DETAILS
+
+        extract_pmi_details(drd.demographics_request.id)
+
+    drd = DemographicsRequestData.query.get(drd.id)
+
+    assert drd.pmi_data is not None
+    assert len(drd.messages) == 0
+
+    assert drd.pmi_data == EXPECTED_PMI_DETAILS
 
 
 @pytest.mark.parametrize(
@@ -168,12 +197,7 @@ def test__extract_data(client, faker, extension, header_count, column_count, row
 
     do_submit(client, dr.id)
 
-    with patch('identity.demographics.get_pmi_details') as mock_pmi_details:
-        mock_pmi_details.return_value = PMI_DETAILS
-
-        do_extract_data(dr.id)
-
-        assert mock_pmi_details.call_count == row_count
+    do_extract_data(dr.id)
 
     dr = DemographicsRequest.query.get(dr.id)
     assert len(dr.data) == len(expected_data)
@@ -187,14 +211,6 @@ def test__extract_data(client, faker, extension, header_count, column_count, row
         assert e[3] == a.gender
         assert e[4] == a.dob
         assert e[5] == a.postcode
-
-        assert a.pmi_nhs_number == PMI_DETAILS['nhs_number']
-        assert a.pmi_uhl_s_number == PMI_DETAILS['uhl_s_number']
-        assert a.pmi_family_name == PMI_DETAILS['family_name']
-        assert a.pmi_given_name == PMI_DETAILS['given_name']
-        assert a.pmi_gender == PMI_DETAILS['gender']
-        assert a.pmi_dob == PMI_DETAILS['dob']
-        assert a.pmi_postcode == PMI_DETAILS['postcode']
 
 
 _MT_NHS_NUMBER = 0
@@ -1090,6 +1106,7 @@ _MT_INSUFFICIENT = 2
     ],
 )
 def test__spine_lookup(client, faker, data, messages, match_type, parameters):
+
     drd = do_upload_data_and_extract(client, faker, data)
 
     with patch('identity.demographics.get_demographics_from_nhs_number') as mock_get_demographics_from_nhs_number, \
@@ -1529,11 +1546,49 @@ def test__produce_demographics_result(client, faker, data, lookup_response, exte
     dr = do_create_request(client, faker, user, headers, data, extension)
     do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5])
     do_submit(client, dr.id)
+    do_extract_data(dr.id)
 
-    with patch('identity.demographics.get_pmi_details') as mock_pmi_details:
-        mock_pmi_details.return_value = PMI_DETAILS
-
-        do_extract_data(dr.id)
+    with patch('identity.demographics.get_pmi_details') as mock_get_pmi_details:
+        mock_get_pmi_details.side_effect = [
+            DemographicsRequestPmiData(
+                nhs_number=PMI_DETAILS['nhs_number'],
+                uhl_s_number=PMI_DETAILS['uhl_s_number'],
+                family_name=PMI_DETAILS['family_name'],
+                given_name=PMI_DETAILS['given_name'],
+                gender=PMI_DETAILS['gender'],
+                date_of_birth=parse(PMI_DETAILS['dob'], dayfirst=True),
+                postcode=PMI_DETAILS['postcode'],
+            ),
+            DemographicsRequestPmiData(
+                nhs_number=PMI_DETAILS['nhs_number'],
+                uhl_s_number=PMI_DETAILS['uhl_s_number'],
+                family_name=PMI_DETAILS['family_name'],
+                given_name=PMI_DETAILS['given_name'],
+                gender=PMI_DETAILS['gender'],
+                date_of_birth=parse(PMI_DETAILS['dob'], dayfirst=True),
+                postcode=PMI_DETAILS['postcode'],
+            ),
+            DemographicsRequestPmiData(
+                nhs_number=PMI_DETAILS['nhs_number'],
+                uhl_s_number=PMI_DETAILS['uhl_s_number'],
+                family_name=PMI_DETAILS['family_name'],
+                given_name=PMI_DETAILS['given_name'],
+                gender=PMI_DETAILS['gender'],
+                date_of_birth=parse(PMI_DETAILS['dob'], dayfirst=True),
+                postcode=PMI_DETAILS['postcode'],
+            ),
+            DemographicsRequestPmiData(
+                nhs_number=PMI_DETAILS['nhs_number'],
+                uhl_s_number=PMI_DETAILS['uhl_s_number'],
+                family_name=PMI_DETAILS['family_name'],
+                given_name=PMI_DETAILS['given_name'],
+                gender=PMI_DETAILS['gender'],
+                date_of_birth=parse(PMI_DETAILS['dob'], dayfirst=True),
+                postcode=PMI_DETAILS['postcode'],
+            ),
+        ]
+        
+        extract_pmi_details(dr.id)
 
     for d, l in zip(dr.data, lookup_response):
 
@@ -1575,5 +1630,5 @@ def test__produce_demographics_result(client, faker, data, lookup_response, exte
         assert row['pmi_family_name'] == PMI_DETAILS['family_name']
         assert row['pmi_given_name'] == PMI_DETAILS['given_name']
         assert row['pmi_gender'] == PMI_DETAILS['gender']
-        assert row['pmi_dob'] == PMI_DETAILS['dob']
+        assert row['pmi_dob'] == PMI_DETAILS['dob'] or row['pmi_dob'] == parse(PMI_DETAILS['dob'], dayfirst=True)
         assert row['pmi_postcode'] == PMI_DETAILS['postcode']
