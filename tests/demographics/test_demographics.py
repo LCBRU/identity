@@ -42,7 +42,7 @@ from tests.demographics import (
 )
 
 PMI_DETAILS = {
-    'nhs_number': '12345678',
+    'nhs_number': '4444444444',
     'uhl_system_number': 'S154367',
     'family_name': 'Smith',
     'given_name': 'Frances',
@@ -64,7 +64,7 @@ EXPECTED_PMI_DETAILS = DemographicsRequestPmiData(
 )
 
 PMI_DETAILS_2 = {
-    'nhs_number': '87654321',
+    'nhs_number': '5555555555',
     'uhl_system_number': 'S6543217',
     'family_name': 'Jones',
     'given_name': 'Martin',
@@ -446,14 +446,7 @@ _MT_INSUFFICIENT = 2
         # Missing Gender
         (
             ['S1234567', '3333333333', 'Smith', 'Frankie', '', '01-Jan-1970', 'LE10 8HG'],
-            [
-                {
-                    'type': 'warning',
-                    'source': 'validation',
-                    'scope': 'gender',
-                    'message': 'Missing value',
-                },
-            ],
+            [],
             _MT_NHS_NUMBER,
             {
                 'nhs_number': '3333333333',
@@ -527,6 +520,12 @@ _MT_INSUFFICIENT = 2
                     'scope': 'gender',
                     'message': 'Invalid format',
                 },
+                {
+                    'type': 'warning',
+                    'source': 'validation',
+                    'scope': 'gender',
+                    'message': 'Missing value',
+                },
             ],
             _MT_SEARCH,
             {
@@ -545,6 +544,12 @@ _MT_INSUFFICIENT = 2
                     'source': 'validation',
                     'scope': 'gender',
                     'message': 'Invalid format',
+                },
+                {
+                    'type': 'warning',
+                    'source': 'validation',
+                    'scope': 'gender',
+                    'message': 'Missing value',
                 },
             ],
             _MT_SEARCH,
@@ -1148,6 +1153,8 @@ def test__spine_lookup(client, faker, data, messages, match_type, parameters):
     drd = DemographicsRequestData.query.get(drd.id)
 
     assert drd.processed_datetime is not None
+
+    print(data)
     assert len(drd.messages) == len(messages)
 
     actual_messages = [

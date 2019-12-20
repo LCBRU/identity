@@ -1,6 +1,6 @@
 import re
 import traceback
-from datetime import datetime
+from datetime import datetime, date
 from dateutil.parser import parse
 from flask import url_for, current_app, render_template
 from sqlalchemy.sql import text
@@ -36,6 +36,20 @@ def spine_lookup(demographics_request_data):
             )
         )
 
+    if demographics_request_data.pmi_data:
+        error, v_pmi_nhs_number = convert_nhs_number(demographics_request_data.pmi_data.nhs_number)
+        if error is not None:
+            demographics_request_data.messages.append(
+                DemographicsRequestDataMessage(
+                    type='warning',
+                    source='validation',
+                    scope='pmi_nhs_number',
+                    message=error,
+                )
+            )
+    else:
+        v_pmi_nhs_number = None
+
     error, v_gender = convert_gender(demographics_request_data.gender)
     if error is not None:
         demographics_request_data.messages.append(
@@ -44,15 +58,6 @@ def spine_lookup(demographics_request_data):
                 source='validation',
                 scope='gender',
                 message=error,
-            )
-        )
-    elif not v_gender:
-        demographics_request_data.messages.append(
-            DemographicsRequestDataMessage(
-                type='warning',
-                source='validation',
-                scope='gender',
-                message='Missing value',
             )
         )
 
@@ -89,6 +94,20 @@ def spine_lookup(demographics_request_data):
             )
         )
 
+    if demographics_request_data.pmi_data:
+        error, v_pmi_dob = convert_dob(demographics_request_data.pmi_data.date_of_birth)
+        if error is not None:
+            demographics_request_data.messages.append(
+                DemographicsRequestDataMessage(
+                    type='warning',
+                    source='validation',
+                    scope='pmi_date_of_birth',
+                    message=error,
+                )
+            )
+    else:
+        v_pmi_dob = None
+
     error, v_postcode = convert_postcode(demographics_request_data.postcode)
     if error is not None:
         demographics_request_data.messages.append(
@@ -101,12 +120,26 @@ def spine_lookup(demographics_request_data):
         )
 
     try:
+        # Use NHS Number and DOB from PMI, if not supplied
+        v_nhs_number = v_nhs_number or v_pmi_nhs_number
+        v_dob = v_dob or v_pmi_dob
+
         if v_nhs_number and v_dob:
             demographics = get_demographics_from_nhs_number(
                 nhs_number=v_nhs_number,
                 dob=v_dob,
             )
         elif v_dob:
+            if not v_gender:
+                demographics_request_data.messages.append(
+                    DemographicsRequestDataMessage(
+                        type='warning',
+                        source='validation',
+                        scope='gender',
+                        message='Missing value',
+                    )
+                )
+
             demographics = get_demographics_from_search(
                 family_name=v_family_name,
                 given_name=v_given_name,
@@ -174,7 +207,7 @@ def convert_nhs_number(nhs_number):
 
     # A valid NHS number must be 10 digits long
     if not re.search(r'^[0-9]{10}$', nhs_number):
-        return 'Invalid format', ''
+        return f'Invalid format {nhs_number}', ''
 
     checkcalc = lambda sum: 11 - (sum % 11)
 
@@ -215,6 +248,9 @@ def convert_name(name):
 def convert_dob(dob):
     if not dob:
         return None, ''
+
+    if isinstance(dob, date) or isinstance(dob, datetime):
+        return None, dob.strftime("%Y%m%d")
 
     dob_num = re.sub(r'[^0-9]', '', dob)
 
@@ -409,10 +445,11 @@ def extract_pmi_details(request_id):
             raise Exception('request not found')
 
         for d in dr.data:
-            pmi_details = get_pmi_details(d.nhs_number)
+            pmi_details = get_pmi_details(d.nhs_number, d.uhl_system_number)
 
-            pmi_details.demographics_request_data_id = d.id
-            db.session.add(pmi_details)
+            if pmi_details is not None:
+                pmi_details.demographics_request_data_id = d.id
+                db.session.add(pmi_details)
 
         db.session.commit()
 
@@ -483,11 +520,11 @@ def get_pmi_details(*ids):
             if len(pmi_records) > 1:
                 raise Exception(f"More than one participant found with id='{id}' in the UHL PMI")
 
-            if len(pmi_records) == 1:
+            if len(pmi_records) == 1 and pmi_records[0]['uhl_system_number'] is not None:
                 pmi_record = pmi_records[0]
 
                 pmi_details = DemographicsRequestPmiData(
-                    nhs_number=pmi_record['nhs_number'],
+                    nhs_number=pmi_record['nhs_number'].replace(' ', ''),
                     uhl_system_number=pmi_record['uhl_system_number'],
                     family_name=pmi_record['family_name'],
                     given_name=pmi_record['given_name'],

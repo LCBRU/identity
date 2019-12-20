@@ -1,4 +1,5 @@
 import six
+import time
 from flask import current_app
 from requests import Session
 from requests.auth import HTTPBasicAuth
@@ -237,6 +238,8 @@ def get_demographics_from_search(family_name, given_name, gender, dob, postcode)
 
             if response.responseCode == _SMSP_OK:
                 return SmspPatient(response.nhsNumber, response.subject._value_1[0])
+            
+            time.sleep(1)
 
     raise _SMSP_EXCEPTIONS[response.responseCode]()
 

@@ -160,7 +160,7 @@ def test__ui_demographics_define_columns_get__not_owner(client, faker):
 @pytest.mark.parametrize(
     "uhl_system_number_column_idx, nhs_column_idx,family_name_idx,given_name_idx,gender_idx,dob_idx,postcode_idx,is_valid",
     [
-        (0, -1, -1, -1, -1, -1, -1, False),
+        (0, -1, -1, -1, -1, -1, -1, True),
         (-1, 0, -1, -1, -1, -1, -1, False),
         (-1, -1, 0, -1, -1, -1, -1, False),
         (-1, -1, -1, 0, -1, -1, -1, False),

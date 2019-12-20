@@ -475,6 +475,8 @@ class DemographicsRequestColumnDefinition(db.Model):
             and self.dob_column_id is not None
             and self.gender_column_id is not None
             and self.postcode_column_id is not None
+        ) or (
+            self.uhl_system_number_column_id is not None
         )
 
 
