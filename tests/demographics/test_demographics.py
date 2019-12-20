@@ -48,6 +48,7 @@ PMI_DETAILS = {
     'given_name': 'Frances',
     'gender': 'F',
     'dob': parse('1976-01-01', dayfirst=True).date(),
+    'date_of_death': parse('2010-03-04', dayfirst=True).date(),
     'postcode': 'LE5 9UH',
 }
 
@@ -58,6 +59,7 @@ EXPECTED_PMI_DETAILS = DemographicsRequestPmiData(
     given_name=PMI_DETAILS['given_name'],
     gender=PMI_DETAILS['gender'],
     date_of_birth=PMI_DETAILS['dob'],
+    date_of_death=PMI_DETAILS['date_of_death'],
     postcode=PMI_DETAILS['postcode'],
 )
 
@@ -68,6 +70,7 @@ PMI_DETAILS_2 = {
     'given_name': 'Martin',
     'gender': 'M',
     'dob': parse('1985-02-02', dayfirst=True).date(),
+    'date_of_death': None,
     'postcode': 'LE3 9HY',
 }
 
@@ -1603,4 +1606,8 @@ def test__produce_demographics_result(client, faker, data, lookup_response, exte
         assert row['pmi_given_name'] == PMI_DETAILS['given_name']
         assert row['pmi_gender'] == PMI_DETAILS['gender']
         assert row['pmi_dob'] if isinstance(row['pmi_dob'], datetime.date) else parse(row['pmi_dob'], dayfirst=True).date() == PMI_DETAILS['dob']
+
+        if row['pmi_date_of_death']:
+            assert row['pmi_date_of_death'] if isinstance(row['pmi_date_of_death'], datetime.date) else parse(row['pmi_date_of_death'], dayfirst=True).date() == PMI_DETAILS['date_of_death']
+
         assert row['pmi_postcode'] == PMI_DETAILS['postcode']

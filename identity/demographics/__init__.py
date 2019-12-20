@@ -471,6 +471,7 @@ def get_pmi_details(*ids):
                     first_name as given_name,
                     gender,
                     dob,
+                    date_of_death,
                     postcode
                 FROM [dbo].[UHL_PMI_QUERY_BY_ID](:id)
                 """), id=id)
@@ -490,6 +491,7 @@ def get_pmi_details(*ids):
                     given_name=pmi_record['given_name'],
                     gender=pmi_record['gender'],
                     date_of_birth=pmi_record['dob'],
+                    date_of_death=pmi_record['date_of_death'],
                     postcode=pmi_record['postcode'],
                 )
                 if result is None:
