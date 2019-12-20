@@ -407,12 +407,9 @@ def extract_pmi_details(request_id):
             raise Exception('request not found')
 
         for d in dr.data:
-            current_app.logger.info('looking up PMI data')
-            pmi_details = get_pmi_details([d.nhs_number])
+            pmi_details = get_pmi_details(d.nhs_number)
 
-            current_app.logger.info(f'PMI data found: {pmi_details is not None}')
-
-            pmi_details.demographics_request_data = d
+            pmi_details.demographics_request_data_id = d.id
             db.session.add(pmi_details)
 
         db.session.commit()
@@ -485,13 +482,14 @@ def get_pmi_details(*ids):
 
             if len(pmi_records) == 1:
                 pmi_record = pmi_records[0]
+
                 pmi_details = DemographicsRequestPmiData(
                     nhs_number=pmi_record['nhs_number'],
                     uhl_system_number=pmi_record['uhl_system_number'],
                     family_name=pmi_record['family_name'],
                     given_name=pmi_record['given_name'],
                     gender=pmi_record['gender'],
-                    date_of_birth=parse(pmi_record['dob'], dayfirst=True),
+                    date_of_birth=pmi_record['dob'],
                     postcode=pmi_record['postcode'],
                 )
                 if result is None:

@@ -287,9 +287,7 @@ class DemographicsRequestXslx(DemographicsRequest):
             ws.cell(row=1, column=insert_col).value = fn
 
         for i, row in enumerate(self.iter_result_rows()):
-            current_app.logger.info('row')
             if indexed_data[i].response:
-                current_app.logger.info('response')
                 ws.cell(row=i + 2, column=insert_col).value = indexed_data[i].response.nhs_number
                 ws.cell(row=i + 2, column=insert_col + 1).value = indexed_data[i].response.title
                 ws.cell(row=i + 2, column=insert_col + 2).value = indexed_data[i].response.forename
@@ -311,7 +309,6 @@ class DemographicsRequestXslx(DemographicsRequest):
 
                 pmi_data = indexed_data[i].pmi_data
                 if pmi_data is not None:
-                    current_app.logger.info('pmi_data')
                     ws.cell(row=i + 2, column=insert_col + 12).value = pmi_data.nhs_number
                     ws.cell(row=i + 2, column=insert_col + 13).value = pmi_data.uhl_system_number
                     ws.cell(row=i + 2, column=insert_col + 14).value = pmi_data.family_name

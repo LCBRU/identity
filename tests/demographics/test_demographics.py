@@ -47,7 +47,7 @@ PMI_DETAILS = {
     'family_name': 'Smith',
     'given_name': 'Frances',
     'gender': 'F',
-    'dob': '1976-01-01',
+    'dob': parse('1976-01-01', dayfirst=True).date(),
     'postcode': 'LE5 9UH',
 }
 
@@ -57,7 +57,7 @@ EXPECTED_PMI_DETAILS = DemographicsRequestPmiData(
     family_name=PMI_DETAILS['family_name'],
     given_name=PMI_DETAILS['given_name'],
     gender=PMI_DETAILS['gender'],
-    date_of_birth=parse(PMI_DETAILS['dob'], dayfirst=True),
+    date_of_birth=PMI_DETAILS['dob'],
     postcode=PMI_DETAILS['postcode'],
 )
 
@@ -67,7 +67,7 @@ PMI_DETAILS_2 = {
     'family_name': 'Jones',
     'given_name': 'Martin',
     'gender': 'M',
-    'dob': '1985-02-02',
+    'dob': parse('1985-02-02', dayfirst=True).date(),
     'postcode': 'LE3 9HY',
 }
 
@@ -1556,7 +1556,7 @@ def test__produce_demographics_result(client, faker, data, lookup_response, exte
                 family_name=PMI_DETAILS['family_name'],
                 given_name=PMI_DETAILS['given_name'],
                 gender=PMI_DETAILS['gender'],
-                date_of_birth=parse(PMI_DETAILS['dob'], dayfirst=True),
+                date_of_birth=PMI_DETAILS['dob'],
                 postcode=PMI_DETAILS['postcode'],
             ) for _ in range(4)]
         
@@ -1602,5 +1602,5 @@ def test__produce_demographics_result(client, faker, data, lookup_response, exte
         assert row['pmi_family_name'] == PMI_DETAILS['family_name']
         assert row['pmi_given_name'] == PMI_DETAILS['given_name']
         assert row['pmi_gender'] == PMI_DETAILS['gender']
-        assert row['pmi_dob'] == PMI_DETAILS['dob'] or row['pmi_dob'] == parse(PMI_DETAILS['dob'], dayfirst=True)
+        assert row['pmi_dob'] if isinstance(row['pmi_dob'], datetime.date) else parse(row['pmi_dob'], dayfirst=True).date() == PMI_DETAILS['dob']
         assert row['pmi_postcode'] == PMI_DETAILS['postcode']
