@@ -470,3 +470,13 @@ class StudyIdSpecification():
         self.bioresource_identifier_types = bioresource_identifier_types or []
         self.legacy_identifier_types = legacy_identifier_types or []
         self.sequential_identifier_types = sequential_identifier_types or []
+
+
+class RedcapInstance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    database_name = db.Column(db.String(100), nullable=False)
+    base_url = db.Column(db.String(500), nullable=False)
+
+    def __str__(self):
+        return self.name

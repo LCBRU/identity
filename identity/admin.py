@@ -3,7 +3,7 @@ from flask_admin.form import SecureForm
 from flask_admin.contrib.sqla import ModelView, fields
 from flask_login import current_user
 from .database import db
-from .model import User, Study, Role
+from .model import User, Study, Role, RedcapInstance
 from .security import get_admin_role
 
 class QuerySelectMultipleFieldSet(fields.QuerySelectMultipleField):
@@ -45,3 +45,4 @@ def init_admin(app):
     flask_admin = admin.Admin(app, name="Leicester BRC Identity", url="/admin")
     flask_admin.add_view(UserView(User, db.session))
     flask_admin.add_view(StudyView(Study, db.session))
+    flask_admin.add_view(CustomView(RedcapInstance, db.session))
