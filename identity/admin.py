@@ -37,6 +37,11 @@ class UserView(CustomView):
     }
 
 
+class StudyView(CustomView):
+    form_columns = ["name"]
+
+
 def init_admin(app):
     flask_admin = admin.Admin(app, name="Leicester BRC Identity", url="/admin")
     flask_admin.add_view(UserView(User, db.session))
+    flask_admin.add_view(StudyView(Study, db.session))
