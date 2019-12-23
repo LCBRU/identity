@@ -1,5 +1,5 @@
 from flask_login import current_user
-from ..model import PseudoRandomIdProvider
+from ..model import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
     print_bag,
     print_barcode,
@@ -12,6 +12,21 @@ from .model import (
 )
 
 
+ID_TYPE_PARTICIPANT = "CiaPt"
+ID_TYPE_SAMPLE = "CiaSa"
+
+
+class CiaIdSpecification(StudyIdSpecification):
+    def __init__(self):
+        super().__init__(
+            study_name='CIA',
+            pseudo_identifier_types=[
+                {ID_TYPE_PARTICIPANT: 'CIA Participants'},
+                {ID_TYPE_SAMPLE: 'CIA Samples'},
+            ],
+        )
+
+
 class CiaPack(LabelPack):
     __mapper_args__ = {
         "polymorphic_identity": 'CiaPack',
@@ -20,7 +35,7 @@ class CiaPack(LabelPack):
     __study_name__ = 'CIA'
 
     def print(self):
-        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="CiaPt").first()
+        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
         bag_context = BagContext(
@@ -31,7 +46,7 @@ class CiaPack(LabelPack):
 
         sample_context = SampleContext(
             printer=PRINTER_BRU_CRF_SAMPLE,
-            id_provider=PseudoRandomIdProvider.query.filter_by(prefix="CiaSa").first(),
+            id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first(),
         )
 
         print_bag(

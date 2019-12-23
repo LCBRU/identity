@@ -1,5 +1,5 @@
 from flask_login import current_user
-from ..model import PseudoRandomIdProvider
+from ..model import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
     print_sample,
     print_bag_small,
@@ -10,6 +10,21 @@ from .model import (
 )
 
 
+ID_TYPE_PARTICIPANT = "LMbPt"
+ID_TYPE_SAMPLE = "LMbSa"
+
+
+class LimbIdSpecification(StudyIdSpecification):
+    def __init__(self):
+        super().__init__(
+            study_name='LIMb',
+            pseudo_identifier_types=[
+                {ID_TYPE_PARTICIPANT: 'LIMb Participants'},
+                {ID_TYPE_SAMPLE: 'LIMb Samples'},
+            ],
+        )
+
+
 class LimbPack(LabelPack):
     __mapper_args__ = {
         "polymorphic_identity": 'LimbPack',
@@ -18,10 +33,10 @@ class LimbPack(LabelPack):
     __study_name__ = 'LIMb'
 
     def print(self):
-        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="LMbPt").first()
+        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
-        sample_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="LMbSa").first()
+        sample_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first()
         edta_id = sample_id_provider.allocate_id(current_user).barcode
         serum_id = sample_id_provider.allocate_id(current_user).barcode
 

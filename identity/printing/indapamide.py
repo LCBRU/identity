@@ -1,5 +1,5 @@
 from flask_login import current_user
-from ..model import PseudoRandomIdProvider
+from ..model import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
     print_sample,
     print_bag,
@@ -10,6 +10,21 @@ from .model import (
     SampleContext,
     LabelPack,
 )
+
+
+ID_TYPE_PARTICIPANT = "IndPt"
+ID_TYPE_SAMPLE = "IndSa"
+
+
+class IndapamideIdSpecification(StudyIdSpecification):
+    def __init__(self):
+        super().__init__(
+            study_name='Indapamide',
+            pseudo_identifier_types=[
+                {ID_TYPE_PARTICIPANT: 'Indapamide Participants'},
+                {ID_TYPE_SAMPLE: 'Indapamide Samples'},
+            ],
+        )
 
 
 class IndapamidePack(LabelPack):

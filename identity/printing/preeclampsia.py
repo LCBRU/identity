@@ -1,5 +1,5 @@
 from flask_login import current_user
-from ..model import PseudoRandomIdProvider
+from ..model import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
     print_sample,
     print_bag,
@@ -11,6 +11,21 @@ from .model import (
 )
 
 
+ID_TYPE_PARTICIPANT = "PePt"
+ID_TYPE_SAMPLE = "PeSa"
+
+
+class AlleviateIdSpecification(StudyIdSpecification):
+    def __init__(self):
+        super().__init__(
+            study_name='Pre-Eclampsia',
+            pseudo_identifier_types=[
+                {ID_TYPE_PARTICIPANT: 'PRE-ECLAMPSIA Participants'},
+                {ID_TYPE_SAMPLE: 'PRE-ECLAMPSIA Samples'},
+            ],
+        )
+
+
 class PreeclampsiaPack(LabelPack):
     __mapper_args__ = {
         "polymorphic_identity": 'PreeclampsiaPack',
@@ -19,7 +34,7 @@ class PreeclampsiaPack(LabelPack):
     __study_name__ = 'Pre-Eclampsia'
 
     def print(self):
-        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="PePt").first()
+        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
         bag_context = BagContext(
@@ -30,7 +45,7 @@ class PreeclampsiaPack(LabelPack):
 
         sample_context = SampleContext(
             printer=PRINTER_TMF_SAMPLE,
-            id_provider=PseudoRandomIdProvider.query.filter_by(prefix="PeSa").first(),
+            id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first(),
         )
 
         print_bag(

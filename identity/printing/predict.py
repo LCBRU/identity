@@ -1,5 +1,5 @@
 from flask_login import current_user
-from ..model import PseudoRandomIdProvider
+from ..model import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
     print_sample,
     print_bag,
@@ -12,6 +12,21 @@ from .model import (
 )
 
 
+ID_TYPE_PARTICIPANT = "PrePt"
+ID_TYPE_SAMPLE = "PreSa"
+
+
+class PredictIdSpecification(StudyIdSpecification):
+    def __init__(self):
+        super().__init__(
+            study_name='PREDICT',
+            pseudo_identifier_types=[
+                {ID_TYPE_PARTICIPANT: 'PREDICT Participants'},
+                {ID_TYPE_SAMPLE: 'PREDICT Samples'},
+            ],
+        )
+
+
 class PredictPack(LabelPack):
     __mapper_args__ = {
         "polymorphic_identity": 'PredictPack',
@@ -20,7 +35,7 @@ class PredictPack(LabelPack):
     __study_name__ = 'PREDICT'
 
     def print(self):
-        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="PrePt").first()
+        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
         bag_context = BagContext(
@@ -31,7 +46,7 @@ class PredictPack(LabelPack):
 
         sample_context = SampleContext(
             printer=PRINTER_TMF_SAMPLE,
-            id_provider=PseudoRandomIdProvider.query.filter_by(prefix="PreSa").first(),
+            id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first(),
         )
 
         print_bag(

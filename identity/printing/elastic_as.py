@@ -1,5 +1,5 @@
 from flask_login import current_user
-from ..model import PseudoRandomIdProvider
+from ..model import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
     print_sample,
     print_bag,
@@ -13,6 +13,21 @@ from .model import (
 )
 
 
+ID_TYPE_PARTICIPANT = "EasSa"
+ID_TYPE_SAMPLE = "EasPt"
+
+
+class ElasticAsIdSpecification(StudyIdSpecification):
+    def __init__(self):
+        super().__init__(
+            study_name='ELASTIC-AS',
+            pseudo_identifier_types=[
+                {ID_TYPE_PARTICIPANT: 'ELASTIC-AS Participants'},
+                {ID_TYPE_SAMPLE: 'ELASTIC-AS Samples'},
+            ],
+        )
+
+
 class ElasticAsPack(LabelPack):
     __mapper_args__ = {
         "polymorphic_identity": 'ElasticAsPack',
@@ -21,7 +36,7 @@ class ElasticAsPack(LabelPack):
     __study_name__ = 'ELASTIC-AS'
 
     def print(self):
-        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="EasPt").first()
+        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
         bag_context = BagContext(
@@ -32,7 +47,7 @@ class ElasticAsPack(LabelPack):
 
         sample_context = SampleContext(
             printer=PRINTER_TMF_SAMPLE,
-            id_provider=PseudoRandomIdProvider.query.filter_by(prefix="EasSa").first(),
+            id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first(),
         )
 
         self.print_visit(bag_context, sample_context, 'Visit Baseline')

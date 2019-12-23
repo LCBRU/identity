@@ -453,3 +453,20 @@ class Study(db.Model):
 
     def __str__(self):
         return self.name or ""
+
+
+class StudyIdSpecification():
+
+    def __init__(
+        self,
+        study_name,
+        pseudo_identifier_types=None,
+        bioresource_identifier_types=None,
+        legacy_identifier_types=None,
+        sequential_identifier_types=None,
+    ):
+
+        self.pseudo_identifier_types = pseudo_identifier_types or []
+        self.bioresource_identifier_types = bioresource_identifier_types or []
+        self.legacy_identifier_types = legacy_identifier_types or []
+        self.sequential_identifier_types = sequential_identifier_types or []

@@ -1,5 +1,5 @@
 from flask_login import current_user
-from ..model import LegacyIdProvider, SequentialIdProvider
+from ..model import LegacyIdProvider, SequentialIdProvider, StudyIdSpecification
 from .model import (
     print_aliquot,
     print_bag,
@@ -15,6 +15,27 @@ from .model import (
 ID_NAME_BRICCS_PARTICIPANT='BRICCS Participant Number'
 ID_NAME_BRICCS_SAMPLE='BRICCS Sample Number'
 ID_NAME_BRICCS_ALIQUOT = 'BRICCS ALIQUOT'
+ID_NAME_BRICCS_KETTERING_ALIQUOT = f'KETTERING {ID_NAME_BRICCS_ALIQUOT}'
+
+ID_TYPE_PARTICIPANT = "BPt"
+ID_TYPE_SAMPLE = "BSa"
+
+
+class BriccsIdSpecification(StudyIdSpecification):
+    def __init__(self):
+        super().__init__(
+            study_name='BRICCS',
+            legacy_identifier_types=[
+                {ID_TYPE_PARTICIPANT: ID_NAME_BRICCS_PARTICIPANT},
+                {ID_TYPE_SAMPLE: ID_NAME_BRICCS_SAMPLE},
+            ],
+            sequential_identifier_types=[
+                {
+                    'name': ID_NAME_BRICCS_KETTERING_ALIQUOT,
+                    'last_number': 380,
+                },
+            ]
+        )
 
 
 class BriccsBags():

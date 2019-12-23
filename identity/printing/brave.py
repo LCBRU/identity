@@ -1,5 +1,5 @@
 from flask_login import current_user
-from ..model import PseudoRandomIdProvider
+from ..model import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
     print_bag,
     print_sample,
@@ -12,6 +12,27 @@ from .model import (
 from .briccs import BriccsBags
 
 
+ID_TYPE_PARTICIPANT = "BavPt"
+ID_TYPE_SAMPLE = "BavSa"
+ID_TYPE_FAMILY = "BavFm"
+ID_TYPE_POLAND_PARTICIPANT = "BavPl"
+ID_TYPE_EXTERNAL_PARTICIPANT = "BavXPt"
+
+
+class AlleviateIdSpecification(StudyIdSpecification):
+    def __init__(self):
+        super().__init__(
+            study_name='BRAVE',
+            pseudo_identifier_types=[
+                {ID_TYPE_PARTICIPANT: 'BRAVE Participants'},
+                {ID_TYPE_SAMPLE: 'BRAVE Samples'},
+                {ID_TYPE_FAMILY: 'BRAVE Families'},
+                {ID_TYPE_POLAND_PARTICIPANT: 'BRAVE Poland Participants'},
+                {ID_TYPE_EXTERNAL_PARTICIPANT: 'BRAVE External Participants'},
+            ],
+        )
+
+
 class BravePack(LabelPack):
     __mapper_args__ = {
         "polymorphic_identity": 'BravePack',
@@ -20,7 +41,7 @@ class BravePack(LabelPack):
     __study_name__ = 'BRAVE'
 
     def print(self):
-        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="BavPt").first()
+        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
         bag_context = BagContext(
@@ -31,7 +52,7 @@ class BravePack(LabelPack):
 
         sample_context = SampleContext(
             printer=PRINTER_BRU_CRF_SAMPLE,
-            id_provider=PseudoRandomIdProvider.query.filter_by(prefix="BavSa").first(),
+            id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first(),
         )
 
         bb = BriccsBags()
@@ -41,7 +62,7 @@ class BravePack(LabelPack):
         print_sample(
             label_context=SampleContext(
                 printer=PRINTER_BRU_CRF_SAMPLE,
-                id_provider=PseudoRandomIdProvider.query.filter_by(prefix="BavFm").first(),
+                id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_FAMILY).first(),
             ),
             count=7,
         )
@@ -55,7 +76,7 @@ class BraveExternalPack(LabelPack):
     __study_name__ = 'BRAVE'
 
     def print(self):
-        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="BavXPt").first()
+        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_EXTERNAL_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
         bag_context = BagContext(
@@ -66,7 +87,7 @@ class BraveExternalPack(LabelPack):
 
         sample_context = SampleContext(
             printer=PRINTER_BRU_CRF_SAMPLE,
-            id_provider=PseudoRandomIdProvider.query.filter_by(prefix="BavSa").first(),
+            id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first(),
         )
 
         bb = BriccsBags()
@@ -75,7 +96,7 @@ class BraveExternalPack(LabelPack):
         print_sample(
             label_context=SampleContext(
                 printer=PRINTER_BRU_CRF_SAMPLE,
-                id_provider=PseudoRandomIdProvider.query.filter_by(prefix="BavFm").first(),
+                id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_FAMILY).first(),
             ),
             count=1,
         )
@@ -89,7 +110,7 @@ class BravePolandPack(LabelPack):
     __study_name__ = 'BRAVE'
 
     def print(self):
-        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="BavPl").first()
+        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_POLAND_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
         bag_context = BagContext(
@@ -101,7 +122,7 @@ class BravePolandPack(LabelPack):
 
         sample_context = SampleContext(
             printer=PRINTER_BRU_CRF_SAMPLE,
-            id_provider=PseudoRandomIdProvider.query.filter_by(prefix="BavSa").first(),
+            id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first(),
         )
 
         self.print_citrate_bag(bag_context, sample_context)
@@ -110,7 +131,7 @@ class BravePolandPack(LabelPack):
         print_sample(
             label_context=SampleContext(
                 printer=PRINTER_BRU_CRF_SAMPLE,
-                id_provider=PseudoRandomIdProvider.query.filter_by(prefix="BavFm").first(),
+                id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_FAMILY).first(),
             ),
             count=7,
         )

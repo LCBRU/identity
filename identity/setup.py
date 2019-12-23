@@ -4,7 +4,8 @@ import inspect
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 from flask import current_app
-from itertools import groupby
+from itertools import groupby, chain
+from collections import ChainMap
 from .database import db
 from .model import (
     SequentialIdProvider,
@@ -15,6 +16,7 @@ from .model import (
     BioresourceIdProvider,
     BioresourceId,
     Study,
+    StudyIdSpecification,
 )
 from .security import get_system_user, get_admin_user
 from .printing.briccs import (
@@ -35,39 +37,7 @@ from .blinding.model import (
 )
 
 
-PSEUDORANDOM_ID_PROVIDERS = {
-    'ALLEVIATE Participants': 'AllPt',
-    'ALLEVIATE Samples': 'AllSa',
-    'BRAVE Participants': 'BavPt',
-    'BRAVE Samples': 'BavSa',
-    'BRAVE Families': 'BavFm',
-    'BRAVE Poland Participants': 'BavPl',
-    'BRAVE External Participants': 'BavXPt',
-    'CAE Participants': 'CaePt',
-    'CAE Samples': 'CaeSa',
-    'CARDIOMET Participants': 'CarPt',
-    'CARDIOMET Samples': 'CarSa',
-    'CIA Participants': 'CiaPt',
-    'CIA Samples': 'CiaSa',
-    'DISCORDANCE Participants': 'DisPt',
-    'ELASTIC-AS Samples': 'EasSa',
-    'ELASTIC-AS Participants': 'EasPt',
-    'FAST Participants': 'FST',
-    'Indapamide Participants': 'IndPt',
-    'Indapamide Samples': 'IndSa',
-    'LENTEN Participants': 'LenPt',
-    'LENTEN Samples': 'LenSa',
-    'LIMb Participants': 'LMbPt',
-    'LIMb Samples': 'LMbSa',
-    'PREDICT Participants': 'PrePt',
-    'PREDICT Samples': 'PreSa',
-    'PRE-ECLAMPSIA Participants': 'PePt',
-    'PRE-ECLAMPSIA Samples': 'PeSa',
-    'SCAD Participants': 'ScPt',
-    'SCAD Samples': 'ScSa',
-    'SCAD Families': 'ScFm',
-    'SPIRAL Participants': 'SpPt',
-}
+PSEUDORANDOM_ID_PROVIDERS = {}
 
 
 def create_base_data():
@@ -261,62 +231,6 @@ def load_legacy_blind_ids(admin):
     db.session.commit()
 
 
-def create_providers(user):
-    print('Creating Providers')
-
-    if LegacyIdProvider.query.filter_by(name=ID_NAME_BRICCS_PARTICIPANT).count() == 0:
-        briccs_partipants = LegacyIdProvider(
-            name=ID_NAME_BRICCS_PARTICIPANT,
-            prefix='BPt',
-            number_fixed_length=8,
-            last_updated_by_user_id=user.id,
-        )
-        db.session.add(briccs_partipants)
-
-    if LegacyIdProvider.query.filter_by(name=ID_NAME_BRICCS_SAMPLE).count() == 0:
-        briccs_samples = LegacyIdProvider(
-            name=ID_NAME_BRICCS_SAMPLE,
-            prefix='BSa',
-            number_fixed_length=8,
-            last_updated_by_user_id=user.id,
-        )
-        db.session.add(briccs_samples)
-    
-    if SequentialIdProvider.query.filter_by(name='KETTERING ' + ID_NAME_BRICCS_ALIQUOT).count() == 0:
-        db.session.add(SequentialIdProvider(
-            name='KETTERING ' + ID_NAME_BRICCS_ALIQUOT,
-            last_updated_by_user=user,
-            last_number=380,
-        ))
-
-    if SequentialIdProvider.query.filter_by(name=ID_NAME_SCAD_REG).count() == 0:
-        db.session.add(SequentialIdProvider(
-            name=ID_NAME_SCAD_REG,
-            prefix=PREFIX_SCAD_REG,
-            zero_fill_size=5,
-            last_updated_by_user=user,
-            last_number=1999,
-        ))
-
-    for name, prefix in PSEUDORANDOM_ID_PROVIDERS.items():
-        if PseudoRandomIdProvider.query.filter_by(name=name).count() == 0:
-            db.session.add(PseudoRandomIdProvider(
-                name=name,
-                prefix=prefix,
-                last_updated_by_user=user,
-            ))
-
-    if BioresourceIdProvider.query.filter_by(prefix='BR').count() == 0:
-        bioresource_partipants = BioresourceIdProvider(
-            name='Bioresource Participants',
-            prefix='BR',
-            last_updated_by_user_id=user.id,
-        )
-        db.session.add(bioresource_partipants)
-
-    db.session.commit()
-
-
 def create_label_sets(user):
     print('Creating Label Sets')
 
@@ -351,6 +265,67 @@ def get_concrete_label_sets(cls=None):
     return result
 
 
+def get_concrete_id_specifications(cls=None):
+
+    if (cls is None):
+        cls = StudyIdSpecification
+
+    result = [sub() for sub in cls.__subclasses__()
+              if len(sub.__subclasses__()) == 0 and
+              # If the constructor requires parameters
+              # other than self (i.e., it has more than 1
+              # argument), it's an abstract class
+              len(inspect.getfullargspec(sub.__init__)[0]) == 1]
+
+    for sub in [sub for sub in cls.__subclasses__()
+                if len(sub.__subclasses__()) != 0]:
+        result += get_concrete_id_specifications(sub)
+
+    return result
+
+
+def create_providers(user):
+    print('Creating Providers')
+
+    for prefix, name in ChainMap({}, *chain.from_iterable([x.pseudo_identifier_types for x in get_concrete_id_specifications()])).items():
+        if PseudoRandomIdProvider.query.filter_by(name=name).count() == 0:
+            print(f'Creating provider {name}')
+            db.session.add(PseudoRandomIdProvider(
+                name=name,
+                prefix=prefix,
+                last_updated_by_user=user,
+            ))
+
+    for prefix, name in ChainMap({}, *chain.from_iterable([x.legacy_identifier_types for x in get_concrete_id_specifications()])).items():
+        if LegacyIdProvider.query.filter_by(name=name).count() == 0:
+            print(f'Creating provider {name}')
+            db.session.add(LegacyIdProvider(
+                name=name,
+                prefix=prefix,
+                number_fixed_length=8,
+                last_updated_by_user=user,
+            ))
+
+    for params in chain.from_iterable([x.sequential_identifier_types for x in get_concrete_id_specifications()]):
+        if SequentialIdProvider.query.filter_by(name=params['name']).count() == 0:
+            print(f'Creating provider {name}')
+            db.session.add(SequentialIdProvider(
+                last_updated_by_user=user,
+                **params,
+            ))
+
+    for prefix, name in ChainMap({}, *chain.from_iterable([x.bioresource_identifier_types for x in get_concrete_id_specifications()])).items():
+        if BioresourceIdProvider.query.filter_by(name=name).count() == 0:
+            print(f'Creating provider {name}')
+            db.session.add(BioresourceIdProvider(
+                name=name,
+                prefix=prefix,
+                last_updated_by_user=user,
+            ))
+
+    db.session.commit()
+
+
 def create_studies(user):
     print('Creating Studies')
 
@@ -366,7 +341,6 @@ def create_studies(user):
         admin = get_admin_user()
         admin.studies.add(study)
         db.session.add(admin)
-
 
     db.session.commit()
 
