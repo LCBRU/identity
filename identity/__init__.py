@@ -41,7 +41,7 @@ def create_app(config=BaseConfig):
     def init_data():
         init_users()
         create_base_data()
-        if not app.config['TESTING']:
+        if not app.config['TESTING'] and app.config['IMPORT_OLD_IDS']:
             import_ids()
 
     return app

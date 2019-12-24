@@ -477,6 +477,9 @@ class RedcapInstance(db.Model):
     name = db.Column(db.String(100), nullable=False)
     database_name = db.Column(db.String(100), nullable=False)
     base_url = db.Column(db.String(500), nullable=False)
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
 
     def __str__(self):
         return self.name

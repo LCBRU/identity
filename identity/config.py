@@ -6,6 +6,8 @@ load_dotenv()
 
 
 class BaseConfig(object):
+    IMPORT_OLD_IDS = os.getenv("IMPORT_OLD_IDS", "True") == 'True'
+
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     SQLALCHEMY_ECHO = os.getenv("SQLALCHEMY_ECHO", "False") == 'True'
     SQLALCHEMY_TRACK_MODIFICATIONS = False

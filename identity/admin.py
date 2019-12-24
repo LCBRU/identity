@@ -1,3 +1,4 @@
+import datetime
 import flask_admin as admin
 from flask_admin.form import SecureForm
 from flask_admin.contrib.sqla import ModelView, fields
@@ -38,11 +39,20 @@ class UserView(CustomView):
 
 
 class StudyView(CustomView):
+    can_delete = False
+    can_edit = False
     form_columns = ["name"]
+
+class RedcapInstanceView(CustomView):
+    form_columns = ["name", "database_name", "base_url"]
+
+    def on_model_change(self, form, model, is_created):
+        model.last_updated_datetime = datetime.datetime.utcnow()
+        model.last_updated_by_user = current_user
 
 
 def init_admin(app):
     flask_admin = admin.Admin(app, name="Leicester BRC Identity", url="/admin")
     flask_admin.add_view(UserView(User, db.session))
     flask_admin.add_view(StudyView(Study, db.session))
-    flask_admin.add_view(CustomView(RedcapInstance, db.session))
+    flask_admin.add_view(RedcapInstanceView(RedcapInstance, db.session))
