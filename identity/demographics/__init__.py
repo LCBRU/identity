@@ -524,7 +524,7 @@ def get_pmi_details(*ids):
                 pmi_record = pmi_records[0]
 
                 pmi_details = DemographicsRequestPmiData(
-                    nhs_number=pmi_record['nhs_number'].replace(' ', ''),
+                    nhs_number=(pmi_record['nhs_number'] or '').replace(' ', ''),
                     uhl_system_number=pmi_record['uhl_system_number'],
                     family_name=pmi_record['family_name'],
                     given_name=pmi_record['given_name'],
