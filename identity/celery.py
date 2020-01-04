@@ -8,6 +8,7 @@ celery = Celery(
     backend=BaseConfig.result_backend,
 )
 
+
 def init_celery(app):
     celery.conf.update(app.config)
 

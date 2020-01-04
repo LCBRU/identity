@@ -45,7 +45,7 @@ Staying in the `identity` directory and type the command:
 ./dev.py
 ```
 
-5. Start Celery
+5. Start Celery Worker
 
 This application uses Celery to run background tasks.
 To start Celery run the following command from the `identity`
@@ -53,6 +53,16 @@ directory:
 
 ```
 celery -A celery_worker.celery worker
+```
+
+5. Start Celery Beat
+
+This application uses Celery to run background tasks.
+To start Celery run the following command from the `identity`
+directory:
+
+```
+celery -A celery_worker.celery beat
 ```
 
 ## Development

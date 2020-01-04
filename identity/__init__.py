@@ -15,7 +15,7 @@ from .setup import import_ids, create_base_data
 from .utils import ReverseProxied
 from .celery import init_celery, celery
 from .config import BaseConfig
-
+from .redcap_import import *
 
 def create_app(config=BaseConfig):
     app = Flask(__name__)

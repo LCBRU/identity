@@ -76,7 +76,7 @@ class User(db.Model, UserMixin):
         return user['email']
 
     def __str__(self):
-        return self.email
+        return self.email or self.username
 
     def _search_ldap(self, username):
         if current_app.config['TESTING']:
@@ -477,6 +477,22 @@ class RedcapInstance(db.Model):
     name = db.Column(db.String(100), nullable=False)
     database_name = db.Column(db.String(100), nullable=False)
     base_url = db.Column(db.String(500), nullable=False)
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def __str__(self):
+        return self.name
+
+
+class RedcapProject(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    project_id = db.Column(db.Integer, nullable=False)
+    redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
+    redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
+    study_id = db.Column(db.Integer, db.ForeignKey(Study.id))
+    study = db.relationship(Study, backref=db.backref("redcap_projects"))
     last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)

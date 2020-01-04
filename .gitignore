@@ -108,3 +108,4 @@ live.env
 database.sqlite3
 upload/
 .vscode
+celerybeat.pid

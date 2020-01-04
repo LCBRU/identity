@@ -58,6 +58,17 @@ class BaseConfig(object):
     # PMI
     PMI_DB_URI=os.environ["PMI_DB_URI"]
 
+    # REDCap Database Details
+    REDCAP_USERNAME=os.environ["REDCAP_USERNAME"]
+    REDCAP_PASSWORD=os.environ["REDCAP_PASSWORD"]
+    REDCAP_HOST=os.environ["REDCAP_HOST"]
+
+    # REDCap Import Schedule
+    REDCAP_PROJECT_SCHEDULE_MINUTE=os.environ["REDCAP_PROJECT_SCHEDULE_MINUTE"]
+    REDCAP_PROJECT_SCHEDULE_HOUR=os.environ["REDCAP_PROJECT_SCHEDULE_HOUR"]
+    REDCAP_PARTICIPANTS_SCHEDULE_MINUTE=os.environ["REDCAP_PARTICIPANTS_SCHEDULE_MINUTE"]
+    REDCAP_PARTICIPANTS_SCHEDULE_HOUR=os.environ["REDCAP_PARTICIPANTS_SCHEDULE_HOUR"]
+
 
 class TestConfig(BaseConfig):
     """Configuration for general testing"""

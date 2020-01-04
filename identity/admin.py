@@ -4,7 +4,13 @@ from flask_admin.form import SecureForm
 from flask_admin.contrib.sqla import ModelView, fields
 from flask_login import current_user
 from .database import db
-from .model import User, Study, Role, RedcapInstance
+from .model import (
+    User,
+    Study,
+    Role,
+    RedcapInstance,
+    RedcapProject,
+)
 from .security import get_admin_role
 
 class QuerySelectMultipleFieldSet(fields.QuerySelectMultipleField):
@@ -43,8 +49,17 @@ class StudyView(CustomView):
     can_edit = False
     form_columns = ["name"]
 
+
 class RedcapInstanceView(CustomView):
     form_columns = ["name", "database_name", "base_url"]
+
+    def on_model_change(self, form, model, is_created):
+        model.last_updated_datetime = datetime.datetime.utcnow()
+        model.last_updated_by_user = current_user
+
+
+class RedcapProjectView(CustomView):
+    form_columns = ["study", "redcap_instance", "project_id"]
 
     def on_model_change(self, form, model, is_created):
         model.last_updated_datetime = datetime.datetime.utcnow()
@@ -56,3 +71,4 @@ def init_admin(app):
     flask_admin.add_view(UserView(User, db.session))
     flask_admin.add_view(StudyView(Study, db.session))
     flask_admin.add_view(RedcapInstanceView(RedcapInstance, db.session))
+    flask_admin.add_view(RedcapProjectView(RedcapProject, db.session))
