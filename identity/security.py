@@ -57,7 +57,6 @@ def init_users():
 
 
 def get_system_user():
-    current_app.logger.info(f'SYSTEM_USER_NAME: {SYSTEM_USER_NAME}')
     return User.query.filter_by(username=SYSTEM_USER_NAME).first()
 
 
