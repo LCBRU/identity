@@ -208,6 +208,8 @@ def get_demographics_from_search(family_name, given_name, gender, dob, postcode)
     # postcode: postcode or blank
     #           if postcode is given, it will also try without the postcode if a patient isn't found
 
+    current_app.logger.info(f'Getting demographics from search')
+
     client = _get_demographics_client()
 
     if gender:
@@ -245,6 +247,8 @@ def get_demographics_from_search(family_name, given_name, gender, dob, postcode)
 
 
 def get_demographics_from_nhs_number(nhs_number, dob):
+    current_app.logger.info(f'Getting demographics from NHS Number ({nhs_number}) and date of birth ({dob})')
+
     client = _get_demographics_client()
 
     response = client.service.getPatientByNHSNumber(
@@ -255,6 +259,7 @@ def get_demographics_from_nhs_number(nhs_number, dob):
     if response.responseCode == _SMSP_OK:
         return SmspPatient(response.nhsNumber, response.subject._value_1[0])
     else:
+        current_app.logger.info(f'SMSP error response "{response}"')
         raise _SMSP_EXCEPTIONS[response.responseCode]()
 
 
