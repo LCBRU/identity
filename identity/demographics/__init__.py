@@ -260,6 +260,7 @@ def convert_dob(dob):
     ansi_match = re.fullmatch(r'(?P<year>\d{4})[\\ -]?(?P<month>\d{2})[\\ -]?(?P<day>\d{2})', dob)
 
     if ansi_match:
+        current_app.logger.info(f'convert_dob: DOB is an ANSI date string')
         return None, ansi_match.group('year') + ansi_match.group('month') + ansi_match.group('day')
 
     try:
