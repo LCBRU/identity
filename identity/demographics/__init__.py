@@ -24,6 +24,12 @@ from identity.utils import log_exception
 from identity.emailing import email
 
 
+class PmiException(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__()
+
+
 def spine_lookup(demographics_request_data):
     error, v_nhs_number = convert_nhs_number(demographics_request_data.nhs_number)
     if error is not None:
@@ -222,6 +228,16 @@ def convert_nhs_number(nhs_number):
         return None, nhs_number
     
 
+def convert_uhl_system_number(uhl_system_number):
+    if not uhl_system_number:
+        return None, ''
+
+    if not re.search(r'^([SRFG]\d{7}|[U]\d{7}.*|LB\d{7}|RTD[\-0-9])$', uhl_system_number):
+        return f'Invalid format {uhl_system_number}', ''
+    else:
+        return None, uhl_system_number
+    
+
 def convert_gender(gender):
     if not gender:
         return None, ''
@@ -376,7 +392,8 @@ def process_demographics_request_data(data_id, request_id):
             schedule_lookup_tasks(request_id)
             raise Exception('Data not found for ID = {}'.format(data_id))
 
-        spine_lookup(drd)
+        if not drd.has_error:
+            spine_lookup(drd)
 
         schedule_lookup_tasks(request_id)
     except Exception as e:
@@ -453,12 +470,44 @@ def extract_pmi_details(request_id):
         if dr is None:
             raise Exception('request not found')
 
-        for d in dr.data:
-            pmi_details = get_pmi_details(d.nhs_number, d.uhl_system_number)
+        for d in (d for d in dr.data if not d.has_error):
+            try:
+                error, v_nhs_number = convert_nhs_number(d.nhs_number)
+                if error is not None:
+                    d.messages.append(
+                        DemographicsRequestDataMessage(
+                            type='warning',
+                            source='pmi_details',
+                            scope='nhs_number',
+                            message=error,
+                        )
+                    )
 
-            if pmi_details is not None:
-                pmi_details.demographics_request_data_id = d.id
-                db.session.add(pmi_details)
+                error, v_s_number = convert_uhl_system_number(d.uhl_system_number)
+                if error is not None:
+                    d.messages.append(
+                        DemographicsRequestDataMessage(
+                            type='warning',
+                            source='pmi_details',
+                            scope='uhl_system_number',
+                            message=error,
+                        )
+                    )
+
+                pmi_details = get_pmi_details(*[i for i in [v_nhs_number, v_s_number] if i])
+
+                if pmi_details is not None:
+                    pmi_details.demographics_request_data_id = d.id
+                    db.session.add(pmi_details)
+
+            except PmiException as e:
+                d.messages.append(
+                    DemographicsRequestDataMessage(
+                        type='error',
+                        source='pmi_details',
+                        scope='pmi_details',
+                        message=e.message,
+                    ))
 
         db.session.commit()
 
@@ -546,7 +595,7 @@ def get_pmi_details(*ids):
                     result = pmi_details
                 else:
                     if result != pmi_details:
-                        raise Exception(f"Participant PMI mismatch for IDs '{ids}'")
+                        raise PmiException(f"Participant PMI mismatch for IDs '{ids}'")
 
         
     return result

@@ -157,8 +157,12 @@ class DemographicsRequest(db.Model):
             return 'Awaiting Submission'
         elif not self.data_extracted:
             return 'Extracting Data'
+        elif not self.pmi_data_pre_completed:
+            return 'Fetching PMI details before spine lookup'
         elif not self.lookup_completed:
             return 'Fetching Demographics {} of {}'.format(self.fetched_count, self.data_count)
+        elif not self.pmi_data_post_completed:
+            return 'Fetching PMI details'
         elif not self.result_created:
             return 'Processing Demographics'
         elif not self.result_downloaded:
@@ -503,6 +507,9 @@ class DemographicsRequestData(db.Model):
     def processed(self):
         return self.processed_datetime is not None
 
+    @property
+    def has_error(self):
+        return any(m.is_error for m in self.messages)
 
 
 class DemographicsRequestPmiData(db.Model):
@@ -549,6 +556,11 @@ class DemographicsRequestDataMessage(db.Model):
     scope = db.Column(db.String)
     message = db.Column(db.String)
     created_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    @property
+    def is_error(self):
+        return self.type == 'error'
+
 
 
 class DemographicsRequestDataResponse(db.Model):
