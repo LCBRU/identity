@@ -499,3 +499,97 @@ class RedcapProject(db.Model):
 
     def __str__(self):
         return self.name
+
+
+ecrf_details__participant_identifiers = db.Table(
+    'ecrf_details__participant_identifiers',
+    db.Column(
+        'ecrf_detail_id',
+        db.Integer(),
+        db.ForeignKey('ecrf_detail.id'),
+        primary_key=True,
+    ),
+    db.Column(
+        'participant_identifier_id',
+        db.Integer(),
+        db.ForeignKey('participant_identifier.id'),
+        primary_key=True,
+    ),
+)
+
+
+class EcrfDetail(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, nullable=False)
+
+    ecrf_participant_identifier = db.Column(db.String(100))
+    recruitment_date = db.Column(db.Date)
+    first_name = db.Column(db.String(100))
+    last_name = db.Column(db.String(100))
+    sex = db.Column(db.String(1))
+    postcode = db.Column(db.String(10))
+    birth_date = db.Column(db.Date)
+    complete_or_expected = db.Column(db.Boolean)
+    non_completion_reason = db.Column(db.String(10))
+    withdrawal_date = db.Column(db.Date)
+    post_withdrawal_keep_samples = db.Column(db.Boolean)
+    post_withdrawal_keep_data = db.Column(db.Boolean)
+    brc_opt_out = db.Column(db.Boolean)
+    ecrf_timestamp = db.Column(db.BigInteger)
+
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    identifiers = db.relationship(
+        "ParticipantIdentifier",
+        secondary=ecrf_details__participant_identifiers,
+        collection_class=set,
+        backref=db.backref("ecrf_details", lazy="dynamic")
+    )
+
+    def __str__(self):
+        return self.ecrf_participant_identifier
+
+
+class ParticipantIdentifierType(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def __str__(self):
+        return self.name
+
+    @staticmethod
+    def get_or_create_type(name, user):
+        result = ParticipantIdentifierType.query.filter_by(
+            name=name,
+        ).one_or_none()
+        
+        if (result is None):
+            result = ParticipantIdentifierType(
+                name=name,
+                last_updated_by_user=user,
+            )
+
+            db.session.add(result)
+        
+        return result
+
+
+
+class ParticipantIdentifier(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    identifier = db.Column(db.String(100), nullable=False)
+    participant_identifier_type_id = db.Column(db.Integer, db.ForeignKey(ParticipantIdentifierType.id))
+    participant_identifier_type = db.relationship(ParticipantIdentifierType)
+
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def __str__(self):
+        return f"{self.type.name}: {self.identifier}"

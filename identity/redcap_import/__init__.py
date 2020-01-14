@@ -1,11 +1,15 @@
+from dateutil.parser import parse
 from datetime import datetime
 from celery.schedules import crontab
 from flask import current_app
 from sqlalchemy.sql import text
+from sqlalchemy import func
 from identity.celery import celery
 from identity.database import redcap_engine, db
-from identity.model import RedcapInstance, RedcapProject
+from identity.model import RedcapInstance, RedcapProject, EcrfDetail
 from identity.security import get_system_user
+from identity.redcap_import.model import BriccsImportStrategy
+
 
 @celery.on_after_configure.connect
 def setup_import_tasks(sender, **kwargs):
@@ -32,6 +36,7 @@ def import_project_details():
     system_user = get_system_user()
 
     for r in RedcapInstance.query.all():
+
         with redcap_engine(r.database_name) as conn:
             current_app.logger.info(f'importing projects from REDCap instance: {r.name}')
 
@@ -62,9 +67,47 @@ def import_project_details():
                     rp.last_updated_datetime = datetime.utcnow()
                     db.session.add(rp)
 
-    db.session.commit()             
+    db.session.commit()
 
 
 @celery.task
 def import_new_participants():
     current_app.logger.info('Importing REDCap particiapnts')
+
+    system_user = get_system_user()
+
+    for r in RedcapInstance.query.all()[0:1]:
+        strategy = BriccsImportStrategy()
+        
+        with redcap_engine(r.database_name) as conn:
+            current_app.logger.info(f'importing participants from REDCap instance: {r.name}')
+
+            max_timestamp, = db.session.query(func.max(EcrfDetail.ecrf_timestamp)).one()
+
+            current_app.logger.info(f'Previous timestamp: {max_timestamp}')
+
+            for p in conn.execute(
+                text(strategy.get_query()),
+                timestamp=max_timestamp or 0,
+                project_id=24,
+            ):
+
+                ecrf = strategy.fill_ecrf(
+                    p,
+                    EcrfDetail.query.filter_by(
+                        project_id=p['project_id'],
+                        ecrf_participant_identifier=p['record']
+                    ).one_or_none(),
+                )
+
+                ecrf.ecrf_timestamp=p['last_update_timestamp']
+                ecrf.last_updated_by_user_id=system_user.id
+                ecrf.last_updated_datetime=datetime.utcnow()
+
+                strategy.fill_identifiers(p, ecrf, system_user)
+
+                db.session.add(ecrf)
+
+            db.session.commit()
+
+    current_app.logger.info('Importing REDCap particiapnts - Done')

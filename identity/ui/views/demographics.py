@@ -28,6 +28,7 @@ from identity.demographics.model import (
 )
 from identity.demographics import schedule_lookup_tasks
 from identity.security import must_be_admin
+from identity.utils import log_exception
 
 
 def must_be_request_owner():
@@ -103,6 +104,7 @@ def demographics():
 
         except Exception as e:
             db.session.rollback()
+            log_exception(e)
             flash('File contents are invalid', 'error')
 
             return redirect(url_for('ui.demographics'))
