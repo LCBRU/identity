@@ -50,7 +50,7 @@ class ParticipantImportStrategy:
                 ecrf_participant_identifier=record['record'],
             )
         else:
-            current_app.logger.info(f'Updating ecrf for participant: {result.ecrf_participant_identifier}')
+            current_app.logger.info(f'Updating ecrf for participant: {record["record"]}')
             result = existing_ecrf
 
         return self._fill_ecrf_details(record, result)

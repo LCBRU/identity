@@ -273,7 +273,7 @@ def convert_dob(dob):
         return None, dob.strftime("%Y%m%d")
 
 
-    ansi_match = re.fullmatch(r'(?P<year>\d{4})[\\ -]?(?P<month>\d{2})[\\ -]?(?P<day>\d{2})', dob)
+    ansi_match = re.fullmatch(r'(?P<year>\d{4})[\\ -]?(?P<month>\d{2})[\\ -]?(?P<day>\d{2})(?:[ T]\d{2}:\d{2}:\d{2})?(?:\.\d+)?(?:[+-]\d{2}:\d{2})?', dob)
 
     if ansi_match:
         current_app.logger.info(f'convert_dob: DOB is an ANSI date string')

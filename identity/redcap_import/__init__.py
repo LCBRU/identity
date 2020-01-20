@@ -11,6 +11,9 @@ from identity.security import get_system_user
 from identity.redcap_import.model import BriccsImportStrategy
 
 
+def init_redcap_import(app):
+    pass
+
 @celery.on_after_configure.connect
 def setup_import_tasks(sender, **kwargs):
     sender.add_periodic_task(
