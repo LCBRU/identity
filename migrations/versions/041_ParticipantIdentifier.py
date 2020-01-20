@@ -30,7 +30,7 @@ def upgrade(migrate_engine):
         UniqueConstraint(
             'participant_identifier_type_id',
             'identifier',
-            name='uix__participant_identifier__participant_identifier_type_id__identifier',
+            name='uix__participant_identifier__part_id_type_id__identifier',
         )
      )
     t.create()
