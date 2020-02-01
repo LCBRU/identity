@@ -508,6 +508,14 @@ def extract_pmi_details(request_id):
                         scope='pmi_details',
                         message=e.message,
                     ))
+            except Exception as e:
+                d.messages.append(
+                    DemographicsRequestDataMessage(
+                        type='error',
+                        source='pmi_details',
+                        scope='pmi_details',
+                        message=dr.set_error(traceback.format_exc()),
+                    ))
 
         db.session.commit()
 
