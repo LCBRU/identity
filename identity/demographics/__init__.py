@@ -509,6 +509,7 @@ def extract_pmi_details(request_id):
                         message=e.message,
                     ))
             except Exception as e:
+                log_exception(e)
                 d.messages.append(
                     DemographicsRequestDataMessage(
                         type='error',

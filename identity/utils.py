@@ -4,6 +4,7 @@ import traceback
 from flask import current_app
 from identity.emailing import email
 
+
 class ReverseProxied(object):
     '''Wrap the application in this middleware and configure the
     front-end server to add these headers, to let you quietly bind
@@ -39,6 +40,7 @@ class ReverseProxied(object):
             environ['HTTP_HOST'] = server
 
         return self.app(environ, start_response)
+
 
 def log_exception(e):
     print(traceback.format_exc())
