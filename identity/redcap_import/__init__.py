@@ -107,9 +107,15 @@ def import_new_participants():
                 ecrf.last_updated_by_user_id=system_user.id
                 ecrf.last_updated_datetime=datetime.utcnow()
 
-                strategy.fill_identifiers(p, ecrf, system_user)
+                db.session.add(ecrf)
 
+                db.session.flush()
+
+                strategy.fill_identifiers(p, ecrf, system_user)
                 db.session.add_all(ecrf.identifiers)
+
+                db.session.flush()
+
                 db.session.add(ecrf)
 
             db.session.commit()
