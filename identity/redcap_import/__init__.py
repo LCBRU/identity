@@ -23,13 +23,13 @@ def setup_import_tasks(sender, **kwargs):
         ),
         import_project_details.s(),
     )
-    sender.add_periodic_task(
-        crontab(
-            minute=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_MINUTE'],
-            hour=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_HOUR'],
-        ),
-        import_new_participants.s(),
-    )
+    # sender.add_periodic_task(
+    #     crontab(
+    #         minute=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_MINUTE'],
+    #         hour=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_HOUR'],
+    #     ),
+    #     import_new_participants.s(),
+    # )
 
 
 @celery.task
