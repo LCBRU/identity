@@ -31,6 +31,8 @@ class ParticipantImportStrategy:
                     # Ignore events caused by the data import from
                     # the mobile app
                     AND page NOT IN ('DataImportController:index')
+                    AND project_id = :project_id
+                    AND object_type = 'redcap_data'
                     AND ts > :timestamp
                 GROUP BY pk, project_id
             ) rl ON rl.project_id = rd.project_id

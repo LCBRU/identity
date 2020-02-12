@@ -109,6 +109,7 @@ def import_new_participants():
 
                 strategy.fill_identifiers(p, ecrf, system_user)
 
+                db.session.add_all(ecrf.identifiers)
                 db.session.add(ecrf)
 
             db.session.commit()
