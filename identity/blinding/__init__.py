@@ -27,6 +27,12 @@ BLINDING_SETS = {
             'Stress MRI': 'xScMriS',
         },
     },
+    'SCAD Vascular MRI': {
+        'study': 'SCAD',
+        'types': {
+            'Vascular MRI': 'xScVasc',
+        },
+    },
     'SCAD 24h Tape': {
         'study': 'SCAD',
         'types': {

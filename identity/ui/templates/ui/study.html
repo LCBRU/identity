@@ -5,7 +5,7 @@
 
 {% if blinding_info %}
     <div class="alert alert-success" role="alert">
-        <h3>{{blinding_info.blinding_set_name }} blind IDs created for ID '{{ blinding_info.unblind_id }}:'</h3>
+        <h3>{{blinding_info.blinding_set_name }} blind IDs created for ID '{{ blinding_info.unblind_id }}':</h3>
         <dl>
             {% for key, value in blinding_info.blind_ids.items() %}
                 <dt>{{ key }}</dt>

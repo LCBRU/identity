@@ -34,6 +34,14 @@ def setup_import_tasks(sender, **kwargs):
 
 @celery.task
 def import_project_details():
+    #######
+    ######
+    ######
+    ###### THIS NEEDS TO Email errors
+    #######
+    ######
+    ######
+
     current_app.logger.info('Importing REDCap projects')
 
     system_user = get_system_user()
@@ -75,6 +83,15 @@ def import_project_details():
 
 @celery.task
 def import_new_participants():
+
+    #######
+    ######
+    ######
+    ###### THIS NEEDS TO Email errors
+    #######
+    ######
+    ######
+
     current_app.logger.info('Importing REDCap particiapnts')
 
     system_user = get_system_user()
