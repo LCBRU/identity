@@ -400,7 +400,8 @@ class DemographicsRequestCsv(DemographicsRequest):
 
             for i, row in enumerate(self.iter_rows()):
 
-                response = indexed_data[i].response
+                if indexed_data[i] is not None:
+                    response = indexed_data[i].response
 
                 if response:
                     row['spine_nhs_number'] = response.nhs_number
