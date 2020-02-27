@@ -400,8 +400,14 @@ class DemographicsRequestCsv(DemographicsRequest):
 
             for i, row in enumerate(self.iter_rows()):
 
-                if indexed_data[i] is not None:
+                if i in indexed_data:
                     response = indexed_data[i].response
+                    messages = indexed_data[i].messages
+                    pmi_data = indexed_data[i].pmi_data
+                else:
+                    messages = []
+                    response = None
+                    pmi_data = None
 
                 if response:
                     row['spine_nhs_number'] = response.nhs_number
@@ -419,7 +425,6 @@ class DemographicsRequestCsv(DemographicsRequest):
                     row['spine_is_deceased'] = 'True' if response.is_deceased else 'False'
                     row['spine_current_gp_practice_code'] = response.current_gp_practice_code
 
-                pmi_data = indexed_data[i].pmi_data
                 if pmi_data is not None:
                     row['pmi_nhs_number'] = pmi_data.nhs_number
                     row['pmi_uhl_system_number'] = pmi_data.uhl_system_number
@@ -430,7 +435,7 @@ class DemographicsRequestCsv(DemographicsRequest):
                     row['pmi_date_of_death'] = pmi_data.date_of_death
                     row['pmi_postcode'] = pmi_data.postcode
 
-                row['spine_message'] = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in indexed_data[i].messages])
+                row['spine_message'] = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in messages])
 
                 writer.writerow(row)
 
