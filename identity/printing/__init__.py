@@ -10,6 +10,7 @@ from .cia import *
 from .discordance import *
 from .elastic_as import *
 from .fast import *
+from .go_dcm import *
 from .indapamide import *
 from .lenten import *
 from .limb import *
