@@ -79,6 +79,7 @@ def import_project_details():
                     db.session.add(rp)
 
     db.session.commit()
+    current_app.logger.info('Importing REDCap projects - COMPLETED')
 
 
 @celery.task

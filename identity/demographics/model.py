@@ -194,16 +194,16 @@ class DemographicsRequest(db.Model):
                 )
 
     def get_most_likely_uhl_system_number_column_id(self):
-        return self._get_most_likely_column_id('(uhl|\bs).*(number|no)')
+        return self._get_most_likely_column_id('(uhl|\bs).*(number|no|)')
 
     def get_most_likely_nhs_number_column_id(self):
-        return self._get_most_likely_column_id('nhs.*(number|no)')
+        return self._get_most_likely_column_id('nhs.*(number|no|)')
 
     def get_most_likely_family_name_column_id(self):
         return self._get_most_likely_column_id('(surname|(family|last).*name)')
 
     def get_most_likely_given_name_column_id(self):
-        return self._get_most_likely_column_id('(first|given|fore).*name')
+        return self._get_most_likely_column_id('(first|given|fore).*name|name')
 
     def get_most_likely_gender_column_id(self):
         return self._get_most_likely_column_id('(gender|sex)')
@@ -263,7 +263,6 @@ class DemographicsRequestXslx(DemographicsRequest):
         wb = load_workbook(filename=self.result_filepath)
         ws = wb.active
 
-        indexed_data = {d.row_number:d for d in self.data}
         insert_col = len(self.get_column_names()) + 1
 
         fieldnames = [
@@ -294,40 +293,43 @@ class DemographicsRequestXslx(DemographicsRequest):
             ws.insert_cols(insert_col)
             ws.cell(row=1, column=insert_col).value = fn
 
-        for i, row in enumerate(self.iter_result_rows()):
-            if indexed_data[i].response:
-                ws.cell(row=i + 2, column=insert_col).value = indexed_data[i].response.nhs_number
-                ws.cell(row=i + 2, column=insert_col + 1).value = indexed_data[i].response.title
-                ws.cell(row=i + 2, column=insert_col + 2).value = indexed_data[i].response.forename
-                ws.cell(row=i + 2, column=insert_col + 3).value = indexed_data[i].response.middlenames
-                ws.cell(row=i + 2, column=insert_col + 4).value = indexed_data[i].response.lastname
-                ws.cell(row=i + 2, column=insert_col + 5).value = indexed_data[i].response.sex
-                ws.cell(row=i + 2, column=insert_col + 6).value = indexed_data[i].response.postcode
-                ws.cell(row=i + 2, column=insert_col + 7).value = indexed_data[i].response.address
-                if indexed_data[i].response.date_of_birth:
-                    ws.cell(row=i + 2, column=insert_col + 8).value = indexed_data[i].response.date_of_birth.strftime('%d-%b-%Y')
-                else:
-                    ws.cell(row=i + 2, column=insert_col + 8).value = ''
-                if indexed_data[i].response.date_of_death:
-                    ws.cell(row=i + 2, column=insert_col + 9).value = indexed_data[i].response.date_of_death.strftime('%d-%b-%Y')
-                else:
-                    ws.cell(row=i + 2, column=insert_col + 9).value = ''
-                ws.cell(row=i + 2, column=insert_col + 10).value = 'True' if indexed_data[i].response.is_deceased else 'False'
-                ws.cell(row=i + 2, column=insert_col + 11).value = indexed_data[i].response.current_gp_practice_code
+        for d in self.data:
+            response = d.response
 
-                pmi_data = indexed_data[i].pmi_data
+            row = d.row_number + 2
+
+            if response:
+                ws.cell(row=row, column=insert_col).value = response.nhs_number
+                ws.cell(row=row, column=insert_col + 1).value = response.title
+                ws.cell(row=row, column=insert_col + 2).value = response.forename
+                ws.cell(row=row, column=insert_col + 3).value = response.middlenames
+                ws.cell(row=row, column=insert_col + 4).value = response.lastname
+                ws.cell(row=row, column=insert_col + 5).value = response.sex
+                ws.cell(row=row, column=insert_col + 6).value = response.postcode
+                ws.cell(row=row, column=insert_col + 7).value = response.address
+                if response.date_of_birth:
+                    ws.cell(row=row, column=insert_col + 8).value = response.date_of_birth.strftime('%d-%b-%Y')
+                else:
+                    ws.cell(row=row, column=insert_col + 8).value = ''
+                if response.date_of_death:
+                    ws.cell(row=row, column=insert_col + 9).value = response.date_of_death.strftime('%d-%b-%Y')
+                else:
+                    ws.cell(row=row, column=insert_col + 9).value = ''
+                ws.cell(row=row, column=insert_col + 10).value = 'True' if response.is_deceased else 'False'
+                ws.cell(row=row, column=insert_col + 11).value = response.current_gp_practice_code
+
+                pmi_data = d.pmi_data
                 if pmi_data is not None:
-                    ws.cell(row=i + 2, column=insert_col + 12).value = pmi_data.nhs_number
-                    ws.cell(row=i + 2, column=insert_col + 13).value = pmi_data.uhl_system_number
-                    ws.cell(row=i + 2, column=insert_col + 14).value = pmi_data.family_name
-                    ws.cell(row=i + 2, column=insert_col + 15).value = pmi_data.given_name
-                    ws.cell(row=i + 2, column=insert_col + 16).value = pmi_data.gender
-                    ws.cell(row=i + 2, column=insert_col + 17).value = pmi_data.date_of_birth
-                    ws.cell(row=i + 2, column=insert_col + 18).value = pmi_data.date_of_death
-                    ws.cell(row=i + 2, column=insert_col + 19).value = pmi_data.postcode
+                    ws.cell(row=row, column=insert_col + 12).value = pmi_data.nhs_number
+                    ws.cell(row=row, column=insert_col + 13).value = pmi_data.uhl_system_number
+                    ws.cell(row=row, column=insert_col + 14).value = pmi_data.family_name
+                    ws.cell(row=row, column=insert_col + 15).value = pmi_data.given_name
+                    ws.cell(row=row, column=insert_col + 16).value = pmi_data.gender
+                    ws.cell(row=row, column=insert_col + 17).value = pmi_data.date_of_birth
+                    ws.cell(row=row, column=insert_col + 18).value = pmi_data.date_of_death
+                    ws.cell(row=row, column=insert_col + 19).value = pmi_data.postcode
 
-            ws.cell(row=i + 2, column=insert_col + 20).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in indexed_data[i].messages])
-
+            ws.cell(row=row, column=insert_col + 20).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages])
 
         wb.save(filename=self.result_filepath)
 

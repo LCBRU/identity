@@ -282,7 +282,7 @@ def convert_dob(dob):
     try:
         parsed_date = parse(dob, dayfirst=True)
     except ValueError:
-        current_app.logger.info(f'convert_dob: DOB is something we don\'t understand')
+        current_app.logger.error(f'convert_dob: DOB is something we don\'t understand: {dob}')
         return 'Invalid date', ''
 
     if parsed_date.year < 1900 or parsed_date.year > datetime.utcnow().year:
@@ -426,27 +426,32 @@ def extract_data(request_id):
             )
 
         for i, r in enumerate(dr.iter_rows()):
-            uhl_system_number = (str(r[cd.uhl_system_number_column.name]) or '').strip() if cd.uhl_system_number_column is not None else None
-            nhs_number = (str(r[cd.nhs_number_column.name]) or '').strip() if cd.nhs_number_column is not None else None
-            family_name = (str(r[cd.family_name_column.name]) or '').strip() if cd.family_name_column is not None else None
-            given_name = (str(r[cd.given_name_column.name]) or '').strip() if cd.given_name_column is not None else None
-            gender = (str(r[cd.gender_column.name]) or '').strip() if cd.gender_column is not None else None
-            dob = (str(r[cd.dob_column.name]) or '').strip() if cd.dob_column is not None else None
-            postcode = (str(r[cd.postcode_column.name]) or '').strip() if cd.postcode_column is not None else None
+            uhl_system_number = get_column_value(r, cd.uhl_system_number_column)
+            nhs_number = get_column_value(r, cd.nhs_number_column)
+            family_name = get_column_value(r, cd.family_name_column)
+            given_name = get_column_value(r, cd.given_name_column)
+            gender = get_column_value(r, cd.gender_column)
+            dob = get_column_value(r, cd.dob_column)
+            postcode = get_column_value(r, cd.postcode_column)
 
-            d = DemographicsRequestData(
-                demographics_request=dr,
-                row_number=i,
-                uhl_system_number=uhl_system_number,
-                nhs_number=nhs_number,
-                family_name=family_name,
-                given_name=given_name,
-                gender=gender,
-                dob=dob,
-                postcode=postcode,
-            )
+            if any([uhl_system_number, nhs_number, family_name, given_name, gender, dob, postcode]):
+                d = DemographicsRequestData(
+                    demographics_request=dr,
+                    row_number=i,
+                    uhl_system_number=uhl_system_number,
+                    nhs_number=nhs_number,
+                    family_name=family_name,
+                    given_name=given_name,
+                    gender=gender,
+                    dob=dob,
+                    postcode=postcode,
+                )
 
-            dr.data.append(d)
+                current_app.logger.info(f'Saving extracting data={d}')
+
+                dr.data.append(d)
+            else:
+                current_app.logger.info(f'Skipping empty data')
 
         dr.data_extracted_datetime = datetime.utcnow()
         db.session.add(dr)
@@ -458,6 +463,16 @@ def extract_data(request_id):
         db.session.rollback()
         log_exception(e)
         save_demographics_error(request_id, e)
+
+
+def get_column_value(record, column):
+    if column is None:
+        return ''
+
+    if record[column.name] is None:
+        return ''
+    else:
+        return str(record[column.name]).strip()
 
 
 @celery.task()
