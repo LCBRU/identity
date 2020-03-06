@@ -27,7 +27,7 @@ class DiscordancePack(LabelPack):
 
     __study_name__ = 'DISCORDANCE'
 
-    def print(self):
+    def _do_print(self):
         print_sample(
             label_context=SampleContext(
                 printer=PRINTER_BRU_CRF_SAMPLE,

@@ -1,5 +1,6 @@
 {% extends "_base.html" %}
 {% import "_formHelpers.html" as formhelper %}
+{% import "ui/study_labels.html" as study_labels %}
 
 {% block content %}
 
@@ -28,21 +29,7 @@
                 <div class="card-header">Label Printing</div>
 
                 <div class="card-body text-center">
-                        {% for l in study.label_packs | sort(attribute='name') %}
-                            <div class="card-button-list">
-                                <div class="btn-group">
-                                    <a class="btn btn-primary" href="{{ url_for('ui.study_label_print', id=study.id, set=l.type, count=1) }}">{{ l.name}}</a>
-                                    <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <span class="sr-only">Toggle Dropdown</span>
-                                    </button>
-                                    <div class="dropdown-menu">
-                                        <a href="{{ url_for('ui.study_label_print', id=study.id, set=l.type, count=5) }}">{{ l.name}} x5</a>
-                                        <a href="{{ url_for('ui.study_label_print', id=study.id, set=l.type, count=10) }}">{{ l.name}} x10</a>
-                                        <a href="{{ url_for('ui.study_label_print', id=study.id, set=l.type, count=50) }}">{{ l.name}} x50</a>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
+                    {{ study_labels.study_label_list(study, 'study') }}
                 </div>        
             </div>
             

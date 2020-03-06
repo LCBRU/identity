@@ -10,8 +10,9 @@ from flask import (
     abort,
 )
 from flask_login import current_user
-from .. import blueprint, db
 from identity.printing.model import LabelPack
+from .. import blueprint, db
+from ..decorators import assert_study_user
 
 
 @blueprint.route("/labels/")
@@ -23,22 +24,22 @@ def labels():
     )
 
 
-@blueprint.route("/labels/print/<string:set>/<int:count>")
-def label_print(set, count=1):
+@blueprint.route("/labels/print/<string:set>/<int:count>?referrer=<string:referrer>&study_id=<int:study_id>")
+@assert_study_user()
+def label_print(set, referrer, study_id, count=1):
     label_pack = LabelPack.query.filter_by(type=set).first()
 
     if current_user not in label_pack.study.users:
         abort(403)
 
     try:
-        for _ in range(count):
-            label_pack.print()
-
-            db.session.commit()
-
-            time.sleep(current_app.config['PRINTING_SET_SLEEP'])
+        label_pack.print(count)
+        flash('Labels have been sent to the printer')
     except:
         current_app.logger.error(traceback.format_exc())
         flash("An error occurred while printing.  Check that the printer has paper and ink, and that a jam has not occurred.", "error")
     finally:
-        return redirect(url_for("ui.labels"))
+        if referrer == 'study' and study_id is not None:
+            return redirect(url_for('ui.study', id=study_id))
+        else:
+            return redirect(url_for("ui.labels"))

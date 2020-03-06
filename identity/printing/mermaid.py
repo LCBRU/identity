@@ -9,7 +9,7 @@ class MermaidPack(LabelPack):
 
     __study_name__ = 'MERMAID'
 
-    def print(self):
+    def _do_print(self):
         bb = BriccsBags()
         bb.print_pack(
             study_name='MERMIAD 1',

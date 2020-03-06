@@ -1,4 +1,5 @@
 {% extends "_base.html" %}
+{% import "ui/study_labels.html" as study_labels %}
 
 {% block content %}
 <div class="subsections">
@@ -9,22 +10,8 @@
             <h3>{{ s.name }}</h3>
             <hr>
 
-            {% for l in s.label_packs | sort(attribute='name') %}
+            {{ study_labels.study_label_list(s, 'labels') }}
 
-                <div class="btn-group btn-block">
-                    <a class="btn btn-primary btn-lg" href="{{ url_for('ui.label_print', set=l.type, count=1) }}">{{ l.name}}</a>
-                    <button type="button" class="btn btn-primary btn-lg dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="caret"></span>
-                        <span class="sr-only">Toggle Dropdown</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a href="{{ url_for('ui.label_print', set=l.type, count=5) }}">{{ l.name}} x5</a></li>
-                        <li><a href="{{ url_for('ui.label_print', set=l.type, count=10) }}">{{ l.name}} x10</a></li>
-                        <li><a href="{{ url_for('ui.label_print', set=l.type, count=50) }}">{{ l.name}} x50</a></li>
-                    </ul>
-                </div>
-
-            {% endfor %}
         </section>
 
     {% endfor %}

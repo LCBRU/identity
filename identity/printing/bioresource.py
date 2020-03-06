@@ -27,7 +27,7 @@ class BioresourcePack(LabelPack):
     __study_name__ = 'Bioresource'
 
 
-    def print(self):
+    def _do_print(self):
         print_sample(label_context=SampleContext(
             printer=PRINTER_BRU_CRF_SAMPLE,
             id_provider=BioresourceIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first(),

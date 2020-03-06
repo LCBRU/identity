@@ -7,7 +7,8 @@ def assert_study_user():
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            study = Study.query.get_or_404(kwargs.get('id'))
+            study_id = kwargs.get('id') or kwargs.get('study_id')
+            study = Study.query.get_or_404(study_id)
 
             if study not in current_user.studies:
                 abort(403)

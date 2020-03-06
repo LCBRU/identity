@@ -187,7 +187,7 @@ class BriccsPack(LabelPack):
 
     __study_name__ = 'BRICCS'
 
-    def print(self):
+    def _do_print(self):
         bb = BriccsBags()
         bb.print_pack(study_name='BRICCS', additional_sample_label_count=2)
 
@@ -199,7 +199,7 @@ class BriccsKetteringPack(LabelPack):
 
     __study_name__ = 'BRICCS'
 
-    def print(self):
+    def _do_print(self):
         self.print_pack(
             site_prefix='91',
             site_name='Kettering',
@@ -261,7 +261,7 @@ class BriccsSamplePack(LabelPack):
 
     __study_name__ = 'BRICCS'
 
-    def print(self):
+    def _do_print(self):
         print_sample(label_context=SampleContext(
             printer=PRINTER_BRU_CRF_SAMPLE,
             id_provider=LegacyIdProvider.query.filter_by(name=ID_NAME_BRICCS_SAMPLE).first(),

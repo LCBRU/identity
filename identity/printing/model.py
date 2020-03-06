@@ -139,7 +139,17 @@ class LabelPack(db.Model):
     def name(self):
         return re.sub('([a-z])([A-Z])', r'\1 \2', self.__class__.__name__)
 
-    def print(self):
+    def print(self, count):
+        for _ in range(count):
+            current_app.logger.info(f'Printing label for study {self.study.name}')
+
+            self._do_print()
+
+            db.session.commit()
+
+            time.sleep(current_app.config['PRINTING_SET_SLEEP'])
+
+    def _do_print(self):
         pass
 
     def __repr__(self):

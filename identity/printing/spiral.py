@@ -27,7 +27,7 @@ class SpiralPack(LabelPack):
 
     __study_name__ = 'SPIRAL'
 
-    def print(self):
+    def _do_print(self):
         print_sample(
             SampleContext(
                 printer=PRINTER_CVRC_LAB_SAMPLE,

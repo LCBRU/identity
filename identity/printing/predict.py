@@ -34,7 +34,7 @@ class PredictPack(LabelPack):
 
     __study_name__ = 'PREDICT'
 
-    def print(self):
+    def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
