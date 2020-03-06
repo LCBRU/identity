@@ -88,3 +88,7 @@ class DemographicsSearchForm(FlashingForm):
     page = IntegerField("Page", default=1)
     show_downloaded = BooleanField('Downloaded')
     show_deleted = BooleanField('Deleted')
+
+
+class DemographicsAdminSearchForm(DemographicsSearchForm):
+    owner_user_id = SelectField('Owner', coerce=int, choices=[])

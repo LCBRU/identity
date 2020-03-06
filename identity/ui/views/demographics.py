@@ -17,6 +17,7 @@ from ..forms import (
     DemographicsLookupForm,
     DemographicsSearchForm,
     DemographicsDefineColumnsForm,
+    DemographicsAdminSearchForm,
     ConfirmForm,
 )
 from identity.demographics.model import (
@@ -25,6 +26,7 @@ from identity.demographics.model import (
     DemographicsRequestCsv,
     DemographicsRequestColumn,
     DemographicsRequestColumnDefinition,
+    User,
 )
 from identity.demographics import schedule_lookup_tasks
 from identity.security import must_be_admin
@@ -46,11 +48,16 @@ def must_be_request_owner():
 
     return decorator
 
+
 @blueprint.route("/demographics/", methods=['GET', 'POST'])
 def demographics():
     form = DemographicsLookupForm()
 
-    search_form = DemographicsSearchForm(formdata=request.args)
+    if current_user.is_admin:
+        search_form = DemographicsAdminSearchForm(formdata=request.args)
+        search_form.owner_user_id.choices = sorted([(0, 'All')] + [(u.id, u.full_name) for u in User.query.all()], key=lambda u: u[1])
+    else:
+        search_form = DemographicsSearchForm(formdata=request.args)
 
     q = DemographicsRequest.query
 
@@ -63,7 +70,12 @@ def demographics():
     if not search_form.show_downloaded.data:
         q = q.filter(DemographicsRequest.result_downloaded_datetime.is_(None))
 
-    q = q.filter(DemographicsRequest.owner == current_user)
+
+    if current_user.is_admin:
+        if search_form.owner_user_id.data:
+            q = q.filter(DemographicsRequest.owner_user_id == search_form.owner_user_id.data)
+    else:
+        q = q.filter(DemographicsRequest.owner == current_user)
 
     demographics_requests = q.order_by(DemographicsRequest.created_datetime.desc()).paginate(
         page=search_form.page.data, per_page=5, error_out=False

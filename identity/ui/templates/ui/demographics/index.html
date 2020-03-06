@@ -7,61 +7,62 @@
     <div class="col-md-8 col-lg-9">
         <section>
             <h2>Demographics</h2>
-            {{ formhelper.render_search(search_form, 'ui.demographics', placeholder='Search filename') }}
-        </section>
         
-        <ul class="list-group">
-            {% for dr in demographics_requests.items %}
-                <li class="list-group-item">
-                    <div class='upload_details'>
-                        <header>
-                            <h1>{{ dr.filename }} <span class="float-right badge badge-info">{{ dr.status }}</span></h1>
-                            <h2>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h2>
-                        </header>
+            {{ formhelper.render_search(search_form, 'ui.demographics', placeholder='Search filename') }}
 
-                        {% if dr.requires_column_definition %}
-                            <a class="btn btn-success" href="{{ url_for('ui.demographics_define_columns', id=dr.id) }}">Define Columns</a>
-                        {% endif %}
-                        {% if dr.requires_submission %}
-                            <a class="btn btn-success" href="{{ url_for('ui.demographics_submit', id=dr.id) }}">Submit Request</a>
-                        {% endif %}
-                        {% if dr.can_be_resubmitted and current_user.is_admin %}
-                            <a class="btn btn-danger" href="{{ url_for('ui.demographics_resubmit', id=dr.id) }}">Resubmit/Unpause request</a>
-                        {% endif %}
-                        {% if dr.can_be_paused and current_user.is_admin %}
-                            <a class="btn btn-danger" href="{{ url_for('ui.demographics_pause', id=dr.id) }}">Pause request</a>
-                        {% endif %}
-                        {% if dr.can_be_downloaded %}
-                            <a class="btn btn-success" href="{{ url_for('ui.demographics_download_result', id=dr.id) }}">Download Result</a>
-                        {% endif %}
-                        {% if dr.can_be_deleted %}
-                            <a class="btn btn-danger" href="{{ url_for('ui.demographics_delete', id=dr.id) }}">Delete Request</a>
-                        {% endif %}
-                    </div>
-                </li>
-            {% endfor %}
-        </ul>
-
-        {{ formhelper.render_pagination(demographics_requests, 'ui.demographics', search=search_form.search.data, show_deleted=search_form.show_deleted.data, show_downloaded=search_form.show_downloaded.data) }}
+            <div class="row">
+                <div class="col">
+                    <ul class="list-group">
+                        {% for dr in demographics_requests.items %}
+                            <li class="list-group-item">
+                                <div class='upload_details'>
+                                    <header>
+                                        <h1>{{ dr.filename }} <span class="float-right badge badge-info">{{ dr.status }}</span></h1>
+                                        <h2>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h2>
+                                    </header>
+        
+                                    {% if dr.can_be_resubmitted and current_user.is_admin %}
+                                        <a class="btn btn-danger" href="{{ url_for('ui.demographics_resubmit', id=dr.id) }}">Resubmit/Unpause request</a>
+                                    {% endif %}
+                                    {% if dr.can_be_paused and current_user.is_admin %}
+                                        <a class="btn btn-danger" href="{{ url_for('ui.demographics_pause', id=dr.id) }}">Pause request</a>
+                                    {% endif %}
+                                    {% if dr.can_be_downloaded %}
+                                        <a class="btn btn-success" href="{{ url_for('ui.demographics_download_result', id=dr.id) }}">Download Result</a>
+                                    {% endif %}
+                                    {% if dr.can_be_deleted %}
+                                        <a class="btn btn-danger" href="{{ url_for('ui.demographics_delete', id=dr.id) }}">Delete Request</a>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+        
+                    {{ formhelper.render_pagination(demographics_requests, 'ui.demographics', search_form) }}
+                </div>
+            </div>
+        
+        </section>
     </div>
 
-      <div class="col-md-4 col-lg-3">
+    <div class="col-md-4 col-lg-3">
         <div class="card study-card">
             <div class="card-header">Upload Participant File</div>
 
-            <div class="card-body">
-                <form id="study_data_upload" action="{{ url_for('ui.demographics') }}" method="POST" enctype="multipart/form-data">
-                    {{ form.hidden_tag() }}
+                <div class="card-body">
+                    <form id="study_data_upload" action="{{ url_for('ui.demographics') }}" method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
 
-                    <div class="input-group mb-2">
-                        {{ form.upload(class="form-control", placeholder="Participant Details") }}
-                        <span class="input-group-append" data-toggle="modal" data-target="#help_modal">
-                            <span class="input-group-text fas fa-question-circle"></span>
-                        </span>
-                    </div>
+                        <div class="input-group mb-2">
+                            {{ form.upload(class="form-control", placeholder="Participant Details") }}
+                            <span class="input-group-append" data-toggle="modal" data-target="#help_modal">
+                                <span class="input-group-text fas fa-question-circle"></span>
+                            </span>
+                        </div>
 
-                    {{ formhelper.render_button_bar(submit_label="Upload") }}
-                </form>
+                        {{ formhelper.render_button_bar(submit_label="Upload") }}
+                    </form>
+                </div>
             </div>
         </div>
     </div>

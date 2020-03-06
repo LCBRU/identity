@@ -1,6 +1,5 @@
-from datetime import datetime
-from flask_login import current_user
-from .security import get_admin_role
+from datetime import datetime, date
+
 
 def init_template_filters(app):
     @app.template_filter("yes_no")
@@ -19,12 +18,21 @@ def init_template_filters(app):
         else:
             return ""
 
-    @app.template_filter("date_format")
-    def date_format(value):
+    @app.template_filter("nbsp")
+    def nbsp(value):
         if value:
-            return value.strftime("%-d %b %Y")
+            return value.replace(' ', '\xa0')
         else:
             return ""
+
+    @app.template_filter("date_format")
+    def date_format(value):
+        if value is None:
+            return ''
+        if value and (isinstance(value, date) or isinstance(value, datetime)):
+            return value.strftime("%-d %b %Y")
+        else:
+            return value
 
     @app.template_filter("blank_if_none")
     def blank_if_none(value):
@@ -40,6 +48,14 @@ def init_template_filters(app):
             return "£{:.2f}".format(value)
         else:
             return ""
+
+    @app.template_filter("separated_number")
+    def currency(value):
+        return F"{value:,}"
+
+    @app.template_filter("title_case")
+    def currency(value):
+        return value.title()
 
     @app.context_processor
     def inject_now():

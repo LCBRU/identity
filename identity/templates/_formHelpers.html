@@ -63,38 +63,58 @@
 <form method="GET" class="form-horizontal" action="{{ url_for(searchview, **kwargs) }}">
 
   <div class="input-group">
-      {{ searchForm.search(class="form-control", placeholder=placeholder) | safe }}
-      {% for field in searchForm %}
-        {% if field.type == "BooleanField" %}
-          <div class="input-group-append">
-            <div class="input-group-text">
-              {{ field(**kwargs)|safe }}
-              {{ field.label.text }}
-            </div>
+    {{ searchForm.search(class="form-control", placeholder=placeholder) | safe }}
+    {% for field in searchForm %}
+      {% if field.type == "BooleanField" %}
+        <div class="input-group-append">
+          <div class="input-group-text">
+            {{ field(**kwargs)|safe }}
+            {{ field.label.text }}
           </div>
-          {% endif %}
-      {% endfor %}
-      {% for key, value in buttons.items() %}
-        <a href="{{ url_for(value, **kwargs) }}">{{ key }}</a>
-      {% endfor %}
+        </div>
+        {% endif %}
+    {% endfor %}
 
-      <div class="input-group-append">
+    <div class="input-group-append">
+      {% for key, value in buttons.items() %}
         <span class="input-group-text">
-            <a href="{{ url_for(searchview, **kwargs) }}">Clear Search</a>
+          <a href="{{ url_for(value, **kwargs) }}">{{ key }}</a>
         </span>
-      </div>
-      <div class="input-group-append">
-        <button type="submit" class="btn btn-primary">Search</button>
-      </div>
-  
+      {% endfor %}
+      <span class="input-group-text">
+          <a href="{{ url_for(searchview, **kwargs) }}">Clear Search</a>
+      </span>
     </div>
+    <div class="input-group-append">
+      <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+  </div>
+
+  {% if searchForm | rejectattr("type", "ne", "SelectField") | list | length is ge(1) %}
+    <div class="search-filters">
+      <div class="row">
+        {% for field in searchForm | rejectattr("type", "ne", "SelectField") %}
+          <div class="form-group{% if field.errors %} has-error{%endif%} col">
+            <div>{{ field.label.text | nbsp}}</div>
+            <div>{{ field(**kwargs)|safe }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
 </form>
 {% endmacro %}
 
 
-{% macro render_pagination(pagination, endpoint) %}
+{% macro render_pagination(pagination, endpoint, form) %}
   {% if pagination.pages > 1 %}
-    <ul class="pagination">
+
+  {% for f in form | rejectattr("name", "eq", "page") | rejectattr("name", "eq", "csrf_token") | selectattr("data") %}
+    {% if kwargs.update({f.name: f.data}) %} {% endif %}
+  {% endfor %}
+
+  <ul class="pagination">
     {% if pagination.has_prev %}
       <li class="page-item"><a class="page-link" href="{{ url_for(endpoint, page=pagination.prev_num, **kwargs) }}" rel="prev">Previous</a></li>
     {% else %}

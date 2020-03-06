@@ -44,8 +44,11 @@
       
           <ul class="navbar-nav ml-auto">
             {% if current_user.is_admin %}
-              <li class="nav-item">
-                <a class="nav-link" href="/admin/">Admin</a>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Admin</a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="/admin/">Maintenance</a>
+                  </div>
               </li>
             {% endif %}
     

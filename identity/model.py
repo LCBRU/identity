@@ -66,22 +66,22 @@ class User(db.Model, UserMixin):
 
     @property
     def full_name(self):
-        user = self._search_ldap(self.username)
+        user = self._search_ldap()
 
-        return f"{user['given_name']} {user['surname']}"
+        return f"{user['given_name']} {user['surname']}".strip()
 
     @property
     def email(self):
-        user = self._search_ldap(self.username)
+        user = self._search_ldap()
         return user['email']
 
     def __str__(self):
         return self.email or self.username
 
-    def _search_ldap(self, username):
+    def _search_ldap(self):
         if current_app.config['TESTING']:
             return {
-                'username': username,
+                'username': self.username,
                 'email': '',
                 'name': '',
                 'surname': '',
@@ -101,7 +101,7 @@ class User(db.Model, UserMixin):
             search_result = l.search_s(
                 'DC=xuhl-tr,DC=nhs,DC=uk',
                 ldap.SCOPE_SUBTREE,
-                'sAMAccountName={}'.format(username),
+                'sAMAccountName={}'.format(self.username),
             )
 
         except ldap.LDAPError as e:
@@ -118,11 +118,11 @@ class User(db.Model, UserMixin):
             }
         else:
             return {
-                'username': username,
+                'username': self.username,
                 'email': '',
                 'name': '',
-                'surname': '',
-                'given_name': '',
+                'surname': self.last_name,
+                'given_name': self.first_name,
             }
 
     def validate_password(self, password):
