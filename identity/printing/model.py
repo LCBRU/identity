@@ -138,6 +138,9 @@ class LabelPack(db.Model):
     def user_defined_participant_id(self):
         return False
 
+    def allow_batch_printing(self):
+        return True
+
     @property
     def name(self):
         return re.sub('([a-z])([A-Z])', r'\1 \2', self.__class__.__name__)

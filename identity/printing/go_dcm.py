@@ -42,6 +42,9 @@ class GoDcmPack(LabelPack):
     def user_defined_participant_id(self):
         return True
 
+    def allow_batch_printing(self):
+        return False
+
     def _do_print(self):
         bag_context = BagContext(
             printer=PRINTER_TMF_BAG,
