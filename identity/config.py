@@ -6,6 +6,8 @@ load_dotenv()
 
 
 class BaseConfig(object):
+    TESTING = os.getenv("TESTING", "False") == 'True'
+
     IMPORT_OLD_IDS = os.getenv("IMPORT_OLD_IDS", "True") == 'True'
 
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))

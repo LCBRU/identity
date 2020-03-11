@@ -1,15 +1,14 @@
 from flask_login import current_user
 from ..model import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
-    print_bag,
     print_barcode,
-    print_sample,
     PRINTER_TMF_SAMPLE,
     PRINTER_TMF_BAG,
     BagContext,
     SampleContext,
     LabelPack,
     print_notes_label,
+    LabelSet,
 )
 
 
@@ -57,78 +56,46 @@ class GoDcmPack(LabelPack):
             id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first(),
         )
 
-        print_bag(
-            label_context=bag_context,
+        substudy_sst_set = LabelSet(
+            bag_context=bag_context,
+            sample_context=sample_context,
             title='GO-DCM Substudy SST Bag',
-            version='v1.0',
-            subheaders=[
-                '1 x 4.9ml SST',
-            ],
-            lines=[
-                '* DO NOT PUT ON ICE',
-            ],
-            warnings=['Transfer to lab within 90 minutes'],
+            version='1.0',
+            on_ice=False,
         )
-        print_sample(
-            label_context=sample_context,
-            title='4.9ml SST'
-        )
+        substudy_sst_set.add_sample(name='SST', volume='4.9')
+        substudy_sst_set.print()
 
-        print_bag(
-            label_context=bag_context,
+        substudy_edta_set = LabelSet(
+            bag_context=bag_context,
+            sample_context=sample_context,
             title='GO-DCM Substudy EDTA Bag',
-            version='v1.0',
-            subheaders=[
-                '1 x 7.9ml EDTA tube',
-            ],
-            lines=[
-                '* Put on ice for 2 minutes',
-                '* Return to bag then put back on ice',
-            ],
-            warnings=['Transfer to lab within 90 minutes'],
+            version='1.0',
+            on_ice=True,
         )
-        print_sample(
-            label_context=sample_context,
-            title='7.9ml EDTA'
-        )
+        substudy_edta_set.add_sample(name='EDTA', volume='7.9')
+        substudy_edta_set.print()
 
-        print_bag(
-            label_context=bag_context,
+        baseline_serum_set = LabelSet(
+            bag_context=bag_context,
+            sample_context=sample_context,
             title='GO-DCM Baseline Serum Bag',
-            version='v1.0',
-            subheaders=['1 x 4.9ml Serum tube'],
-            warnings=[
-                'DO NOT PUT ON ICE',
-                'Transfer to lab within 90 minutes',
-            ],
+            version='1.0',
+            on_ice=False,
         )
-        print_sample(
-            label_context=sample_context,
-            title='4.9ml Serum'
-        )
+        baseline_serum_set.add_sample(name='Serum', volume='4.9')
+        baseline_serum_set.print()
 
-        print_bag(
-            label_context=bag_context,
+        baseline_edta_set = LabelSet(
+            bag_context=bag_context,
+            sample_context=sample_context,
             title='GO-DCM Baseline EDTA Bag',
-            version='v1.0',
-            subheaders=[
-                '1 x 10ml EDTA tube',
-                '1 x 4.9ml Li Hep Plasma tube',
-            ],
-            lines=[
-                '* Put on ice for 2 minutes',
-                '* Return to bag then put back on ice',
-            ],
-            warnings=['Transfer to lab within 90 minutes'],
+            version='1.0',
+            on_ice=True,
         )
-        print_sample(
-            label_context=sample_context,
-            title='4.9ml Li Hep'
-        )
-        print_sample(
-            label_context=sample_context,
-            title='10ml EDTA'
-        )
+        baseline_edta_set.add_sample(name='EDTA', volume='10')
+        baseline_edta_set.add_sample(name='Li Hep Plasma', volume='4.9')
+        baseline_edta_set.print()
 
         print_barcode(
             printer=PRINTER_TMF_SAMPLE,

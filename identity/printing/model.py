@@ -2,6 +2,7 @@ import re
 import socket
 import datetime
 import time
+from collections import namedtuple
 from flask import current_app
 from flask_login import current_user
 from ..database import db
@@ -166,7 +167,9 @@ class LabelPack(db.Model):
 
 
 def print_label(host, printer_code, port=9100):
-    if not current_app.config['TESTING']:
+    if current_app.config['TESTING']:
+        current_app.logger.info(f'Printing {printer_code} to host {host}')
+    else:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((current_app.config[host], port))
             s.sendall(printer_code.encode('ascii'))
@@ -587,3 +590,61 @@ def print_notes_label(
         host=label_context.bag_printer,
         printer_code=''.join(code),
     )
+
+
+class LabelSet():
+
+    Sample = namedtuple('Sample', ['name', 'volume', 'count'])
+
+    def __init__(
+        self,
+        bag_context,
+        sample_context,
+        title,
+        version,
+        on_ice=False,
+    ):
+        self.bag_context = bag_context
+        self.sample_context = sample_context
+        self.title = title
+        self.version = version
+        self.on_ice = on_ice
+        self.samples = []
+        self.lines = []
+        self.warnings = []
+
+    def add_sample(self, name, volume, count=1):
+        self.samples.append(
+            self.Sample(name=name, volume=volume, count=count)
+        )
+
+    def add_line(self, line):
+        self.lines.append(line)
+
+    def add_warning(self, line):
+        self.warnings.append(line)
+
+    def print(self):
+        lines = self.lines
+
+        if self.on_ice:
+            lines.extend([
+                'Put on ice for 2 minutes',
+                'Return to bag then put back on ice',           
+            ])
+        else:
+            lines.append('DO NOT PUT ON ICE')
+
+        warnings = self.warnings
+        warnings.append('Transfer to lab within 90 minutes')
+
+        print_bag(
+            label_context=self.bag_context,
+            title=self.title,
+            version=f'v{self.version}',
+            subheaders=[f'{s.count} x {s.volume}ml {s.name}' for s in self.samples],
+            lines=[f'* {l}' for l in lines],
+            warnings=warnings,
+        )
+        for s in self.samples:
+            print_sample(self.sample_context, s.count, title=f'{s.volume}ml {s.name}')
