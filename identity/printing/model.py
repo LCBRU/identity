@@ -135,6 +135,9 @@ class LabelPack(db.Model):
         "polymorphic_on": type,
     }
 
+    def user_defined_participant_id(self):
+        return False
+
     @property
     def name(self):
         return re.sub('([a-z])([A-Z])', r'\1 \2', self.__class__.__name__)

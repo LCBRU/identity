@@ -1,0 +1,35 @@
+{% extends "_base.html" %}
+{% import "_formHelpers.html" as formhelper %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-8">
+        <div class="card study-card">
+            <div class="card-header">
+                <div class="float-right">
+                    <a class="fas fa-question-circle" data-toggle="modal" data-target="#help_modal"></a>
+                </div>
+                <div>Print {{ label_pack.name }}</div>
+            </div>
+    
+            <div class="card-body">
+    
+                <form action="{{ url_for('ui.label_print_definition', set=set, referrer=referrer, study_id=study_id, count=count) }}" method="POST" class="form panel-body">
+                    <fieldset>
+                        {{ form.hidden_tag() }}
+    
+                        {% for f in form %}
+                            {{ formhelper.render_field(f) }}
+                        {% endfor %}
+    
+                        {{ formhelper.render_button_bar(cancelview=back, cancelviewparams=backparams, submit_label="Print") }}
+                    </fieldset>                   
+                </form>
+            </div>
+        </div>            
+    </div>
+</div>
+
+{% endblock %}

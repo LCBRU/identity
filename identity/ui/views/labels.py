@@ -13,6 +13,7 @@ from flask_login import current_user
 from identity.printing.model import LabelPack
 from .. import blueprint, db
 from ..decorators import assert_study_user
+from ..forms import LabelDefinition
 
 
 @blueprint.route("/labels/")
@@ -24,13 +25,13 @@ def labels():
     )
 
 
-@blueprint.route("/labels/print/<string:set>/<int:count>?referrer=<string:referrer>&study_id=<int:study_id>")
+@blueprint.route("/labels/study/<int:study_id>/<string:set>/print/<int:count>/referrer/<string:referrer>")
 @assert_study_user()
 def label_print(set, referrer, study_id, count=1):
-    label_pack = LabelPack.query.filter_by(type=set).first()
+    label_pack = LabelPack.query.filter_by(type=set).one()
 
-    if current_user not in label_pack.study.users:
-        abort(403)
+    if label_pack.user_defined_participant_id:
+        return redirect(url_for("ui.label_print_definition", set=set, referrer=referrer, study_id=study_id, count=count))
 
     try:
         label_pack.print(count)
@@ -39,7 +40,42 @@ def label_print(set, referrer, study_id, count=1):
         current_app.logger.error(traceback.format_exc())
         flash("An error occurred while printing.  Check that the printer has paper and ink, and that a jam has not occurred.", "error")
     finally:
-        if referrer == 'study' and study_id is not None:
-            return redirect(url_for('ui.study', id=study_id))
-        else:
-            return redirect(url_for("ui.labels"))
+        return redirect(redirect_to_referrer(referrer, study_id))
+
+
+@blueprint.route("/labels/study/<int:study_id>/<string:set>/define/<int:count>/referrer/<string:referrer>", methods=['GET', 'POST'])
+@assert_study_user()
+def label_print_definition(set, referrer, study_id, count=1):
+    label_pack = LabelPack.query.filter_by(type=set).one()
+    form = LabelDefinition()
+
+    if form.validate_on_submit():
+
+        try:
+            label_pack.set_participant_id(form.participant_id.data)
+            label_pack.print(count)
+            flash('Labels have been sent to the printer')
+        except:
+            current_app.logger.error(traceback.format_exc())
+            flash("An error occurred while printing.  Check that the printer has paper and ink, and that a jam has not occurred.", "error")
+        finally:
+            return redirect(redirect_to_referrer(referrer, study_id))
+
+    return render_template(
+        "ui/label_definition.html",
+        form=form,
+        label_pack=label_pack,
+        study_id=study_id,
+        set=set,
+        referrer=referrer,
+        count=count,
+        back=f'ui.{referrer}',
+        backparams={'id': study_id},
+    )
+
+
+def redirect_to_referrer(referrer, study_id):
+    if referrer == 'study' and study_id is not None:
+        return url_for('ui.study', id=study_id)
+    else:
+        return url_for("ui.labels")

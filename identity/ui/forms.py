@@ -92,3 +92,7 @@ class DemographicsSearchForm(FlashingForm):
 
 class DemographicsAdminSearchForm(DemographicsSearchForm):
     owner_user_id = SelectField('Owner', coerce=int, choices=[])
+
+
+class LabelDefinition(FlashingForm):
+    participant_id = StringField("Participant Identifier", validators=[DataRequired(), Length(max=100)])
