@@ -17,6 +17,7 @@ from .model import (
     BioresourceId,
     Study,
     StudyIdSpecification,
+    ParticipantIdentifierType,
 )
 from .security import get_system_user, get_admin_user
 from .printing.briccs import (
@@ -49,6 +50,7 @@ def create_base_data():
     create_studies(system)
     create_label_sets(system)
     create_blinding_sets(system)
+    create_participant_id_types(system)
 
 
 def import_ids():
@@ -385,4 +387,18 @@ def create_blinding_sets(user):
 
                 db.session.add(blinding_type)
 
+    db.session.commit()
+
+
+def create_participant_id_types(user):
+    print('Creating Participant ID Types')
+
+    for name in ParticipantIdentifierType.__TYPE_NAMES__:
+        if ParticipantIdentifierType.query.filter_by(name=name).count() == 0:
+            print(f'Creating Participant ID Type "{name}"')
+
+            db.session.add(ParticipantIdentifierType(
+                name=name,
+                last_updated_by_user=user,
+            ))
     db.session.commit()

@@ -447,6 +447,18 @@ class PseudoRandomId(db.Model):
         return self.full_code
 
 
+class FixedIdProvider():
+
+    def __init__(self, id):
+        self._id = id
+
+    def allocate_id(self, user):
+        return self._id
+
+    def __repr__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
+
+
 class Study(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
@@ -553,6 +565,13 @@ class EcrfDetail(db.Model):
 
 
 class ParticipantIdentifierType(db.Model):
+
+    __STUDY_PARTICIPANT_ID__ = 'study_participant_id'
+
+    __TYPE_NAMES__ = [
+        __STUDY_PARTICIPANT_ID__,
+    ]
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
 
@@ -564,28 +583,27 @@ class ParticipantIdentifierType(db.Model):
         return self.name
 
     @staticmethod
-    def get_or_create_type(name, user):
-        result = ParticipantIdentifierType.query.filter_by(
-            name=name,
+    def get_study_participant_id():
+        return ParticipantIdentifierType.query.filter_by(
+            name=ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__
         ).one_or_none()
-        
-        if (result is None):
-            result = ParticipantIdentifierType(
-                name=name,
-                last_updated_by_user=user,
-            )
-
-            db.session.add(result)
-        
-        return result
-
 
 
 class ParticipantIdentifier(db.Model):
+    __tablename__ = 'participant_identifier'
+
     id = db.Column(db.Integer, primary_key=True)
     identifier = db.Column(db.String(100), nullable=False)
     participant_identifier_type_id = db.Column(db.Integer, db.ForeignKey(ParticipantIdentifierType.id))
     participant_identifier_type = db.relationship(ParticipantIdentifierType)
+    type = db.Column(db.String(100), nullable=False)
+    study_id = db.Column(db.Integer, db.ForeignKey(Study.id), nullable=True)
+    study = db.relationship(Study, backref=db.backref("participant_identifiers"))
+
+    __mapper_args__ = {
+        'polymorphic_identity':'participant_identifier',
+        'polymorphic_on':type,
+    }
 
     last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
@@ -593,3 +611,11 @@ class ParticipantIdentifier(db.Model):
 
     def __str__(self):
         return f"{self.type.name}: {self.identifier}"
+
+
+class LabelParticipantIdentifier(ParticipantIdentifier):
+    id = db.Column(db.Integer, db.ForeignKey('participant_identifier.id'), primary_key=True)
+
+    __mapper_args__ = {
+        'polymorphic_identity':'label_participant_identifier',
+    }

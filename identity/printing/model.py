@@ -6,7 +6,12 @@ from collections import namedtuple
 from flask import current_app
 from flask_login import current_user
 from ..database import db
-from ..model import Study
+from ..model import (
+    Study,
+    LabelParticipantIdentifier,
+    ParticipantIdentifierType,
+)
+
 
 
 PRINTER_CVRC_LAB_SAMPLE = 'PRINTER_CVRC_LAB_SAMPLE'
@@ -136,6 +141,9 @@ class LabelPack(db.Model):
         "polymorphic_on": type,
     }
 
+    def set_participant_id_provider(self, participant_id_provider):
+        self._participant_id_provider = participant_id_provider
+
     def user_defined_participant_id(self):
         return False
 
@@ -150,13 +158,34 @@ class LabelPack(db.Model):
         for _ in range(count):
             current_app.logger.info(f'Printing label for study {self.study.name}')
 
-            self._do_print()
+            if hasattr(self, '_participant_id_provider'):
+                self._do_print(self._participant_id_provider.allocate_id(current_user))
+            else:
+                self._do_print()
 
             db.session.commit()
 
             time.sleep(current_app.config['PRINTING_SET_SLEEP'])
 
-    def _do_print(self):
+    def save_participant_id(self, participant_id):
+        pit = ParticipantIdentifierType.get_study_participant_id()
+
+        lpi = LabelParticipantIdentifier.query.filter_by(
+            participant_identifier_type_id=pit.id,
+            study_id=self.study_id,
+            identifier=participant_id,
+        ).one_or_none()
+
+        if lpi is None:
+            db.session.add(LabelParticipantIdentifier(
+                participant_identifier_type_id=pit.id,
+                study_id=self.study_id,
+                identifier=participant_id,
+                last_updated_by_user_id=current_user.id,
+            ))
+
+
+    def _do_print(self, participant_id=None):
         pass
 
     def __repr__(self):

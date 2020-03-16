@@ -1,5 +1,10 @@
 from flask_login import current_user
-from ..model import PseudoRandomIdProvider, StudyIdSpecification
+from ..model import (
+    PseudoRandomIdProvider,
+    StudyIdSpecification,
+    ParticipantIdentifier,
+    FixedIdProvider,
+)
 from .model import (
     print_barcode,
     PRINTER_TMF_SAMPLE,
@@ -10,6 +15,7 @@ from .model import (
     print_notes_label,
     LabelSet,
 )
+from ..database import db
 
 
 ID_TYPE_PARTICIPANT = "GDPt"
@@ -36,7 +42,7 @@ class GoDcmPack(LabelPack):
     __study_name__ = 'GO-DCM'
 
     def set_participant_id(self, participant_id):
-        self.participant_id = participant_id
+        self.set_participant_id_provider(FixedIdProvider(participant_id))
 
     def user_defined_participant_id(self):
         return True
@@ -44,10 +50,13 @@ class GoDcmPack(LabelPack):
     def allow_batch_printing(self):
         return False
 
-    def _do_print(self):
+    def _do_print(self, participant_id):
+
+        self.save_participant_id(participant_id)
+
         bag_context = BagContext(
             printer=PRINTER_TMF_BAG,
-            participant_id=self.participant_id,
+            participant_id=participant_id,
             side_bar=self.__study_name__,
         )
 
@@ -99,7 +108,7 @@ class GoDcmPack(LabelPack):
 
         print_barcode(
             printer=PRINTER_TMF_SAMPLE,
-            barcode=self.participant_id,
+            barcode=participant_id,
             count=5,
         )
 
@@ -112,5 +121,5 @@ class GoDcmPack(LabelPack):
             study_sponsor='NIHR CRN: North West London',
             iras_id='237880',
             version='1.0',
-            participant_id=self.participant_id,
+            participant_id=participant_id,
         )
