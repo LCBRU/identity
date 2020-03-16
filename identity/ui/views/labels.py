@@ -30,7 +30,7 @@ def labels():
 def label_print(set, referrer, study_id, count=1):
     label_pack = LabelPack.query.filter_by(type=set).one()
 
-    if label_pack.user_defined_participant_id:
+    if label_pack.user_defined_participant_id():
         return redirect(url_for("ui.label_print_definition", set=set, referrer=referrer, study_id=study_id, count=count))
 
     try:
