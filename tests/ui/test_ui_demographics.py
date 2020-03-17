@@ -105,7 +105,12 @@ def _test__ui_demographics_upload(client, faker, content, extension, headers):
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics_define_columns', id=dr.id, _external=True)
 
-    _assert_uploaded_file_on_index(client, filename, dr.id, AWAITING_DEFINE_COLUMNS)
+    _assert_uploaded_file_on_index(
+        client,
+        filename,
+        dr.id,
+        AWAITING_DEFINE_COLUMNS,
+    )
 
 
 def _test__ui_demographics_upload_error(client, faker, content, extension, headers):
@@ -612,8 +617,6 @@ def _assert_uploaded_file_on_index(client, filename, id, status):
     response = client.get(url_for('ui.demographics'))
 
     assert response.soup.find(string=re.compile(filename)) is not None
-
-    print(response.soup)
 
     if status == AWAITING_DEFINE_COLUMNS:
         assert response.soup.find('a', href=url_for('ui.demographics_define_columns', id=id)) is not None

@@ -34,7 +34,7 @@ def test_url_exists_without_login(client, path):
         ("/"),
         ("/labels/"),
         ("/demographics/"),
-        ("/labels/print/MermaidPack/1"),
+        ("/labels/study/1/MermaidPack/print/1/referrer/refrrerer"),
     ],
 )
 def test_url_requires_login_get(client, path):

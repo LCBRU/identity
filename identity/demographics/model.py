@@ -197,6 +197,9 @@ class DemographicsRequest(db.Model):
         return self._get_most_likely_column_id('(uhl|\bs).*(number|no|)')
 
     def get_most_likely_nhs_number_column_id(self):
+        print('*'*50)
+        print(self._get_most_likely_column_id('nhs.*(number|no|)'))
+        print('*'*50)
         return self._get_most_likely_column_id('nhs.*(number|no|)')
 
     def get_most_likely_family_name_column_id(self):

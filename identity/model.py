@@ -453,10 +453,19 @@ class FixedIdProvider():
         self._id = id
 
     def allocate_id(self, user):
-        return self._id
+        return FixedId(self._id)
 
     def __repr__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
+
+
+class FixedId():
+    def __init__(self, id):
+        self._id = id
+
+    @property
+    def barcode(self):
+        return self._id
 
 
 class Study(db.Model):

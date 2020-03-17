@@ -159,7 +159,7 @@ class LabelPack(db.Model):
             current_app.logger.info(f'Printing label for study {self.study.name}')
 
             if hasattr(self, '_participant_id_provider'):
-                self._do_print(self._participant_id_provider.allocate_id(current_user))
+                self._do_print(self._participant_id_provider.allocate_id(current_user).barcode)
             else:
                 self._do_print()
 

@@ -21,6 +21,12 @@
                                         <h2>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h2>
                                     </header>
         
+                                    {% if dr.requires_column_definition %}
+                                        <a class="btn btn-success" href="{{ url_for('ui.demographics_define_columns', id=dr.id) }}">Define Columns</a>
+                                    {% endif %}
+                                    {% if dr.requires_submission %}
+                                        <a class="btn btn-success" href="{{ url_for('ui.demographics_submit', id=dr.id) }}">Submit</a>
+                                    {% endif %}
                                     {% if dr.can_be_resubmitted and current_user.is_admin %}
                                         <a class="btn btn-danger" href="{{ url_for('ui.demographics_resubmit', id=dr.id) }}">Resubmit/Unpause request</a>
                                     {% endif %}
