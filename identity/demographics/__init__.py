@@ -49,19 +49,12 @@ def schedule_lookup_tasks(demographics_request_id):
 
         if not dr.data_extracted:
             extract_data.delay(demographics_request_id)
-
         elif not dr.pmi_data_pre_completed:
-            extract_pmi_details.delay(demographics_request_id)
-
-            dr.pmi_data_pre_completed_datetime = datetime.utcnow()
+            extract_pre_pmi_details.delay(demographics_request_id)
         elif not dr.lookup_completed:
             process_demographics_request_data.delay(demographics_request_id)
-
         elif not dr.pmi_data_post_completed:
-            extract_pmi_details.delay(demographics_request_id)
-
-            dr.pmi_data_post_completed_datetime = datetime.utcnow()
-
+            extract_post_pmi_details.delay(demographics_request_id)
         elif not dr.result_created_datetime:
             produce_demographics_result.delay(demographics_request_id)
 
@@ -398,8 +391,8 @@ def save_demographics_error(demographics_request_id, e):
 
 
 @celery.task()
-def extract_pmi_details(request_id):
-    current_app.logger.info(f'extract_pmi_details (request_id={request_id})')
+def extract_pre_pmi_details(request_id):
+    current_app.logger.info(f'extract_pre_pmi_details (request_id={request_id})')
 
     try:
         dr = DemographicsRequest.query.get(request_id)
@@ -415,6 +408,38 @@ def extract_pmi_details(request_id):
 
         if drd is None:
             dr.pmi_pre_processed_datetime = datetime.utcnow()
+
+        elif not drd.has_error:
+            get_pmi_details(drd)
+
+        db.session.commit()
+
+        schedule_lookup_tasks(request_id)
+
+    except Exception as e:
+        db.session.rollback()
+        log_exception(e)
+        save_demographics_error(request_id, e)
+
+
+@celery.task()
+def extract_post_pmi_details(request_id):
+    current_app.logger.info(f'extract_post_pmi_details (request_id={request_id})')
+
+    try:
+        dr = DemographicsRequest.query.get(request_id)
+
+        if dr is None:
+            raise Exception('request not found')
+
+        drd = db.session.query(DemographicsRequestData.id).filter(
+            DemographicsRequestData.demographics_request_id == request_id
+        ).filter(
+            DemographicsRequestData.pmi_post_processed_datetime.is_(None)
+        ).first()
+
+        if drd is None:
+            dr.pmi_post_processed_datetime = datetime.utcnow()
 
         elif not drd.has_error:
             get_pmi_details(drd)

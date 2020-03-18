@@ -158,11 +158,11 @@ class DemographicsRequest(db.Model):
         elif not self.data_extracted:
             return 'Extracting Data'
         elif not self.pmi_data_pre_completed:
-            return 'Fetching PMI details before spine lookup'
+            return f'Fetching PMI details {self.prepmi_count} of {self.data_count} before spine lookup'
         elif not self.lookup_completed:
-            return 'Fetching Demographics {} of {}'.format(self.fetched_count, self.data_count)
+            return f'Fetching Demographics {self.fetched_count} of {self.data_count}'
         elif not self.pmi_data_post_completed:
-            return 'Fetching PMI details'
+            return f'Fetching PMI details {self.postpmi_count} of {self.data_count} after spine lookup'
         elif not self.result_created:
             return 'Processing Demographics'
         elif not self.result_downloaded:
@@ -191,6 +191,30 @@ class DemographicsRequest(db.Model):
                 where(DemographicsRequestData.demographics_request_id == cls.id).
                 where(DemographicsRequestData.processed_datetime.isnot(None)).
                 label("fetched_count")
+                )
+
+    @hybrid_property
+    def prepmi_count(self):
+        return len([d for d in self.data if d.pmi_data_pre_completed])
+
+    @prepmi_count.expression
+    def prepmi_count(cls):
+        return (select([func.count(DemographicsRequestData.id)]).
+                where(DemographicsRequestData.demographics_request_id == cls.id).
+                where(DemographicsRequestData.pmi_data_pre_completed_datetime.isnot(None)).
+                label("prepmi_count")
+                )
+
+    @hybrid_property
+    def postpmi_count(self):
+        return len([d for d in self.data if d.pmi_data_post_completed])
+
+    @postpmi_count.expression
+    def postpmi_count(cls):
+        return (select([func.count(DemographicsRequestData.id)]).
+                where(DemographicsRequestData.demographics_request_id == cls.id).
+                where(DemographicsRequestData.pmi_data_post_completed_datetime.isnot(None)).
+                label("prepost_count")
                 )
 
     def get_most_likely_uhl_system_number_column_id(self):
