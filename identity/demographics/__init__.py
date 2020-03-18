@@ -334,7 +334,9 @@ def schedule_lookup_tasks(demographics_request_id):
             DemographicsRequestData.processed_datetime.is_(None)
         ).first()
 
-        if not dr.data_extracted:
+        if dr.in_error:
+            current_app.logger.info(f'Scheduled demographics_request_id is in error. demographics_request_id={demographics_request_id}')
+        elif not dr.data_extracted:
             current_app.logger.info(f'Scheduling data extraction for demographics_request_id={demographics_request_id})')
             extract_data.delay(demographics_request_id)
         elif not dr.pmi_data_pre_completed:
@@ -355,6 +357,8 @@ def schedule_lookup_tasks(demographics_request_id):
 
         elif not dr.lookup_completed and next_drd_id is not None:
             current_app.logger.info(f'Scheduling demographics download for demographics_request_id={demographics_request_id})')
+
+            current_app.logger.info(f'DEBUG: {dr.status})')
 
             next_drd_id, = next_drd_id
             process_demographics_request_data.delay(data_id=next_drd_id, request_id=demographics_request_id)
