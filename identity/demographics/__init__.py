@@ -509,7 +509,7 @@ def extract_pmi_details(request_id):
                         )
                     )
 
-                pmi_details = get_pmi_details(*[i for i in [v_nhs_number, v_s_number] if i])
+                pmi_details = get_pmi_details(v_nhs_number, v_s_number)
 
                 if pmi_details is not None:
                     pmi_details.demographics_request_data_id = d.id
@@ -580,46 +580,49 @@ def save_demographics_error(demographics_request_id, e):
         db.session.commit()
 
 
-def get_pmi_details(*ids):
+def get_pmi_details(nhs_number, uhl_system_number):
+
+    nhs_pmi = get_pmi_details_from(nhs_number, 'UHL_PMI_QUERY_BY_NHS_NUMBER')
+    uhl_pmi = get_pmi_details_from(uhl_system_number, 'UHL_PMI_QUERY_BY_ID')
+
+    if nhs_pmi is not None and uhl_pmi is not None:
+        if nhs_pmi != uhl_pmi:
+            raise PmiException(f"Participant PMI mismatch for NHS Number '{nhs_number}' and UHL System Number '{uhl_system_number}'")
+        
+    return nhs_pmi or uhl_pmi
+
+
+def get_pmi_details_from(id, function):
     result = None
     with pmi_engine() as conn:
-        for id in ids:
-            pmi_result = conn.execute(text("""
-                SELECT
-                    nhs_number,
-                    main_pat_id as uhl_system_number,
-                    last_name as family_name,
-                    first_name as given_name,
-                    gender,
-                    dob,
-                    date_of_death,
-                    postcode
-                FROM [dbo].[UHL_PMI_QUERY_BY_ID](:id)
-                """), id=id)
+        pmi_result = conn.execute(text(f"""
+            SELECT
+                nhs_number,
+                main_pat_id as uhl_system_number,
+                last_name as family_name,
+                first_name as given_name,
+                gender,
+                dob,
+                date_of_death,
+                postcode
+            FROM [dbo].[{function}](:id)
+            """), id=id)
 
-            pmi_records = pmi_result.fetchall()
+        pmi_records = pmi_result.fetchall()
 
-            if len(pmi_records) > 1:
-                raise Exception(f"More than one participant found with id='{id}' in the UHL PMI")
+        if len(pmi_records) > 1:
+            raise Exception(f"More than one participant found with id='{id}' in the UHL PMI")
 
-            if len(pmi_records) == 1 and pmi_records[0]['uhl_system_number'] is not None:
-                pmi_record = pmi_records[0]
+        if len(pmi_records) == 1 and pmi_records[0]['uhl_system_number'] is not None:
+            pmi_record = pmi_records[0]
 
-                pmi_details = DemographicsRequestPmiData(
-                    nhs_number=(pmi_record['nhs_number'] or '').replace(' ', ''),
-                    uhl_system_number=pmi_record['uhl_system_number'],
-                    family_name=pmi_record['family_name'],
-                    given_name=pmi_record['given_name'],
-                    gender=pmi_record['gender'],
-                    date_of_birth=pmi_record['dob'],
-                    date_of_death=pmi_record['date_of_death'],
-                    postcode=pmi_record['postcode'],
-                )
-                if result is None:
-                    result = pmi_details
-                else:
-                    if result != pmi_details:
-                        raise PmiException(f"Participant PMI mismatch for IDs '{ids}'")
-
-        
-    return result
+            return DemographicsRequestPmiData(
+                nhs_number=(pmi_record['nhs_number'] or '').replace(' ', ''),
+                uhl_system_number=pmi_record['uhl_system_number'],
+                family_name=pmi_record['family_name'],
+                given_name=pmi_record['given_name'],
+                gender=pmi_record['gender'],
+                date_of_birth=pmi_record['dob'],
+                date_of_death=pmi_record['date_of_death'],
+                postcode=pmi_record['postcode'],
+            )
