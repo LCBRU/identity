@@ -513,10 +513,20 @@ class DemographicsRequestData(db.Model):
 
     created_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     processed_datetime = db.Column(db.DateTime)
+    pmi_pre_processed_datetime = db.Column(db.DateTime)
+    pmi_post_processed_datetime = db.Column(db.DateTime)
 
     @property
     def processed(self):
         return self.processed_datetime is not None
+
+    @property
+    def pmi_pre_processed(self):
+        return self.pmi_pre_processed_datetime is not None
+
+    @property
+    def pmi_post_processed(self):
+        return self.pmi_post_processed_datetime is not None
 
     @property
     def has_error(self):

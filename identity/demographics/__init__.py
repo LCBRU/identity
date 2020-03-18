@@ -1,6 +1,5 @@
-import re
 import traceback
-from datetime import datetime, date
+from datetime import datetime
 from dateutil.parser import parse
 from flask import url_for, current_app, render_template
 from sqlalchemy.sql import text
@@ -16,12 +15,64 @@ from identity.demographics.model import (
 from identity.demographics.smsp import (
     get_demographics_from_search,
     get_demographics_from_nhs_number,
-    SMSP_SEX_MALE,
-    SMSP_SEX_FEMALE,
     SmspException,
 )
 from identity.utils import log_exception
 from identity.emailing import email
+from .data_conversions import (
+    convert_dob,
+    convert_gender,
+    convert_name,
+    convert_nhs_number,
+    convert_postcode,
+    convert_uhl_system_number,
+)
+
+
+class ScheduleException(Exception):
+    pass
+
+
+def schedule_lookup_tasks(demographics_request_id):
+    current_app.logger.info(f'schedule_lookup_tasks (demographics_request_id={demographics_request_id})')
+
+    try:
+        dr = DemographicsRequest.query.get(demographics_request_id)
+
+        if dr is None:
+            raise Exception('Request id={} not found'.format(demographics_request_id))
+
+        if dr.paused or dr.deleted or dr.result_created or dr.in_error:
+            raise ScheduleException(f'Request id={demographics_request_id} scheduled when status is "{dr.status}""')
+
+        current_app.logger.info(f'Scheduling demographics_request_id={demographics_request_id} with status "{dr.status}"')
+
+        if not dr.data_extracted:
+            extract_data.delay(demographics_request_id)
+
+        elif not dr.pmi_data_pre_completed:
+            extract_pmi_details.delay(demographics_request_id)
+
+            dr.pmi_data_pre_completed_datetime = datetime.utcnow()
+        elif not dr.lookup_completed:
+            process_demographics_request_data.delay(demographics_request_id)
+
+        elif not dr.pmi_data_post_completed:
+            extract_pmi_details.delay(demographics_request_id)
+
+            dr.pmi_data_post_completed_datetime = datetime.utcnow()
+
+        elif not dr.result_created_datetime:
+            produce_demographics_result.delay(demographics_request_id)
+
+        db.session.add(dr)
+        db.session.commit()
+
+    except ScheduleException as sde:
+        current_app.logger.warning(sde)
+    except Exception as e:
+        log_exception(e)
+        save_demographics_error(demographics_request_id, e)
 
 
 class PmiException(Exception):
@@ -204,202 +255,32 @@ def spine_lookup(demographics_request_data):
     db.session.commit()
 
 
-def convert_nhs_number(nhs_number):
-    if not nhs_number:
-        return None, ''
-
-    # Nhs number is sometimes inputted xxx-xxx-xxxx, lets strip this down
-    nhs_number = re.sub('[- ]', '', nhs_number)
-
-    # A valid NHS number must be 10 digits long
-    if not re.search(r'^[0-9]{10}$', nhs_number):
-        return f'Invalid format {nhs_number}', ''
-
-    checkcalc = lambda sum: 11 - (sum % 11)
-
-    char_total = sum(
-        [int(j) * (11 - (i + 1)) for i, j in enumerate(nhs_number[:-1])]
-    )
-    checksum = checkcalc(char_total) if checkcalc(char_total) != 11 else 0
-
-    if checksum != int(nhs_number[9]):
-        return 'Invalid format', ''
-    else:
-        return None, nhs_number
-    
-
-def convert_uhl_system_number(uhl_system_number):
-    if not uhl_system_number:
-        return None, ''
-
-    if not re.search(r'^([SRFG]\d{7}|[U]\d{7}.*|LB\d{7}|RTD[\-0-9])$', uhl_system_number):
-        return f'Invalid format {uhl_system_number}', ''
-    else:
-        return None, uhl_system_number
-    
-
-def convert_gender(gender):
-    if not gender:
-        return None, ''
-
-    gender = gender.lower()
-
-    if gender == 'f' or gender =='female':
-        return None, SMSP_SEX_FEMALE
-    elif gender == 'm' or gender == 'male':
-        return None, SMSP_SEX_MALE
-    else:
-        return 'Invalid format', ''
-
-
-def convert_name(name):
-    if not name:
-        return None, ''
-    elif len(name) < 2:
-        return 'Must be at least 2 characters', ''
-    else:
-        return None, name
-
-
-def convert_dob(dob):
-    current_app.logger.info(f'convert_dob (dob={dob})')
-
-    if not dob:
-        current_app.logger.info(f'convert_dob: DOB is empty')
-        return None, ''
-
-    if isinstance(dob, date) or isinstance(dob, datetime):
-        current_app.logger.info(f'convert_dob: DOB is a date')
-        return None, dob.strftime("%Y%m%d")
-
-
-    ansi_match = re.fullmatch(r'(?P<year>\d{4})[\\ -]?(?P<month>\d{2})[\\ -]?(?P<day>\d{2})(?:[ T]\d{2}:\d{2}:\d{2})?(?:\.\d+)?(?:[+-]\d{2}:\d{2})?', dob)
-
-    if ansi_match:
-        current_app.logger.info(f'convert_dob: DOB is an ANSI date string')
-        return None, ansi_match.group('year') + ansi_match.group('month') + ansi_match.group('day')
+@celery.task()
+def process_demographics_request_data(request_id):
+    current_app.logger.info(f'process_demographics_request_data: request_id={request_id})')
 
     try:
-        parsed_date = parse(dob, dayfirst=True)
-    except ValueError:
-        current_app.logger.error(f'convert_dob: DOB is something we don\'t understand: {dob}')
-        return 'Invalid date', ''
-
-    if parsed_date.year < 1900 or parsed_date.year > datetime.utcnow().year:
-        current_app.logger.info(f'convert_dob: DOB looks like a date, but it\'s out of range')
-        return 'Date out of range', ''
-    else:
-        current_app.logger.info(f'convert_dob: DOB is a string that contains a date that we have successfully parsed.')
-        return None, parsed_date.strftime("%Y%m%d")
-
-
-def convert_postcode(postcode):
-    if not postcode:
-        return None, ''
-
-    p = postcode.upper().replace(' ', '')
-    p = "{} {}".format(p[0:-3], p[-3:])
-
-    if not re.search(r'^([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9][A-Za-z]?))))\s[0-9][A-Za-z]{2})$', p):
-        return 'Invalid format', ''
-    else:
-        return None, postcode
-
-
-class ScheduleException(Exception):
-    pass
-
-
-def schedule_lookup_tasks(demographics_request_id):
-    current_app.logger.info(f'schedule_lookup_tasks (demographics_request_id={demographics_request_id})')
-
-    try:
-        dr = DemographicsRequest.query.get(demographics_request_id)
+        dr = DemographicsRequest.query.get(request_id)
 
         if dr is None:
-            raise Exception('Request id={} not found'.format(demographics_request_id))
+            raise Exception('request not found')
 
-        if dr.paused:
-            raise ScheduleException('Request id={} paused not running'.format(demographics_request_id))
-
-        if dr.deleted:
-            raise ScheduleException('Request id={} deleted'.format(demographics_request_id))
-
-        if dr.result_created:
-            raise ScheduleException('Request id={} result already created'.format(demographics_request_id))
-
-        next_drd_id = db.session.query(DemographicsRequestData.id).filter(
-            DemographicsRequestData.demographics_request_id == demographics_request_id
+        drd = db.session.query(DemographicsRequestData.id).filter(
+            DemographicsRequestData.demographics_request_id == request_id
         ).filter(
             DemographicsRequestData.processed_datetime.is_(None)
         ).first()
 
-        if dr.in_error:
-            current_app.logger.info(f'Scheduled demographics_request_id is in error. demographics_request_id={demographics_request_id}')
-        elif not dr.data_extracted:
-            current_app.logger.info(f'Scheduling data extraction for demographics_request_id={demographics_request_id})')
-            extract_data.delay(demographics_request_id)
-        elif not dr.pmi_data_pre_completed:
-            current_app.logger.info(f'Scheduling PMI download pre for demographics_request_id={demographics_request_id})')
-
-            extract_pmi_details.delay(demographics_request_id)
-
-            dr.pmi_data_pre_completed_datetime = datetime.utcnow()
-            db.session.add(dr)
-            db.session.commit()
-
-        elif not dr.lookup_completed and next_drd_id is None:
-            dr.lookup_completed_datetime = datetime.utcnow()
-            db.session.add(dr)
-            db.session.commit()
-
-            schedule_lookup_tasks(demographics_request_id)
-
-        elif not dr.lookup_completed and next_drd_id is not None:
-            current_app.logger.info(f'Scheduling demographics download for demographics_request_id={demographics_request_id})')
-
-            current_app.logger.info(f'DEBUG: {dr.status})')
-
-            next_drd_id, = next_drd_id
-            process_demographics_request_data.delay(data_id=next_drd_id, request_id=demographics_request_id)
-
-        elif not dr.pmi_data_post_completed:
-            current_app.logger.info(f'Scheduling PMI download post for demographics_request_id={demographics_request_id})')
-
-            extract_pmi_details.delay(demographics_request_id)
-
-            dr.pmi_data_post_completed_datetime = datetime.utcnow()
-            db.session.add(dr)
-            db.session.commit()
-
-        elif not dr.result_created_datetime:
-            current_app.logger.info(f'Scheduling result creation demographics_request_id={demographics_request_id})')
-
-            produce_demographics_result.delay(demographics_request_id)
-
-
-    except ScheduleException as sde:
-        current_app.logger.warning(sde)
-    except Exception as e:
-        log_exception(e)
-        save_demographics_error(demographics_request_id, e)
-
-
-@celery.task()
-def process_demographics_request_data(data_id, request_id):
-    current_app.logger.info(f'process_demographics_request_data (data_id={data_id}, request_id={request_id})')
-
-    try:
-        drd = DemographicsRequestData.query.get(data_id)
-
         if drd is None:
-            schedule_lookup_tasks(request_id)
-            raise Exception('Data not found for ID = {}'.format(data_id))
-
-        if not drd.has_error:
+            dr.lookup_completed_datetime = datetime.utcnow()
+        elif not drd.has_error:
             spine_lookup(drd)
 
         schedule_lookup_tasks(request_id)
+
+        db.session.add(drd)
+        db.session.commit()
+
     except Exception as e:
         log_exception(e)
         save_demographics_error(request_id, e)
@@ -480,74 +361,6 @@ def get_column_value(record, column):
 
 
 @celery.task()
-def extract_pmi_details(request_id):
-    current_app.logger.info(f'extract_pmi_details (request_id={request_id})')
-
-    try:
-        dr = DemographicsRequest.query.get(request_id)
-
-        if dr is None:
-            raise Exception('request not found')
-
-        for d in (d for d in dr.data if not d.has_error):
-            try:
-                error, v_nhs_number = convert_nhs_number(d.nhs_number)
-                if error is not None:
-                    d.messages.append(
-                        DemographicsRequestDataMessage(
-                            type='warning',
-                            source='pmi_details',
-                            scope='nhs_number',
-                            message=error,
-                        )
-                    )
-
-                error, v_s_number = convert_uhl_system_number(d.uhl_system_number)
-                if error is not None:
-                    d.messages.append(
-                        DemographicsRequestDataMessage(
-                            type='warning',
-                            source='pmi_details',
-                            scope='uhl_system_number',
-                            message=error,
-                        )
-                    )
-
-                pmi_details = get_pmi_details(v_nhs_number, v_s_number)
-
-                if pmi_details is not None:
-                    pmi_details.demographics_request_data_id = d.id
-                    db.session.add(pmi_details)
-
-            except PmiException as e:
-                d.messages.append(
-                    DemographicsRequestDataMessage(
-                        type='error',
-                        source='pmi_details',
-                        scope='pmi_details',
-                        message=e.message,
-                    ))
-            except Exception as e:
-                log_exception(e)
-                d.messages.append(
-                    DemographicsRequestDataMessage(
-                        type='error',
-                        source='pmi_details',
-                        scope='pmi_details',
-                        message=dr.set_error(traceback.format_exc()),
-                    ))
-
-        db.session.commit()
-
-        schedule_lookup_tasks(request_id)
-
-    except Exception as e:
-        db.session.rollback()
-        log_exception(e)
-        save_demographics_error(request_id, e)
-
-
-@celery.task()
 def produce_demographics_result(demographics_request_id):
     current_app.logger.info(f'produce_demographics_result (demographics_request_id={demographics_request_id})')
 
@@ -584,16 +397,93 @@ def save_demographics_error(demographics_request_id, e):
         db.session.commit()
 
 
-def get_pmi_details(nhs_number, uhl_system_number):
+@celery.task()
+def extract_pmi_details(request_id):
+    current_app.logger.info(f'extract_pmi_details (request_id={request_id})')
 
-    nhs_pmi = get_pmi_details_from(nhs_number, 'UHL_PMI_QUERY_BY_NHS_NUMBER')
-    uhl_pmi = get_pmi_details_from(uhl_system_number, 'UHL_PMI_QUERY_BY_ID')
+    try:
+        dr = DemographicsRequest.query.get(request_id)
 
-    if nhs_pmi is not None and uhl_pmi is not None:
-        if nhs_pmi != uhl_pmi:
-            raise PmiException(f"Participant PMI mismatch for NHS Number '{nhs_number}' and UHL System Number '{uhl_system_number}'")
-        
-    return nhs_pmi or uhl_pmi
+        if dr is None:
+            raise Exception('request not found')
+
+        drd = db.session.query(DemographicsRequestData.id).filter(
+            DemographicsRequestData.demographics_request_id == request_id
+        ).filter(
+            DemographicsRequestData.pmi_pre_processed_datetime.is_(None)
+        ).first()
+
+        if drd is None:
+            dr.pmi_pre_processed_datetime = datetime.utcnow()
+
+        elif not drd.has_error:
+            get_pmi_details(drd)
+
+        db.session.commit()
+
+        schedule_lookup_tasks(request_id)
+
+    except Exception as e:
+        db.session.rollback()
+        log_exception(e)
+        save_demographics_error(request_id, e)
+
+
+def get_pmi_details(drd):
+
+    try:
+        error, v_nhs_number = convert_nhs_number(drd.nhs_number)
+        if error is not None:
+            drd.messages.append(
+                DemographicsRequestDataMessage(
+                    type='warning',
+                    source='pmi_details',
+                    scope='nhs_number',
+                    message=error,
+                )
+            )
+
+        error, v_s_number = convert_uhl_system_number(drd.uhl_system_number)
+        if error is not None:
+            drd.messages.append(
+                DemographicsRequestDataMessage(
+                    type='warning',
+                    source='pmi_details',
+                    scope='uhl_system_number',
+                    message=error,
+                )
+            )
+
+        nhs_pmi = get_pmi_details_from(v_nhs_number, 'UHL_PMI_QUERY_BY_NHS_NUMBER')
+        uhl_pmi = get_pmi_details_from(v_s_number, 'UHL_PMI_QUERY_BY_ID')
+
+        if nhs_pmi is not None and uhl_pmi is not None:
+            if nhs_pmi != uhl_pmi:
+                raise PmiException(f"Participant PMI mismatch for NHS Number '{v_nhs_number}' and UHL System Number '{v_s_number}'")
+            
+        pmi_details = nhs_pmi or uhl_pmi
+
+        if pmi_details is not None:
+            pmi_details.demographics_request_data_id = drd.id
+            db.session.add(pmi_details)
+
+    except PmiException as e:
+        drd.messages.append(
+            DemographicsRequestDataMessage(
+                type='error',
+                source='pmi_details',
+                scope='pmi_details',
+                message=e.message,
+            ))
+    except Exception as e:
+        log_exception(e)
+        drd.messages.append(
+            DemographicsRequestDataMessage(
+                type='error',
+                source='pmi_details',
+                scope='pmi_details',
+                message=traceback.format_exc(),
+            ))
 
 
 def get_pmi_details_from(id, function):
