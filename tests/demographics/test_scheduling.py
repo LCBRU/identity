@@ -113,27 +113,29 @@ def test__schedule_lookup_tasks__pmi_extracted_pre(client, faker):
     drd = do_upload_data_and_extract(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
     dr = drd.demographics_request
 
-    with patch('identity.demographics.get_pmi_details') as mock_get_pmi_details:
+    with patch('identity.demographics.get_pmi_details') as mock_get_pmi_details, \
+        patch('identity.demographics.schedule_lookup_tasks') as mock_schedule:
         mock_get_pmi_details.return_value = EXPECTED_PMI_DETAILS
         
         extract_pmi_details(dr.id)
+
+    print(dr.status)
 
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
         patch('identity.demographics.email') as mock_email, \
         patch('identity.demographics.log_exception') as mock_log_exception, \
         patch('identity.demographics.extract_pmi_details') as mock_extract_pmi_details, \
-        patch('identity.demographics.produce_demographics_result') as mock_produce_demographics_result:
+        patch('identity.demographics.produce_demographics_result') as mock_produce_demographics_result, \
+        patch('identity.demographics.schedule_lookup_tasks') as mock_schedule:
 
         schedule_lookup_tasks(dr.id)
 
-        mock_process_demographics_request_data.delay.assert_called_once_with(
-            data_id=drd.id,
-            request_id=dr.id,
+        mock_extract_pmi_details.delay.assert_called_once_with(
+            dr.id,
         )
         mock_email.assert_not_called()
         mock_log_exception.assert_not_called()
         mock_produce_demographics_result.delay.assert_not_called()
-        mock_extract_pmi_details.delay.assert_not_called()
 
 
 def test__schedule_lookup_tasks__end_lookup(client, faker):

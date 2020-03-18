@@ -10,6 +10,9 @@ from openpyxl import Workbook
 
 
 class FakerProvider(BaseProvider):
+    def column_headers(self, columns):
+        return ['X' * i for i in range(1, columns)]
+
     def user_details(self):
         u = User(
             first_name=self.generator.first_name(),

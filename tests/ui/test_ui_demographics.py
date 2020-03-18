@@ -39,7 +39,7 @@ def cleanup_files(client):
 
 
 def test__ui_demographics_upload_csv(client, faker):
-    headers = faker.pylist(10, False, 'str')
+    headers = faker.column_headers(10)
 
     _test__ui_demographics_upload(
         client,
@@ -51,7 +51,7 @@ def test__ui_demographics_upload_csv(client, faker):
 
 
 def test__ui_demographics_upload_csv_invalid(client, faker):
-    headers = faker.pylist(10, False, 'str')
+    headers = faker.column_headers(10)
 
     _test__ui_demographics_upload_error(
         client,
@@ -63,7 +63,7 @@ def test__ui_demographics_upload_csv_invalid(client, faker):
 
 
 def test__ui_demographics_upload_xslx(client, faker):
-    headers = faker.pylist(10, False, 'str')
+    headers = faker.column_headers(10)
 
     _test__ui_demographics_upload(
         client,
@@ -75,7 +75,7 @@ def test__ui_demographics_upload_xslx(client, faker):
 
 
 def test__ui_demographics_upload_xslx_invalid(client, faker):
-    headers = faker.pylist(10, False, 'str')
+    headers = faker.column_headers(10)
 
     _test__ui_demographics_upload_error(
         client,
@@ -136,7 +136,7 @@ def _test__ui_demographics_upload_error(client, faker, content, extension, heade
 
 def test__ui_demographics_define_columns_get(client, faker):
     user = login(client, faker)
-    headers = faker.pylist(10, False, 'str')
+    headers = faker.column_headers(10)
 
     dr = do_create_request(client, faker, user, headers=headers)
 
@@ -153,7 +153,7 @@ def test__ui_demographics_define_columns_get(client, faker):
 
 def test__ui_demographics_define_columns_get__not_owner(client, faker):
     user = login(client, faker)
-    headers = faker.pylist(10, False, 'str')
+    headers = faker.column_headers(10)
 
     dr = do_create_request(client, faker, user, headers=headers)
 
@@ -256,7 +256,7 @@ def test__ui_demographics_define_columns_post(client, faker, uhl_system_number_c
 
 def test__ui_demographics_define_columns_post__not_owner(client, faker):
     user = login(client, faker)
-    headers = faker.pylist(10, False, 'str')
+    headers = faker.column_headers(10)
 
     dr = do_create_request(client, faker, user, headers=headers)
 
@@ -311,7 +311,7 @@ def test__ui_demographics_submit_get(client, faker):
 
 def test__ui_demographics_submit_get__not_owner(client, faker):
     user = login(client, faker)
-    headers = faker.pylist(10, False, 'str')
+    headers = faker.column_headers(10)
 
     dr = do_create_request(client, faker, user)
     do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
