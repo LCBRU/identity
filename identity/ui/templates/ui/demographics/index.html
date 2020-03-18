@@ -21,6 +21,7 @@
                                         <h2>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h2>
                                     </header>
         
+                                    <a class="btn btn-secondary" href="{{ url_for('ui.demographics_download_request', id=dr.id) }}">Download Request File</a>
                                     {% if dr.requires_column_definition %}
                                         <a class="btn btn-success" href="{{ url_for('ui.demographics_define_columns', id=dr.id) }}">Define Columns</a>
                                     {% endif %}

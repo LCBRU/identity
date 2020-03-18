@@ -293,5 +293,24 @@ def demographics_download_result(id):
     return send_file(
         dr.result_filepath,
         as_attachment=True,
-        attachment_filename=dr.result_filepath,
+        attachment_filename=dr.result_filename,
+    )
+
+
+@blueprint.route("/demographics/download_request/<int:id>")
+@must_be_request_owner()
+def demographics_download_request(id):
+    dr = DemographicsRequest.query.get_or_404(id)
+
+    if not dr.result_created:
+        abort(404)
+
+    dr.result_downloaded_datetime = datetime.utcnow()
+    db.session.add(dr)
+    db.session.commit()
+
+    return send_file(
+        dr.filepath,
+        as_attachment=True,
+        attachment_filename=dr.filename,
     )
