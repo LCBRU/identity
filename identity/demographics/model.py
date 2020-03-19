@@ -156,7 +156,7 @@ class DemographicsRequest(db.Model):
         elif not self.submitted:
             return 'Awaiting Submission'
         elif not self.data_extracted:
-            return 'Extracting Data'
+            return f'Extracting Data'
         elif not self.pmi_data_pre_completed:
             return f'Fetching PMI details {self.prepmi_count} of {self.data_count} before spine lookup'
         elif not self.lookup_completed:
@@ -254,7 +254,7 @@ class DemographicsRequestXslx(DemographicsRequest):
     }
 
     def get_column_names(self):
-        wb = load_workbook(filename=self.filepath)
+        wb = load_workbook(filename=self.filepath, read_only=True)
         ws = wb.active
         rows = ws.iter_rows(min_row=1, max_row=1)
         first_row = next(rows)
@@ -262,11 +262,12 @@ class DemographicsRequestXslx(DemographicsRequest):
         return [c.value for c in takewhile(lambda x: x.value, first_row)]
 
     def iter_rows(self):
-        wb = load_workbook(filename=self.filepath)
+        wb = load_workbook(filename=self.filepath, read_only=True)
         ws = wb.active
 
+        column_names = self.get_column_names()
         for r in ws.iter_rows(min_row=2, values_only=True):
-            yield dict(zip(self.get_column_names(), r))
+            yield dict(zip(column_names, r))
 
     def iter_result_rows(self):
         wb = load_workbook(filename=self.result_filepath)
@@ -607,7 +608,6 @@ class DemographicsRequestDataMessage(db.Model):
     @property
     def is_error(self):
         return self.type == 'error'
-
 
 
 class DemographicsRequestDataResponse(db.Model):
