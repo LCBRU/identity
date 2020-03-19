@@ -242,11 +242,6 @@ def spine_lookup(demographics_request_data):
             )
         )
 
-    demographics_request_data.processed_datetime = datetime.utcnow()
-
-    db.session.add(demographics_request_data)
-    db.session.commit()
-
 
 @celery.task()
 def process_demographics_request_data(request_id):
@@ -258,7 +253,7 @@ def process_demographics_request_data(request_id):
         if dr is None:
             raise Exception('request not found')
 
-        drd = db.session.query(DemographicsRequestData.id).filter(
+        drd = DemographicsRequestData.query.filter(
             DemographicsRequestData.demographics_request_id == request_id
         ).filter(
             DemographicsRequestData.processed_datetime.is_(None)
@@ -266,13 +261,19 @@ def process_demographics_request_data(request_id):
 
         if drd is None:
             dr.lookup_completed_datetime = datetime.utcnow()
-        elif not drd.has_error:
-            spine_lookup(drd)
+            db.session.add(dr)
+        else:
+            if not drd.has_error:
+                spine_lookup(drd)
+    
+            drd.processed_datetime = datetime.utcnow()
+
+            db.session.add(drd)
+
+        db.session.commit()
 
         schedule_lookup_tasks(request_id)
 
-        db.session.add(drd)
-        db.session.commit()
 
     except Exception as e:
         log_exception(e)
@@ -335,7 +336,7 @@ def extract_data(request_id):
         db.session.add(dr)
         db.session.commit()
 
-        schedule_lookup_tasks(request_id)
+        # schedule_lookup_tasks(request_id)
 
     except Exception as e:
         db.session.rollback()
@@ -400,17 +401,22 @@ def extract_pre_pmi_details(request_id):
         if dr is None:
             raise Exception('request not found')
 
-        drd = db.session.query(DemographicsRequestData.id).filter(
+        drd = DemographicsRequestData.query.filter(
             DemographicsRequestData.demographics_request_id == request_id
         ).filter(
             DemographicsRequestData.pmi_pre_processed_datetime.is_(None)
         ).first()
 
         if drd is None:
-            dr.pmi_pre_processed_datetime = datetime.utcnow()
+            current_app.logger.info(f'extract_pre_pmi_details (request_id={request_id}): Done')
+            dr.pmi_data_pre_completed_datetime = datetime.utcnow()
+            db.session.add(dr)
+        else:
+            if not drd.has_error:
+                get_pmi_details(drd)
 
-        elif not drd.has_error:
-            get_pmi_details(drd)
+            drd.pmi_pre_processed_datetime = datetime.utcnow()
+            db.session.add(drd)
 
         db.session.commit()
 
@@ -432,17 +438,23 @@ def extract_post_pmi_details(request_id):
         if dr is None:
             raise Exception('request not found')
 
-        drd = db.session.query(DemographicsRequestData.id).filter(
+        drd = DemographicsRequestData.query.filter(
             DemographicsRequestData.demographics_request_id == request_id
         ).filter(
             DemographicsRequestData.pmi_post_processed_datetime.is_(None)
         ).first()
 
         if drd is None:
-            dr.pmi_post_processed_datetime = datetime.utcnow()
+            current_app.logger.info(f'extract_post_pmi_details (request_id={request_id}): Done')
+            dr.pmi_data_post_completed_datetime = datetime.utcnow()
+            db.session.add(dr)
 
-        elif not drd.has_error:
-            get_pmi_details(drd)
+        else:
+            if not drd.has_error:
+                get_pmi_details(drd)
+
+            drd.pmi_post_processed_datetime = datetime.utcnow()
+            db.session.add(drd)
 
         db.session.commit()
 
@@ -455,6 +467,7 @@ def extract_post_pmi_details(request_id):
 
 
 def get_pmi_details(drd):
+    current_app.logger.info(f'get_pmi_details (Data request Data={drd.id})')
 
     try:
         error, v_nhs_number = convert_nhs_number(drd.nhs_number)

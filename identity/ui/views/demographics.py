@@ -39,7 +39,7 @@ def must_be_request_owner():
         def decorated_function(*args, **kwargs):
             dr = DemographicsRequest.query.get_or_404(request.view_args.get("id"))
 
-            if current_user != dr.owner:
+            if current_user != dr.owner and not current_user.is_admin:
                 abort(403)
 
             return f(*args, **kwargs)

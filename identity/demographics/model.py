@@ -195,25 +195,25 @@ class DemographicsRequest(db.Model):
 
     @hybrid_property
     def prepmi_count(self):
-        return len([d for d in self.data if d.pmi_data_pre_completed])
+        return len([d for d in self.data if d.pmi_pre_processed])
 
     @prepmi_count.expression
     def prepmi_count(cls):
         return (select([func.count(DemographicsRequestData.id)]).
                 where(DemographicsRequestData.demographics_request_id == cls.id).
-                where(DemographicsRequestData.pmi_data_pre_completed_datetime.isnot(None)).
+                where(DemographicsRequestData.pmi_pre_processed_datetime.isnot(None)).
                 label("prepmi_count")
                 )
 
     @hybrid_property
     def postpmi_count(self):
-        return len([d for d in self.data if d.pmi_data_post_completed])
+        return len([d for d in self.data if d.pmi_post_processed])
 
     @postpmi_count.expression
     def postpmi_count(cls):
         return (select([func.count(DemographicsRequestData.id)]).
                 where(DemographicsRequestData.demographics_request_id == cls.id).
-                where(DemographicsRequestData.pmi_data_post_completed_datetime.isnot(None)).
+                where(DemographicsRequestData.pmi_post_processed_datetime.isnot(None)).
                 label("prepost_count")
                 )
 
@@ -221,9 +221,6 @@ class DemographicsRequest(db.Model):
         return self._get_most_likely_column_id('(uhl|\bs).*(number|no|)')
 
     def get_most_likely_nhs_number_column_id(self):
-        print('*'*50)
-        print(self._get_most_likely_column_id('nhs.*(number|no|)'))
-        print('*'*50)
         return self._get_most_likely_column_id('nhs.*(number|no|)')
 
     def get_most_likely_family_name_column_id(self):
@@ -551,6 +548,11 @@ class DemographicsRequestData(db.Model):
     @property
     def pmi_post_processed(self):
         return self.pmi_post_processed_datetime is not None
+
+    @property
+    def has_error(self):
+        return any(m.is_error for m in self.messages)
+
 
     @property
     def has_error(self):
