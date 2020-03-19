@@ -336,7 +336,7 @@ def extract_data(request_id):
         db.session.add(dr)
         db.session.commit()
 
-        # schedule_lookup_tasks(request_id)
+        schedule_lookup_tasks(request_id)
 
     except Exception as e:
         db.session.rollback()
