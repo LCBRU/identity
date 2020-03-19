@@ -21,13 +21,13 @@ def upgrade(migrate_engine):
 
     idx = Index(
         'idx_drd__pmi_pre_processed_datetime',
-        t.c.request_id,
+        t.c.demographics_request_id,
         t.c.pmi_pre_processed_datetime,
     )
     idx.create(migrate_engine)
     idx = Index(
         'idx_drd__pmi_post_processed_datetime',
-        t.c.request_id,
+        t.c.demographics_request_id,
         t.c.pmi_post_processed_datetime,
     )
     idx.create(migrate_engine)
