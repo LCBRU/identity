@@ -22,7 +22,8 @@ from ..forms import (
 )
 from identity.demographics.model import (
     DemographicsRequest,
-    DemographicsRequestXslx,
+    DemographicsRequestXlsx,
+    DemographicsRequestExcel97,
     DemographicsRequestCsv,
     DemographicsRequestColumn,
     DemographicsRequestColumnDefinition,
@@ -91,7 +92,13 @@ def demographics():
                 filename=form.upload.data.filename,
             )
         elif file_extension == '.xlsx':
-            d = DemographicsRequestXslx(
+            d = DemographicsRequestXlsx(
+                owner=current_user,
+                last_updated_by_user=current_user,
+                filename=form.upload.data.filename,
+            )
+        elif file_extension == '.xls':
+            d = DemographicsRequestExcel97(
                 owner=current_user,
                 last_updated_by_user=current_user,
                 filename=form.upload.data.filename,

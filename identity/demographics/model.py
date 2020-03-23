@@ -2,6 +2,9 @@ import os
 import csv
 import re
 import chardet
+import xlrd
+import xlwt
+from xlutils.copy import copy
 from shutil import copyfile
 from itertools import takewhile
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
@@ -248,7 +251,7 @@ class DemographicsRequest(db.Model):
         self.error_message = message
 
 
-class DemographicsRequestXslx(DemographicsRequest):
+class DemographicsRequestXlsx(DemographicsRequest):
     __mapper_args__ = {
         "polymorphic_identity": '.xslx',
     }
@@ -357,6 +360,116 @@ class DemographicsRequestXslx(DemographicsRequest):
             ws.cell(row=row, column=insert_col + 20).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages])
 
         wb.save(filename=self.result_filepath)
+
+
+class DemographicsRequestExcel97(DemographicsRequest):
+    __mapper_args__ = {
+        "polymorphic_identity": '.xsl',
+    }
+
+    def get_column_names(self):
+        wb = xlrd.open_workbook(filename=self.filepath)
+        ws = wb.sheet_by_index(0)
+        first_row = ws.row(0)
+
+        return [c.value for c in takewhile(lambda x: x.value, first_row)]
+
+    def iter_rows(self):
+        wb = xlrd.open_workbook(filename=self.filepath)
+        ws = wb.sheet_by_index(0)
+
+        column_names = self.get_column_names()
+        row_iterator = ws.get_rows()
+        next(row_iterator)
+        for r in row_iterator:
+            yield dict(zip(column_names, [c.value for c in r]))
+
+    def iter_result_rows(self):
+        wb = xlrd.open_workbook(filename=self.filepath)
+        ws = wb.sheet_by_index(0)
+
+        rows = ws.get_rows()
+        first_row = next(rows)
+
+        column_names = [c.value for c in takewhile(lambda x: x.value, first_row)]
+
+        for r in rows:
+            yield dict(zip(column_names, [c.value for c in r]))
+
+    def create_result(self):
+        current_app.logger.info('DemographicsRequestExcel97.create_result')
+
+        w_book = copy(xlrd.open_workbook(filename=self.filepath))
+        w_sheet = w_book.get_sheet(0)
+
+        insert_col = len(self.get_column_names()) + 1
+
+        fieldnames = [
+            'spine_nhs_number',
+            'spine_title',
+            'spine_forename',
+            'spine_middlenames',
+            'spine_lastname',
+            'spine_sex',
+            'spine_postcode',
+            'spine_address',
+            'spine_date_of_birth',
+            'spine_date_of_death',
+            'spine_is_deceased',
+            'spine_current_gp_practice_code',
+            'pmi_nhs_number',
+            'pmi_uhl_system_number',
+            'pmi_family_name',
+            'pmi_given_name',
+            'pmi_gender',
+            'pmi_dob',
+            'pmi_date_of_death',
+            'pmi_postcode',
+            'spine_message',
+        ]
+
+        for i, fn in enumerate(fieldnames, start=insert_col):
+            w_sheet.write(0, i, fn)
+
+        for d in self.data:
+            response = d.response
+
+            row = d.row_number + 1
+
+            if response:
+                w_sheet.write(row, insert_col, response.nhs_number)
+                w_sheet.write(row, insert_col + 1, response.title)
+                w_sheet.write(row, insert_col + 2, response.forename)
+                w_sheet.write(row, insert_col + 3, response.middlenames)
+                w_sheet.write(row, insert_col + 4, response.lastname)
+                w_sheet.write(row, insert_col + 5, response.sex)
+                w_sheet.write(row, insert_col + 6, response.postcode)
+                w_sheet.write(row, insert_col + 7, response.address)
+                if response.date_of_birth:
+                    w_sheet.write(row, insert_col + 8, response.date_of_birth.strftime('%d-%b-%Y'))
+                else:
+                    w_sheet.write(row, insert_col + 8, '')
+                if response.date_of_death:
+                    w_sheet.write(row, insert_col + 9, response.date_of_death.strftime('%d-%b-%Y'))
+                else:
+                    w_sheet.write(row, insert_col + 9, '')
+                w_sheet.write(row, insert_col + 10, 'True' if response.is_deceased else 'False')
+                w_sheet.write(row, insert_col + 11, response.current_gp_practice_code)
+
+                pmi_data = d.pmi_data
+                if pmi_data is not None:
+                    w_sheet.write(row, insert_col + 12, pmi_data.nhs_number)
+                    w_sheet.write(row, insert_col + 13, pmi_data.uhl_system_number)
+                    w_sheet.write(row, insert_col + 14, pmi_data.family_name)
+                    w_sheet.write(row, insert_col + 15, pmi_data.given_name)
+                    w_sheet.write(row, insert_col + 16, pmi_data.gender)
+                    w_sheet.write(row, insert_col + 17, pmi_data.date_of_birth)
+                    w_sheet.write(row, insert_col + 18, pmi_data.date_of_death)
+                    w_sheet.write(row, insert_col + 19, pmi_data.postcode)
+
+            w_sheet.write(row, insert_col + 20, '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages]))
+
+        w_book.save(self.result_filepath)
 
 
 class DemographicsRequestCsv(DemographicsRequest):
