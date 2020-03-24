@@ -46,18 +46,24 @@ class FakerProvider(BaseProvider):
             return self.male_person_details()
 
     def female_person_details(self):
-        return {**{
-            'family_name': self.generator.last_name_female(),
-            'given_name': self.generator.first_name_female(),
-            'gender': 'F',
-        }, **self._generic_person_details()}
+        return {
+            **{
+                'family_name': self.generator.last_name_female(),
+                'given_name': self.generator.first_name_female(),
+                'gender': 'F',
+            },
+            **self._generic_person_details(),
+        }
 
     def male_person_details(self):
-        return {**{
-            'family_name': self.generator.last_name_male(),
-            'given_name': self.generator.first_name_male(),
-            'gender': 'M',
-        }, **self._generic_person_details()}
+        return {
+            **{
+                'family_name': self.generator.last_name_male(),
+                'given_name': self.generator.first_name_male(),
+                'gender': 'M',
+            },
+            **self._generic_person_details(),
+        }
 
     def _generic_person_details(self):
         dob = self.generator.date_between(start_date='-80y', end_date='-30y')
@@ -128,11 +134,14 @@ class FakerProviderPmi(BaseProvider):
 
     def create_pmi_details(self):
         f = FakerProvider(self.generator)
-        return {**f.person_details, **{
-            'nhs_number': f.nhs_number(),
-            'uhl_system_number': f.uhl_system_number(),
-            'postcode': self.generator.postcode(),
-        }}
+        return {
+            **f.person_details,
+            **{
+                'nhs_number': f.nhs_number(),
+                'uhl_system_number': f.uhl_system_number(),
+                'postcode': self.generator.postcode(),
+            },
+        }
 
 
 @pytest.yield_fixture(scope="function")
