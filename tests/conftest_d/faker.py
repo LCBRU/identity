@@ -36,7 +36,7 @@ class FakerProvider(BaseProvider):
                 return whole_num
 
     def uhl_system_number(self):
-        prefix = choice['S', 'R', 'F', 'G', 'U', 'LB', 'RTD']
+        prefix = choice('S', 'R', 'F', 'G', 'U', 'LB', 'RTD')
         return f'{prefix}{randint(1_000_000, 9_999_999)}'
 
     def person_details(self):
