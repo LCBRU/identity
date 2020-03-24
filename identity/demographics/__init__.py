@@ -525,15 +525,6 @@ def get_pmi_details(drd):
 
 
 def get_pmi_details_from(id, function):
-    result = None
-
-    print(id)
-    if not id:
-        print('#'*100)
-        return None
-
-    print('-'*100)
-
     with pmi_engine() as conn:
         pmi_records = conn.execute(text(f"""
             SELECT
