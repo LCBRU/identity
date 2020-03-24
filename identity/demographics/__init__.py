@@ -526,8 +526,16 @@ def get_pmi_details(drd):
 
 def get_pmi_details_from(id, function):
     result = None
+
+    print(id)
+    if not id:
+        print('#'*100)
+        return None
+
+    print('-'*100)
+
     with pmi_engine() as conn:
-        pmi_result = conn.execute(text(f"""
+        pmi_records = conn.execute(text(f"""
             SELECT
                 nhs_number,
                 main_pat_id as uhl_system_number,
@@ -538,9 +546,7 @@ def get_pmi_details_from(id, function):
                 date_of_death,
                 postcode
             FROM [dbo].[{function}](:id)
-            """), id=id)
-
-        pmi_records = pmi_result.fetchall()
+            """), id=id).fetchall()
 
         if len(pmi_records) > 1:
             raise Exception(f"More than one participant found with id='{id}' in the UHL PMI")

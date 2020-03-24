@@ -14,7 +14,7 @@ from identity.demographics import (
     process_demographics_request_data,
     produce_demographics_result,
     get_pmi_details,
-    extract_pmi_details,
+    extract_pre_pmi_details,
 )
 from identity.demographics.model import (
     DemographicsRequest,
@@ -82,97 +82,6 @@ def cleanup_files(client):
         current_app.config["FILE_UPLOAD_DIRECTORY"],
         ignore_errors=True,
     )
-
-
-def test__get_pmi_details__correct(client, faker):
-    with patch('identity.demographics.pmi_engine') as mock_engine:
-        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = [PMI_DETAILS]
-
-        result = get_pmi_details('100')
-
-        mock_engine.return_value.__enter__.return_value.execute.assert_called_once()
-    
-    assert result == EXPECTED_PMI_DETAILS
-
-
-def test__get_pmi_details__not_found(client, faker):
-    with patch('identity.demographics.pmi_engine') as mock_engine:
-        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = []
-
-        result = get_pmi_details('100')
-
-        mock_engine.return_value.__enter__.return_value.execute.assert_called_once()
-    
-    assert result is None
-
-
-def test__get_pmi_details__multiple_found(client, faker):
-    with patch('identity.demographics.pmi_engine') as mock_engine:
-        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = [PMI_DETAILS, PMI_DETAILS_2]
-
-        with pytest.raises(Exception):
-            get_pmi_details('100')
-
-        mock_engine.return_value.__enter__.return_value.execute.assert_called_once()
-
-
-def test__get_pmi_details__multi_ids__both_not_found(client, faker):
-    with patch('identity.demographics.pmi_engine') as mock_engine:
-        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = []
-
-        result = get_pmi_details('100', '200')
-
-        assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
-    
-    assert result is None
-
-
-def test__get_pmi_details__multi_ids__first_found(client, faker):
-    with patch('identity.demographics.pmi_engine') as mock_engine:
-        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[PMI_DETAILS], []]
-
-        result = get_pmi_details('100', '200')
-
-        assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
-    
-    assert result == EXPECTED_PMI_DETAILS
-
-
-def test__get_pmi_details__multi_ids__second_found(client, faker):
-    with patch('identity.demographics.pmi_engine') as mock_engine:
-        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[], [PMI_DETAILS]]
-
-        result = get_pmi_details('100', '200')
-
-        assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
-    
-    assert result == EXPECTED_PMI_DETAILS
-
-
-def test__get_pmi_details__multi_ids__mismatch(client, faker):
-    with patch('identity.demographics.pmi_engine') as mock_engine:
-        mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[PMI_DETAILS_2], [PMI_DETAILS]]
-
-        with pytest.raises(Exception):
-            get_pmi_details('100', '200')
-
-        assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
-
-
-def test__extract_pmi_details(client, faker):
-    drd = do_upload_data_and_extract(client, faker, ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
-
-    with patch('identity.demographics.get_pmi_details') as mock_get_pmi_details:
-        mock_get_pmi_details.return_value = EXPECTED_PMI_DETAILS
-
-        extract_pmi_details(drd.demographics_request.id)
-
-    drd = DemographicsRequestData.query.get(drd.id)
-
-    assert drd.pmi_data is not None
-    assert len(drd.messages) == 0
-
-    assert drd.pmi_data == EXPECTED_PMI_DETAILS
 
 
 @pytest.mark.parametrize(

@@ -11,7 +11,7 @@ from identity.demographics import (
     extract_data,
     schedule_lookup_tasks,
     produce_demographics_result,
-    extract_pmi_details,
+    extract_pre_pmi_details,
 )
 from identity.demographics.model import (
     DemographicsRequest,
@@ -77,7 +77,7 @@ def test__schedule_lookup_tasks__schedule(client, faker):
         patch('identity.demographics.email') as mock_email, \
         patch('identity.demographics.log_exception') as mock_log_exception, \
         patch('identity.demographics.extract_data') as mock_extract_data, \
-        patch('identity.demographics.extract_pmi_details') as mock_extract_pmi_details, \
+        patch('identity.demographics.extract_pre_pmi_details') as mock_extract_pmi_details, \
         patch('identity.demographics.produce_demographics_result') as mock_produce_demographics_result:
 
         schedule_lookup_tasks(dr.id)
@@ -97,7 +97,7 @@ def test__schedule_lookup_tasks__data_extracted(client, faker):
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
         patch('identity.demographics.email') as mock_email, \
         patch('identity.demographics.log_exception') as mock_log_exception, \
-        patch('identity.demographics.extract_pmi_details') as mock_extract_pmi_details, \
+        patch('identity.demographics.extract_pre_pmi_details') as mock_extract_pmi_details, \
         patch('identity.demographics.produce_demographics_result') as mock_produce_demographics_result:
 
         schedule_lookup_tasks(dr.id)
@@ -117,14 +117,14 @@ def test__schedule_lookup_tasks__pmi_extracted_pre(client, faker):
         patch('identity.demographics.schedule_lookup_tasks') as mock_schedule:
         mock_get_pmi_details.return_value = EXPECTED_PMI_DETAILS
         
-        extract_pmi_details(dr.id)
+        extract_pre_pmi_details(dr.id)
 
     print(dr.status)
 
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
         patch('identity.demographics.email') as mock_email, \
         patch('identity.demographics.log_exception') as mock_log_exception, \
-        patch('identity.demographics.extract_pmi_details') as mock_extract_pmi_details, \
+        patch('identity.demographics.extract_pre_pmi_details') as mock_extract_pmi_details, \
         patch('identity.demographics.produce_demographics_result') as mock_produce_demographics_result, \
         patch('identity.demographics.schedule_lookup_tasks') as mock_schedule:
 
@@ -151,7 +151,7 @@ def test__schedule_lookup_tasks__end_lookup(client, faker):
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
         patch('identity.demographics.email') as mock_email, \
         patch('identity.demographics.log_exception') as mock_log_exception, \
-        patch('identity.demographics.extract_pmi_details') as mock_extract_pmi_details, \
+        patch('identity.demographics.extract_pre_pmi_details') as mock_extract_pmi_details, \
         patch('identity.demographics.produce_demographics_result') as mock_produce_demographics_result:
 
         schedule_lookup_tasks(dr.id)
@@ -181,7 +181,7 @@ def test__schedule_lookup_tasks__pmi_extracted_post(client, faker):
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
         patch('identity.demographics.email') as mock_email, \
         patch('identity.demographics.log_exception') as mock_log_exception, \
-        patch('identity.demographics.extract_pmi_details') as mock_extract_pmi_details, \
+        patch('identity.demographics.extract_pre_pmi_details') as mock_extract_pmi_details, \
         patch('identity.demographics.produce_demographics_result') as mock_produce_demographics_result:
 
         schedule_lookup_tasks(dr.id)
@@ -201,7 +201,7 @@ def test__schedule_lookup_tasks__data_request_not_found(client, faker):
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
         patch('identity.demographics.email') as mock_email, \
         patch('identity.demographics.log_exception') as mock_log_exception, \
-        patch('identity.demographics.extract_pmi_details') as mock_extract_pmi_details, \
+        patch('identity.demographics.extract_pre_pmi_details') as mock_extract_pmi_details, \
         patch('identity.demographics.produce_demographics_result') as mock_produce_demographics_result:
 
         schedule_lookup_tasks(76573)
@@ -224,7 +224,7 @@ def test__schedule_lookup_tasks__exception(client, faker):
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
         patch('identity.demographics.email') as mock_email, \
         patch('identity.demographics.log_exception') as mock_log_exception, \
-        patch('identity.demographics.extract_pmi_details') as mock_extract_pmi_details, \
+        patch('identity.demographics.extract_pre_pmi_details') as mock_extract_pmi_details, \
         patch('identity.demographics.produce_demographics_result') as mock_produce_demographics_result:
 
         e = Exception()
@@ -253,7 +253,7 @@ def test__schedule_lookup_tasks__deleted(client, faker):
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
         patch('identity.demographics.email') as mock_email, \
         patch('identity.demographics.log_exception') as mock_log_exception, \
-        patch('identity.demographics.extract_pmi_details') as mock_extract_pmi_details, \
+        patch('identity.demographics.extract_pre_pmi_details') as mock_extract_pmi_details, \
         patch('identity.demographics.produce_demographics_result') as mock_produce_demographics_result:
 
         schedule_lookup_tasks(dr.id)
@@ -278,7 +278,7 @@ def test__schedule_lookup_tasks__result_created(client, faker):
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
         patch('identity.demographics.email') as mock_email, \
         patch('identity.demographics.log_exception') as mock_log_exception, \
-        patch('identity.demographics.extract_pmi_details') as mock_extract_pmi_details, \
+        patch('identity.demographics.extract_pre_pmi_details') as mock_extract_pmi_details, \
         patch('identity.demographics.produce_demographics_result') as mock_produce_demographics_result:
 
         schedule_lookup_tasks(dr.id)
