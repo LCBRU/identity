@@ -16,18 +16,16 @@ class PmiData(typing.NamedTuple):
     postcode: str
 
     def __eq__(self, other):
-        if isinstance(other, PmiData):
-            return (
-                self.nhs_number == other.nhs_number and
-                self.uhl_system_number == other.uhl_system_number and
-                self.family_name == other.family_name and
-                self.given_name == other.given_name and
-                self.gender == other.gender and
-                self.date_of_birth == other.date_of_birth and
-                self.date_of_death == other.date_of_death and
-                self.postcode == other.postcode
-            )
-        return False
+        return (
+            self.nhs_number == other.nhs_number and
+            self.uhl_system_number == other.uhl_system_number and
+            self.family_name == other.family_name and
+            self.given_name == other.given_name and
+            self.gender == other.gender and
+            self.date_of_birth == other.date_of_birth and
+            self.date_of_death == other.date_of_death and
+            self.postcode == other.postcode
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)

@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch
 
 
 @pytest.yield_fixture(scope="function")

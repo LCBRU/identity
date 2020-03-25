@@ -2,136 +2,359 @@
 
 import pytest
 import datetime
+from unittest.mock import patch
 from dateutil.parser import parse
 from identity.demographics.model import (
-    DemographicsRequestPmiData,
-    DemographicsRequestData,
+    DemographicsRequest,
 )
-from identity.demographics import extract_pre_pmi_details
+from identity.demographics import extract_pre_pmi_details, extract_post_pmi_details
+from identity.services.pmi import PmiData, PmiException
+from identity.database import db
+from tests import login
+from tests.demographics import (
+    get_demographics_request__uploaded,
+    get_demographics_request__pre_pmi_lookup,
+    get_demographics_request__post_pmi_lookup,
+)
 
 
-def test__extract_post_pmi_details__nhs_number_found(client, faker, mock_pmi_engine):
-    mock_pmi_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = [PMI_DETAILS]
+@pytest.yield_fixture(scope="function")
+def mock_pmi_details(app):
+    with patch('identity.demographics.get_pmi') as mock_pmi_details:
+        yield mock_pmi_details
 
-    drd = DemographicsRequestData()
-    drd.nhs_number = '3333333333'
 
-    result = extract_pre_pmi_details(drd)
+# Pre-Lookup
 
-    mock_pmi_engine.return_value.__enter__.return_value.execute.assert_called_once()
+def test__extract_pre_pmi_details__no_data(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__uploaded(faker, u)
+
+    extract_pre_pmi_details(dr.id)
+
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_pre_completed_datetime is not None
     
 
-# def test__get_pmi_details__correct(client, faker):
-#     with patch('identity.demographics.pmi_engine') as mock_engine:
-#         mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = [PMI_DETAILS]
+@pytest.mark.parametrize(
+    "row_count",
+    [
+        (1),
+        (10),
+    ],
+)
+def test__extract_pre_pmi_details__first_processed(client, faker, mock_pmi_details, row_count):
+    u = login(client, faker)
+    dr = get_demographics_request__pre_pmi_lookup(faker, u, row_count=row_count)
 
-#         drd = DemographicsRequestData()
-#         drd.nhs_number = '3333333333'
+    expected = PmiData(**faker.pmi_details(1))
+    mock_pmi_details.return_value = expected
 
-#         result = get_pmi_details(drd)
+    extract_pre_pmi_details(dr.id)
 
-#         mock_engine.return_value.__enter__.return_value.execute.assert_called_once()
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_pre_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 1
+    assert expected == actual.data[0].pmi_data
+    assert len(actual.data[0].messages) == 0
+
+
+def test__extract_pre_pmi_details__next_processed(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__pre_pmi_lookup(faker, u, row_count=2)
+
+    dr.data[0].pmi_pre_processed_datetime = datetime.datetime.utcnow()
+    db.session.add(dr.data[0])
+    db.session.commit()
+
+    expected = PmiData(**faker.pmi_details(1))
+    mock_pmi_details.return_value = expected
+
+    extract_pre_pmi_details(dr.id)
+
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_pre_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 2
+    assert expected == actual.data[1].pmi_data
+    assert len(actual.data[0].messages) == 0
+
+
+def test__extract_pre_pmi_details__last_processed(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__pre_pmi_lookup(faker, u, row_count=1)
+
+    dr.data[0].pmi_pre_processed_datetime = datetime.datetime.utcnow()
+    db.session.add(dr.data[0])
+    db.session.commit()
+
+    extract_pre_pmi_details(dr.id)
+
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_pre_completed_datetime is not None
+    assert len(actual.data[0].messages) == 0
+
+
+def test__extract_pre_pmi_details__invalid_nhs_number(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__pre_pmi_lookup(faker, u, row_count=1)
+
+    dr.data[0].nhs_number = faker.invalid_nhs_number()
+    db.session.add(dr.data[0])
+    db.session.commit()
+
+    expected = PmiData(**faker.pmi_details(1))
+    mock_pmi_details.return_value = expected
+
+    extract_pre_pmi_details(dr.id)
+
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_pre_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 1
+    assert expected == actual.data[0].pmi_data
+    assert len(actual.data[0].messages) == 1
+
+    m = actual.data[0].messages[0]
+    assert m.type == 'warning'
+    assert m.source == 'pmi_details'
+    assert m.scope == 'nhs_number'
+    assert m.message == f'Invalid format {faker.invalid_nhs_number()}'
+
+
+def test__extract_pre_pmi_details__invalid_uhl_system_number(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__pre_pmi_lookup(faker, u, row_count=1)
+
+    dr.data[0].uhl_system_number = faker.invalid_uhl_system_number()
+    db.session.add(dr.data[0])
+    db.session.commit()
+
+    expected = PmiData(**faker.pmi_details(1))
+    mock_pmi_details.return_value = expected
+
+    extract_pre_pmi_details(dr.id)
+
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_pre_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 1
+    assert expected == actual.data[0].pmi_data
+    assert len(actual.data[0].messages) == 1
+
+    m = actual.data[0].messages[0]
+    assert m.type == 'warning'
+    assert m.source == 'pmi_details'
+    assert m.scope == 'uhl_system_number'
+    assert m.message == f'Invalid format {faker.invalid_uhl_system_number()}'
+
+
+def test__extract_pre_pmi_details__pmi_not_found(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__pre_pmi_lookup(faker, u, row_count=1)
+
+    mock_pmi_details.return_value = None
+
+    extract_pre_pmi_details(dr.id)
+
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_pre_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 1
+    assert actual.data[0].pmi_data is None
+    assert len(actual.data[0].messages) == 0
+
+
+def test__extract_pre_pmi_details__pmi_exception(client, faker, mock_pmi_details):
+    ERROR_MESSAGE = 'An Exception'
+
+    u = login(client, faker)
+    dr = get_demographics_request__pre_pmi_lookup(faker, u, row_count=1)
+
+    mock_pmi_details.side_effect = PmiException(ERROR_MESSAGE)
+
+    extract_pre_pmi_details(dr.id)
+
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_pre_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 1
+    assert actual.data[0].pmi_data is None
+    assert len(actual.data[0].messages) == 1
+
+    m = actual.data[0].messages[0]
+    assert m.type == 'error'
+    assert m.source == 'pmi_details'
+    assert m.scope == 'pmi_details'
+    assert m.message == ERROR_MESSAGE
+
+
+# Post-Lookup
+
+def test__extract_post_pmi_details__no_data(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__uploaded(faker, u)
+
+    extract_post_pmi_details(dr.id)
+
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_post_completed_datetime is not None
     
-#     assert drd. == EXPECTED_PMI_DETAILS
+
+@pytest.mark.parametrize(
+    "row_count",
+    [
+        (1),
+        (10),
+    ],
+)
+def test__extract_post_pmi_details__first_processed(client, faker, mock_pmi_details, row_count):
+    u = login(client, faker)
+    dr = get_demographics_request__post_pmi_lookup(faker, u, row_count=row_count)
+
+    expected = PmiData(**faker.pmi_details(1))
+    mock_pmi_details.return_value = expected
+
+    extract_post_pmi_details(dr.id)
+
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_post_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 1
+    assert expected == actual.data[0].pmi_data
+    assert len(actual.data[0].messages) == 0
 
 
-# def test__get_pmi_details__not_found(client, faker):
-#     with patch('identity.demographics.pmi_engine') as mock_engine:
-#         mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = []
+def test__extract_post_pmi_details__next_processed(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__post_pmi_lookup(faker, u, row_count=2)
 
-#         drd = DemographicsRequestData()
-#         drd.nhs_number = '100'
+    dr.data[0].pmi_post_processed_datetime = datetime.datetime.utcnow()
+    db.session.add(dr.data[0])
+    db.session.commit()
 
-#         result = get_pmi_details(drd)
+    expected = PmiData(**faker.pmi_details(1))
+    mock_pmi_details.return_value = expected
 
-#         mock_engine.return_value.__enter__.return_value.execute.assert_called_once()
-    
-#     assert result is None
+    extract_post_pmi_details(dr.id)
 
+    actual = DemographicsRequest.query.get(dr.id)
 
-# def test__get_pmi_details__multiple_found(client, faker):
-#     with patch('identity.demographics.pmi_engine') as mock_engine:
-#         mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = [PMI_DETAILS, PMI_DETAILS_2]
-
-#         drd = DemographicsRequestData()
-#         drd.nhs_number = '100'
-
-#         with pytest.raises(Exception):
-#             get_pmi_details(drd)
-
-#         mock_engine.return_value.__enter__.return_value.execute.assert_called_once()
+    assert actual.pmi_data_post_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 2
+    assert expected == actual.data[1].pmi_data
+    assert len(actual.data[0].messages) == 0
 
 
-# def test__get_pmi_details__multi_ids__both_not_found(client, faker):
-#     with patch('identity.demographics.pmi_engine') as mock_engine:
-#         mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = []
+def test__extract_post_pmi_details__last_processed(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__post_pmi_lookup(faker, u, row_count=1)
 
-#         drd = DemographicsRequestData()
-#         drd.nhs_number = '100'
-#         drd.uhl_system_number = '200'
+    dr.data[0].pmi_post_processed_datetime = datetime.datetime.utcnow()
+    db.session.add(dr.data[0])
+    db.session.commit()
 
-#         result = get_pmi_details(drd)
+    extract_post_pmi_details(dr.id)
 
-#         assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
-    
-#     assert result is None
+    actual = DemographicsRequest.query.get(dr.id)
 
-
-# def test__get_pmi_details__multi_ids__first_found(client, faker):
-#     with patch('identity.demographics.pmi_engine') as mock_engine:
-#         mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[PMI_DETAILS], []]
-
-#         drd = DemographicsRequestData()
-#         drd.nhs_number = '100'
-#         drd.uhl_system_number = '200'
-
-#         result = get_pmi_details(drd)
-
-#         assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
-    
-#     assert result == EXPECTED_PMI_DETAILS
+    assert actual.pmi_data_post_completed_datetime is not None
+    assert len(actual.data[0].messages) == 0
 
 
-# def test__get_pmi_details__multi_ids__second_found(client, faker):
-#     with patch('identity.demographics.pmi_engine') as mock_engine:
-#         mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[], [PMI_DETAILS]]
+def test__extract_post_pmi_details__invalid_nhs_number(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__post_pmi_lookup(faker, u, row_count=1)
 
-#         drd = DemographicsRequestData()
-#         drd.nhs_number = '100'
-#         drd.uhl_system_number = '200'
+    dr.data[0].nhs_number = faker.invalid_nhs_number()
+    db.session.add(dr.data[0])
+    db.session.commit()
 
-#         result = get_pmi_details(drd)
+    expected = PmiData(**faker.pmi_details(1))
+    mock_pmi_details.return_value = expected
 
-#         assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
-    
-#     assert result == EXPECTED_PMI_DETAILS
+    extract_post_pmi_details(dr.id)
 
+    actual = DemographicsRequest.query.get(dr.id)
 
-# def test__get_pmi_details__multi_ids__mismatch(client, faker):
-#     with patch('identity.demographics.pmi_engine') as mock_engine:
-#         mock_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[PMI_DETAILS_2], [PMI_DETAILS]]
+    assert actual.pmi_data_post_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 1
+    assert expected == actual.data[0].pmi_data
+    assert len(actual.data[0].messages) == 1
 
-#         drd = DemographicsRequestData()
-#         drd.nhs_number = '100'
-#         drd.uhl_system_number = '200'
-
-#         with pytest.raises(Exception):
-#             get_pmi_details(drd)
-
-#         assert mock_engine.return_value.__enter__.return_value.execute.call_count == 2
+    m = actual.data[0].messages[0]
+    assert m.type == 'warning'
+    assert m.source == 'pmi_details'
+    assert m.scope == 'nhs_number'
+    assert m.message == f'Invalid format {faker.invalid_nhs_number()}'
 
 
-# def test__extract_pmi_details(client, faker):
-#     drd = do_upload_data_and_extract(client, faker, ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
+def test__extract_post_pmi_details__invalid_uhl_system_number(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__post_pmi_lookup(faker, u, row_count=1)
 
-#     with patch('identity.demographics.get_pmi_details') as mock_get_pmi_details:
-#         mock_get_pmi_details.return_value = EXPECTED_PMI_DETAILS
+    dr.data[0].uhl_system_number = faker.invalid_uhl_system_number()
+    db.session.add(dr.data[0])
+    db.session.commit()
 
-#         extract_pre_pmi_details(drd.demographics_request.id)
+    expected = PmiData(**faker.pmi_details(1))
+    mock_pmi_details.return_value = expected
 
-#     drd = DemographicsRequestData.query.get(drd.id)
+    extract_post_pmi_details(dr.id)
 
-#     assert drd.pmi_data is not None
-#     assert len(drd.messages) == 0
+    actual = DemographicsRequest.query.get(dr.id)
 
-#     assert drd.pmi_data == EXPECTED_PMI_DETAILS
+    assert actual.pmi_data_post_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 1
+    assert expected == actual.data[0].pmi_data
+    assert len(actual.data[0].messages) == 1
+
+    m = actual.data[0].messages[0]
+    assert m.type == 'warning'
+    assert m.source == 'pmi_details'
+    assert m.scope == 'uhl_system_number'
+    assert m.message == f'Invalid format {faker.invalid_uhl_system_number()}'
+
+
+def test__extract_post_pmi_details__pmi_not_found(client, faker, mock_pmi_details):
+    u = login(client, faker)
+    dr = get_demographics_request__post_pmi_lookup(faker, u, row_count=1)
+
+    mock_pmi_details.return_value = None
+
+    extract_post_pmi_details(dr.id)
+
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_post_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 1
+    assert actual.data[0].pmi_data is None
+    assert len(actual.data[0].messages) == 0
+
+
+def test__extract_post_pmi_details__pmi_exception(client, faker, mock_pmi_details):
+    ERROR_MESSAGE = 'An Exception'
+
+    u = login(client, faker)
+    dr = get_demographics_request__post_pmi_lookup(faker, u, row_count=1)
+
+    mock_pmi_details.side_effect = PmiException(ERROR_MESSAGE)
+
+    extract_post_pmi_details(dr.id)
+
+    actual = DemographicsRequest.query.get(dr.id)
+
+    assert actual.pmi_data_post_completed_datetime is None
+    assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 1
+    assert actual.data[0].pmi_data is None
+    assert len(actual.data[0].messages) == 1
+
+    m = actual.data[0].messages[0]
+    assert m.type == 'error'
+    assert m.source == 'pmi_details'
+    assert m.scope == 'pmi_details'
+    assert m.message == ERROR_MESSAGE

@@ -1,10 +1,16 @@
 import os
+from datetime import datetime
 from io import BytesIO
 from flask import url_for, current_app
 from identity.demographics.model import DemographicsRequest, DemographicsRequestColumn
 from unittest.mock import patch
 from identity.demographics import (
     extract_data,
+)
+from identity.demographics.model import (
+    DemographicsRequestCsv,
+    DemographicsRequestColumnDefinition,
+    DemographicsRequestData,
 )
 from identity.database import db
 from tests import login
@@ -149,3 +155,102 @@ def do_upload_data(client, faker, data, extension='csv'):
     do_submit(client, dr.id)
 
     return dr
+
+
+def get_demographics_request__uploaded(faker, user):
+    result = DemographicsRequestCsv(
+        owner=user,
+        last_updated_by_user=user,
+        filename=faker.file_name(extension='csv'),
+    )
+
+    db.session.add(result)
+    db.session.commit()
+    return result
+
+
+def get_demographics_request__awaiting_submission(faker, user):
+    result = get_demographics_request__uploaded(faker, user)
+
+    cols = {}
+
+    for h in ['uhl_system_number', 'nhs_number', 'family_name', 'given_name', 'gender', 'dob', 'postcode']:
+        cols[h] = DemographicsRequestColumn(
+            demographics_request=result,
+            name=h,
+            last_updated_by_user=user,
+        )
+
+    col_def = DemographicsRequestColumnDefinition(
+        demographics_request=result,
+        last_updated_by_user=user,
+        uhl_system_number_column=cols['uhl_system_number'],
+        nhs_number_column=cols['nhs_number'],
+        family_name_column=cols['family_name'],
+        given_name_column=cols['given_name'],
+        gender_column=cols['gender'],
+        dob_column=cols['dob'],
+        postcode_column=cols['postcode'],
+    )
+
+    db.session.add_all(cols.values())
+    db.session.add(col_def)
+    db.session.commit()
+    return result
+
+
+def get_demographics_request__data_extraction(faker, user):
+    result = get_demographics_request__awaiting_submission(faker, user)
+
+    result.submitted_datetime = datetime.utcnow()
+    db.session.add(result)
+    db.session.commit()
+    return result
+
+
+def get_demographics_request__pre_pmi_lookup(faker, user, row_count=1):
+    result = get_demographics_request__data_extraction(faker, user)
+
+    rows = []
+
+    for i in range(row_count):
+        p = faker.pmi_details(i)
+
+        rows.append(DemographicsRequestData(
+            row_number=i,
+            demographics_request=result,
+            nhs_number=p['nhs_number'],
+            uhl_system_number=p['uhl_system_number'],
+            family_name=p['family_name'],
+            given_name=p['given_name'],
+            gender=p['gender'],
+            dob=p['date_of_birth'],
+            postcode=p['postcode'],
+        ))
+
+    result.data_extracted_datetime = datetime.utcnow()
+
+    db.session.add_all(rows)
+    db.session.add(result)
+    db.session.commit()
+    return result
+
+
+def get_demographics_request__spine_lookup(faker, user, row_count=1):
+    result = get_demographics_request__pre_pmi_lookup(faker, user)
+
+    result.pmi_data_pre_completed_datetime = datetime.utcnow()
+
+    db.session.add(result)
+    db.session.commit()
+    return result
+
+
+def get_demographics_request__post_pmi_lookup(faker, user, row_count=1):
+    result = get_demographics_request__pre_pmi_lookup(faker, user, row_count=row_count)
+
+    result.lookup_completed_datetime = datetime.utcnow()
+
+    db.session.add(result)
+    db.session.commit()
+    return result

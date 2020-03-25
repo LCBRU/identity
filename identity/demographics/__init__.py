@@ -19,7 +19,7 @@ from identity.demographics.smsp import (
 )
 from identity.utils import log_exception
 from identity.emailing import email
-from identity.services.pmi import get_pmi
+from identity.services.pmi import get_pmi, PmiException
 from .data_conversions import (
     convert_dob,
     convert_gender,
@@ -67,12 +67,6 @@ def schedule_lookup_tasks(demographics_request_id):
     except Exception as e:
         log_exception(e)
         save_demographics_error(demographics_request_id, e)
-
-
-class PmiException(Exception):
-    def __init__(self, message):
-        self.message = message
-        super().__init__()
 
 
 def spine_lookup(demographics_request_data):
@@ -496,7 +490,7 @@ def get_pmi_details(drd):
         pmi = get_pmi(nhs_number=v_nhs_number, uhl_system_number=v_s_number)
 
         if pmi is not None:
-            pmi_details = DemographicsRequestPmiData(**pmi)
+            pmi_details = DemographicsRequestPmiData(**pmi._asdict())
 
             pmi_details.demographics_request_data_id = drd.id
             db.session.add(pmi_details)

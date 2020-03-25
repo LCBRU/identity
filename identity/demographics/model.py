@@ -15,8 +15,28 @@ from werkzeug.utils import secure_filename
 from ..database import db
 from ..model import User
 
+# Statuses:
+#
+# 1 Uploaded
+# 2 == column definition ==> Awaiting Submission
+# 3 == submitted ==> Data Extraction
+# 4 == data extracted ==> Pre-PMI Lookup
+# 5 == pmi lookup complete ==> Spine Lookup
+# 6 == spine lookup complete ==> Post-PMI Lookup
+# 7 == pmi lookup complete ==> Create Results
+# 8 == results created ==> Ready to Download
+# 9 == downloaded ==> Completed
+#
+# Other Errors:
+# 
+# - Deleted
+# - In Error
+# - Paused
+#
+
 
 class DemographicsRequest(db.Model):
+
     id = db.Column(db.Integer, primary_key=True)
     created_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     filename = db.Column(db.String(500))

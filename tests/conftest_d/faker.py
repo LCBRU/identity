@@ -14,6 +14,7 @@ from identity.services.validators import (
     calculate_nhs_number_checksum,
 )
 
+
 class FakerProvider(BaseProvider):
     def column_headers(self, columns):
         return ['X' * i for i in range(1, columns)]
@@ -35,9 +36,15 @@ class FakerProvider(BaseProvider):
             if(not is_invalid_nhs_number(whole_num)):  
                 return whole_num
 
+    def invalid_nhs_number(self):
+        return 'ABC'
+
     def uhl_system_number(self):
         prefix = choice(['S', 'R', 'F', 'G', 'U', 'LB', 'RTD'])
         return f'{prefix}{randint(1_000_000, 9_999_999)}'
+
+    def invalid_uhl_system_number(self):
+        return 'ABC'
 
     def person_details(self):
         if not randint(0, 1):
@@ -69,7 +76,7 @@ class FakerProvider(BaseProvider):
         dob = self.generator.date_between(start_date='-80y', end_date='-30y')
 
         if randint(0, 10):
-            dod = ''
+            dod = None
         else:
             dod = self.generator.date_between(start_date=dob, end_date='today')
 
