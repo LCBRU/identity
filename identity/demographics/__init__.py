@@ -19,6 +19,7 @@ from identity.demographics.smsp import (
 )
 from identity.utils import log_exception
 from identity.emailing import email
+from identity.services.pmi import get_pmi
 from .data_conversions import (
     convert_dob,
     convert_gender,
@@ -492,16 +493,11 @@ def get_pmi_details(drd):
                 )
             )
 
-        nhs_pmi = get_pmi_details_from(v_nhs_number, 'UHL_PMI_QUERY_BY_NHS_NUMBER')
-        uhl_pmi = get_pmi_details_from(v_s_number, 'UHL_PMI_QUERY_BY_ID')
+        pmi = get_pmi(nhs_number=v_nhs_number, uhl_system_number=v_s_number)
 
-        if nhs_pmi is not None and uhl_pmi is not None:
-            if nhs_pmi != uhl_pmi:
-                raise PmiException(f"Participant PMI mismatch for NHS Number '{v_nhs_number}' and UHL System Number '{v_s_number}'")
-            
-        pmi_details = nhs_pmi or uhl_pmi
+        if pmi is not None:
+            pmi_details = DemographicsRequestPmiData(**pmi)
 
-        if pmi_details is not None:
             pmi_details.demographics_request_data_id = drd.id
             db.session.add(pmi_details)
 
@@ -522,36 +518,3 @@ def get_pmi_details(drd):
                 scope='pmi_details',
                 message=traceback.format_exc(),
             ))
-
-
-def get_pmi_details_from(id, function):
-    with pmi_engine() as conn:
-        pmi_records = conn.execute(text(f"""
-            SELECT
-                nhs_number,
-                main_pat_id as uhl_system_number,
-                last_name as family_name,
-                first_name as given_name,
-                gender,
-                dob,
-                date_of_death,
-                postcode
-            FROM [dbo].[{function}](:id)
-            """), id=id).fetchall()
-
-        if len(pmi_records) > 1:
-            raise Exception(f"More than one participant found with id='{id}' in the UHL PMI")
-
-        if len(pmi_records) == 1 and pmi_records[0]['uhl_system_number'] is not None:
-            pmi_record = pmi_records[0]
-
-            return DemographicsRequestPmiData(
-                nhs_number=(pmi_record['nhs_number'] or '').replace(' ', ''),
-                uhl_system_number=pmi_record['uhl_system_number'],
-                family_name=pmi_record['family_name'],
-                given_name=pmi_record['given_name'],
-                gender=pmi_record['gender'],
-                date_of_birth=pmi_record['dob'],
-                date_of_death=pmi_record['date_of_death'],
-                postcode=pmi_record['postcode'],
-            )

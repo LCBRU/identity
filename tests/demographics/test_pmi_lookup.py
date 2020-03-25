@@ -9,38 +9,6 @@ from identity.demographics.model import (
 )
 from identity.demographics import extract_pre_pmi_details
 
-PMI_DETAILS = {
-    'nhs_number': '4444444444',
-    'uhl_system_number': 'S154367',
-    'family_name': 'Smith',
-    'given_name': 'Frances',
-    'gender': 'F',
-    'dob': parse('1976-01-01', dayfirst=True).date(),
-    'date_of_death': parse('2010-03-04', dayfirst=True).date(),
-    'postcode': 'LE5 9UH',
-}
-
-EXPECTED_PMI_DETAILS = DemographicsRequestPmiData(
-    nhs_number=PMI_DETAILS['nhs_number'],
-    uhl_system_number=PMI_DETAILS['uhl_system_number'],
-    family_name=PMI_DETAILS['family_name'],
-    given_name=PMI_DETAILS['given_name'],
-    gender=PMI_DETAILS['gender'],
-    date_of_birth=PMI_DETAILS['dob'],
-    date_of_death=PMI_DETAILS['date_of_death'],
-    postcode=PMI_DETAILS['postcode'],
-)
-
-PMI_DETAILS_2 = {
-    'nhs_number': '5555555555',
-    'uhl_system_number': 'S6543217',
-    'family_name': 'Jones',
-    'given_name': 'Martin',
-    'gender': 'M',
-    'dob': parse('1985-02-02', dayfirst=True).date(),
-    'date_of_death': None,
-    'postcode': 'LE3 9HY',
-}
 
 def test__extract_post_pmi_details__nhs_number_found(client, faker, mock_pmi_engine):
     mock_pmi_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = [PMI_DETAILS]
