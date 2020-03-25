@@ -29,7 +29,7 @@ class FakerProvider(BaseProvider):
 
     def nhs_number(self):
         while True:  
-            number = randint(100_000_000, 999_999_999)
+            number = str(randint(100_000_000, 999_999_999))
             whole_num = f'{number}{calculate_nhs_number_checksum(number)}'
 
             if(not is_invalid_nhs_number(whole_num)):  
@@ -74,7 +74,7 @@ class FakerProvider(BaseProvider):
             dod = self.generator.date_between(start_date=dob, end_date='today')
 
         return {
-            'dob': dob,
+            'date_of_birth': dob,
             'date_of_death': dod,
         }
 
@@ -135,7 +135,7 @@ class FakerProviderPmi(BaseProvider):
     def create_pmi_details(self):
         f = FakerProvider(self.generator)
         return {
-            **f.person_details,
+            **f.person_details(),
             **{
                 'nhs_number': f.nhs_number(),
                 'uhl_system_number': f.uhl_system_number(),
