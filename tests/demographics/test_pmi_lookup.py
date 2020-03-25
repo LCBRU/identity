@@ -3,7 +3,10 @@
 import pytest
 import datetime
 from dateutil.parser import parse
-from identity.demographics.model import DemographicsRequestPmiData
+from identity.demographics.model import (
+    DemographicsRequestPmiData,
+    DemographicsRequestData,
+)
 from identity.demographics import extract_pre_pmi_details
 
 PMI_DETAILS = {
@@ -40,7 +43,15 @@ PMI_DETAILS_2 = {
 }
 
 def test__extract_post_pmi_details__nhs_number_found(client, faker, mock_pmi_engine):
-    pass
+    mock_pmi_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = [PMI_DETAILS]
+
+    drd = DemographicsRequestData()
+    drd.nhs_number = '3333333333'
+
+    result = extract_pre_pmi_details(drd)
+
+    mock_pmi_engine.return_value.__enter__.return_value.execute.assert_called_once()
+    
 
 # def test__get_pmi_details__correct(client, faker):
 #     with patch('identity.demographics.pmi_engine') as mock_engine:

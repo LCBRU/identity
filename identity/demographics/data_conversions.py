@@ -5,7 +5,7 @@ from identity.demographics.smsp import (
     SMSP_SEX_MALE,
     SMSP_SEX_FEMALE,
 )
-from identity.validators import (
+from identity.services.validators import (
     is_invalid_nhs_number,
     standardise_nhs_number,
     is_invalid_uhl_system_number,

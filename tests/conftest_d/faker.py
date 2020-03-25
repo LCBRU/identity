@@ -9,7 +9,7 @@ from faker.providers import BaseProvider
 from identity.model import User
 from openpyxl import Workbook
 from random import randint, choice
-from identity.validators import (
+from identity.services.validators import (
     is_invalid_nhs_number,
     calculate_nhs_number_checksum,
 )
