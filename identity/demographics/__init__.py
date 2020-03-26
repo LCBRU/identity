@@ -377,15 +377,6 @@ def produce_demographics_result(demographics_request_id):
         save_demographics_error(demographics_request_id, e)
 
 
-def save_demographics_error(demographics_request_id, e):
-    dr = DemographicsRequest.query.get(demographics_request_id)
-    if dr is not None:
-        dr = DemographicsRequest.query.get(demographics_request_id)
-        dr.set_error(traceback.format_exc())
-        db.session.add(dr)
-        db.session.commit()
-
-
 @celery.task()
 def extract_pre_pmi_details(request_id):
     current_app.logger.info(f'extract_pre_pmi_details (request_id={request_id})')
@@ -493,3 +484,14 @@ def get_pmi_details(drd):
                 scope='pmi_details',
                 message=traceback.format_exc(),
             ))
+
+
+def save_demographics_error(demographics_request_id, e):
+    dr = DemographicsRequest.query.get(demographics_request_id)
+    if dr is not None:
+        dr = DemographicsRequest.query.get(demographics_request_id)
+        dr.set_error(traceback.format_exc())
+        db.session.add(dr)
+        db.session.commit()
+
+

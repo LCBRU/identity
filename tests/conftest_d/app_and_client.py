@@ -3,6 +3,7 @@
 import json
 import pytest
 import datetime
+import shutil
 from flask import Response
 from flask.testing import FlaskClient
 from bs4 import BeautifulSoup
@@ -65,6 +66,11 @@ def app(faker):
     db.create_all()
 
     yield app
+
+    shutil.rmtree(
+        app.config["FILE_UPLOAD_DIRECTORY"],
+        ignore_errors=True,
+    )
 
     context.pop()
 

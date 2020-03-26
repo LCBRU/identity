@@ -49,11 +49,11 @@ def parse_date(value):
     if not value:
         return None
 
-    if isinstance(value, date):
-        return value
-
     if isinstance(value, datetime):
         return value.date()
+
+    if isinstance(value, date):
+        return value
 
     ansi_match = re.fullmatch(r'(?P<year>\d{4})[\\ -]?(?P<month>\d{2})[\\ -]?(?P<day>\d{2})(?:[ T]\d{2}:\d{2}:\d{2})?(?:\.\d+)?(?:[+-]\d{2}:\d{2})?', value)
 
@@ -66,7 +66,7 @@ def parse_date(value):
 
     parsed_date = parse(value, dayfirst=True)
 
-    return parsed_date
+    return parsed_date.date()
 
 
 def is_invalid_dob(dob):

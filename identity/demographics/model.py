@@ -355,14 +355,16 @@ class DemographicsRequestXlsx(DemographicsRequest):
                 ws.cell(row=row, column=insert_col + 5).value = response.sex
                 ws.cell(row=row, column=insert_col + 6).value = response.postcode
                 ws.cell(row=row, column=insert_col + 7).value = response.address
-                if response.date_of_birth:
-                    ws.cell(row=row, column=insert_col + 8).value = response.date_of_birth.strftime('%d-%b-%Y')
-                else:
-                    ws.cell(row=row, column=insert_col + 8).value = ''
-                if response.date_of_death:
-                    ws.cell(row=row, column=insert_col + 9).value = response.date_of_death.strftime('%d-%b-%Y')
-                else:
-                    ws.cell(row=row, column=insert_col + 9).value = ''
+                ws.cell(row=row, column=insert_col + 8).value = response.date_of_birth
+                ws.cell(row=row, column=insert_col + 9).value = response.date_of_death
+                # if response.date_of_birth:
+                #     ws.cell(row=row, column=insert_col + 8).value = response.date_of_birth.strftime('%d-%b-%Y')
+                # else:
+                #     ws.cell(row=row, column=insert_col + 8).value = ''
+                # if response.date_of_death:
+                #     ws.cell(row=row, column=insert_col + 9).value = response.date_of_death.strftime('%d-%b-%Y')
+                # else:
+                #     ws.cell(row=row, column=insert_col + 9).value = ''
                 ws.cell(row=row, column=insert_col + 10).value = 'True' if response.is_deceased else 'False'
                 ws.cell(row=row, column=insert_col + 11).value = response.current_gp_practice_code
 

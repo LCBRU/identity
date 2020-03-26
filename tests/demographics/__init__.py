@@ -1,4 +1,7 @@
 import os
+import csv
+import xlwt
+from openpyxl import Workbook
 from datetime import datetime
 from io import BytesIO
 from flask import url_for, current_app
@@ -9,8 +12,13 @@ from identity.demographics import (
 )
 from identity.demographics.model import (
     DemographicsRequestCsv,
+    DemographicsRequestXlsx,
+    DemographicsRequestExcel97,
     DemographicsRequestColumnDefinition,
     DemographicsRequestData,
+    DemographicsRequestPmiData,
+    DemographicsRequestDataResponse,
+    DemographicsRequestDataMessage,
 )
 from identity.database import db
 from tests import login
@@ -157,100 +165,266 @@ def do_upload_data(client, faker, data, extension='csv'):
     return dr
 
 
-def get_demographics_request__uploaded(faker, user):
-    result = DemographicsRequestCsv(
-        owner=user,
-        last_updated_by_user=user,
-        filename=faker.file_name(extension='csv'),
-    )
+class DemographicsTestHelper():
 
-    db.session.add(result)
-    db.session.commit()
-    return result
+    def __init__(self, faker, user, extension='csv', row_count=1, include_data_errors=False):
+        self._faker = faker
+        self._user = user
+        self._extension = extension
+        self._row_count = row_count
+        self._include_data_errors = include_data_errors
+        self._column_headings = ['uhl_system_number', 'nhs_number', 'family_name', 'given_name', 'gender', 'date_of_birth', 'postcode']
+        self._filename = self._faker.file_name(extension=self._extension)
+
+        self._person_details = []
+
+        for _ in range(self._row_count):
+            p = self._faker.person_details()
+            p['expected_message'] = self._faker.pystr(min_chars=None, max_chars=20)
+            self._person_details.append(p)
 
 
-def get_demographics_request__awaiting_submission(faker, user):
-    result = get_demographics_request__uploaded(faker, user)
+    def get_demographics_request__uploaded(self):
 
-    cols = {}
+        if self._extension == 'csv':
+            return self._create_csv_file()
+        elif self._extension == 'xlsx':
+            return self._create_xlsx_file()
+        elif self._extension == 'xls':
+            return self._create_xls_file()
 
-    for h in ['uhl_system_number', 'nhs_number', 'family_name', 'given_name', 'gender', 'dob', 'postcode']:
-        cols[h] = DemographicsRequestColumn(
+
+    def get_demographics_request__awaiting_submission(self):
+        result = self.get_demographics_request__uploaded()
+
+        cols = {}
+
+        for h in self._column_headings:
+            cols[h] = DemographicsRequestColumn(
+                demographics_request=result,
+                name=h,
+                last_updated_by_user=self._user,
+            )
+
+        col_def = DemographicsRequestColumnDefinition(
             demographics_request=result,
-            name=h,
-            last_updated_by_user=user,
+            last_updated_by_user=self._user,
+            uhl_system_number_column=cols['uhl_system_number'],
+            nhs_number_column=cols['nhs_number'],
+            family_name_column=cols['family_name'],
+            given_name_column=cols['given_name'],
+            gender_column=cols['gender'],
+            dob_column=cols['date_of_birth'],
+            postcode_column=cols['postcode'],
         )
 
-    col_def = DemographicsRequestColumnDefinition(
-        demographics_request=result,
-        last_updated_by_user=user,
-        uhl_system_number_column=cols['uhl_system_number'],
-        nhs_number_column=cols['nhs_number'],
-        family_name_column=cols['family_name'],
-        given_name_column=cols['given_name'],
-        gender_column=cols['gender'],
-        dob_column=cols['dob'],
-        postcode_column=cols['postcode'],
-    )
-
-    db.session.add_all(cols.values())
-    db.session.add(col_def)
-    db.session.commit()
-    return result
+        db.session.add_all(cols.values())
+        db.session.add(col_def)
+        db.session.commit()
+        return result
 
 
-def get_demographics_request__data_extraction(faker, user):
-    result = get_demographics_request__awaiting_submission(faker, user)
+    def get_demographics_request__data_extraction(self):
+        result = self.get_demographics_request__awaiting_submission()
 
-    result.submitted_datetime = datetime.utcnow()
-    db.session.add(result)
-    db.session.commit()
-    return result
-
-
-def get_demographics_request__pre_pmi_lookup(faker, user, row_count=1):
-    result = get_demographics_request__data_extraction(faker, user)
-
-    rows = []
-
-    for i in range(row_count):
-        p = faker.pmi_details(i)
-
-        rows.append(DemographicsRequestData(
-            row_number=i,
-            demographics_request=result,
-            nhs_number=p['nhs_number'],
-            uhl_system_number=p['uhl_system_number'],
-            family_name=p['family_name'],
-            given_name=p['given_name'],
-            gender=p['gender'],
-            dob=p['date_of_birth'],
-            postcode=p['postcode'],
-        ))
-
-    result.data_extracted_datetime = datetime.utcnow()
-
-    db.session.add_all(rows)
-    db.session.add(result)
-    db.session.commit()
-    return result
+        result.submitted_datetime = datetime.utcnow()
+        db.session.add(result)
+        db.session.commit()
+        return result
 
 
-def get_demographics_request__spine_lookup(faker, user, row_count=1):
-    result = get_demographics_request__pre_pmi_lookup(faker, user)
+    def get_demographics_request__pre_pmi_lookup(self):
+        result = self.get_demographics_request__data_extraction()
 
-    result.pmi_data_pre_completed_datetime = datetime.utcnow()
+        rows = []
 
-    db.session.add(result)
-    db.session.commit()
-    return result
+        for i, p in enumerate(self._person_details):
+            rows.append(DemographicsRequestData(
+                row_number=i,
+                demographics_request=result,
+                nhs_number=p['nhs_number'],
+                uhl_system_number=p['uhl_system_number'],
+                family_name=p['family_name'],
+                given_name=p['given_name'],
+                gender=p['gender'],
+                dob=p['date_of_birth'],
+                postcode=p['postcode'],
+            ))
+
+        result.data_extracted_datetime = datetime.utcnow()
+
+        db.session.add_all(rows)
+        db.session.add(result)
+        db.session.commit()
+        return result
 
 
-def get_demographics_request__post_pmi_lookup(faker, user, row_count=1):
-    result = get_demographics_request__pre_pmi_lookup(faker, user, row_count=row_count)
+    def get_demographics_request__spine_lookup(self):
+        result = self.get_demographics_request__pre_pmi_lookup()
 
-    result.lookup_completed_datetime = datetime.utcnow()
+        rows = []
 
-    db.session.add(result)
-    db.session.commit()
-    return result
+        for drd, p in zip(result.data, self._person_details):
+            rows.append(DemographicsRequestPmiData(
+                demographics_request_data=drd,
+                nhs_number=p['nhs_number'] + '_PRE_PMI',
+                uhl_system_number=p['uhl_system_number'] + '_PRE_PMI',
+                family_name=p['family_name'] + '_PRE_PMI',
+                given_name=p['given_name'] + '_PRE_PMI',
+                gender=p['gender'] + '_PRE_PMI',
+                date_of_birth=p['date_of_birth'],
+                date_of_death=p['date_of_death'],
+                postcode=p['postcode'] + '_PRE_PMI',
+            ))
+
+        result.pmi_data_pre_completed_datetime = datetime.utcnow()
+
+        db.session.add_all(rows)
+        db.session.add(result)
+        db.session.commit()
+        return result
+
+
+    def get_demographics_request__post_pmi_lookup(self):
+        result = self.get_demographics_request__pre_pmi_lookup()
+
+        rows = []
+
+        for drd, p in zip(result.data, self._person_details):
+            rows.append(DemographicsRequestDataResponse(
+                demographics_request_data=drd,
+                title=p['title'] + '_SPINE',
+                forename=p['given_name'] + '_SPINE',
+                middlenames=p['middle_name'] + '_SPINE',
+                lastname=p['family_name'] + '_SPINE',
+                sex=p['gender'] + '_SPINE',
+                postcode=p['postcode'] + '_SPINE',
+                address=p['address'] + '_SPINE',
+                date_of_birth=p['date_of_birth'],
+                date_of_death=p['date_of_death'],
+                is_deceased=p['is_deceased'],
+                current_gp_practice_code=p['current_gp_practice_code']  + '_SPINE',
+            ))
+
+            if self._include_data_errors:
+                rows.append(DemographicsRequestDataMessage(
+                    demographics_request_data=drd,
+                    type='WARNING',
+                    source='TEST',
+                    scope='DATA',
+                    message=p['expected_message'],
+                ))
+
+        result.lookup_completed_datetime = datetime.utcnow()
+
+        db.session.add_all(rows)
+        db.session.add(result)
+        db.session.commit()
+        return result
+
+
+    def get_demographics_request__create_results(self):
+        result = self.get_demographics_request__post_pmi_lookup()
+
+        rows = []
+
+        for drd, p in zip(result.data, self._person_details):
+            rows.append(DemographicsRequestPmiData(
+                demographics_request_data=drd,
+                nhs_number=p['nhs_number'] + '_POST_PMI',
+                uhl_system_number=p['uhl_system_number'] + '_POST_PMI',
+                family_name=p['family_name'] + '_POST_PMI',
+                given_name=p['given_name'] + '_POST_PMI',
+                gender=p['gender'] + '_POST_PMI',
+                date_of_birth=p['date_of_birth'],
+                date_of_death=p['date_of_death'],
+                postcode=p['postcode'] + '_POST_PMI',
+            ))
+
+        result.pmi_data_post_completed_datetime = datetime.utcnow()
+
+        db.session.add_all(rows)
+        db.session.add(result)
+        db.session.commit()
+        return result
+
+
+    def _create_csv_file(self):
+        result = DemographicsRequestCsv(
+            owner=self._user,
+            last_updated_by_user=self._user,
+            filename=self._filename,
+        )
+
+        db.session.add(result)
+        db.session.commit()
+
+        os.makedirs(os.path.dirname(result.filepath), exist_ok=True)
+
+        with open(result.filepath, 'w') as csf_file:
+            writer = csv.DictWriter(csf_file, fieldnames=self._column_headings)
+
+            writer.writeheader()
+
+            for p in self._person_details:
+                p_star = {key: value for key, value in p.items() if key in self._column_headings}
+
+                writer.writerow(p_star)
+        
+        return result
+
+
+    def _create_xlsx_file(self):
+        result = DemographicsRequestXlsx(
+            owner=self._user,
+            last_updated_by_user=self._user,
+            filename=self._filename,
+        )
+
+        db.session.add(result)
+        db.session.commit()
+
+        os.makedirs(os.path.dirname(result.filepath), exist_ok=True)
+
+        wb = Workbook()
+        ws = wb.active
+
+        ws.append(self._column_headings)
+
+        for p in self._person_details:
+            p_star = [value for key, value in p.items() if key in self._column_headings]
+            ws.append(p_star)
+
+        wb.save(filename=result.filepath)
+
+        return result
+
+
+    def _create_xls_file(self):
+        result = DemographicsRequestExcel97(
+            owner=self._user,
+            last_updated_by_user=self._user,
+            filename=self._filename,
+        )
+
+        db.session.add(result)
+        db.session.commit()
+
+        os.makedirs(os.path.dirname(result.filepath), exist_ok=True)
+
+        wb = xlwt.Workbook()
+        ws = wb.add_sheet('Test Sheet')
+
+        row = ws.row(0)
+
+        for i, h in enumerate(self._column_headings):
+            row.write(i, h)
+
+        for i, p in enumerate(self._person_details, 1):
+            row = ws.row(i)
+            for j, v in enumerate([value for key, value in p.items() if key in self._column_headings]):
+                row.write(j, v)
+
+        wb.save(result.filepath)
+
+        return result

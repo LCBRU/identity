@@ -13,6 +13,7 @@ from identity.services.validators import (
     is_invalid_nhs_number,
     calculate_nhs_number_checksum,
 )
+from identity.services.pmi import PmiData
 
 
 class FakerProvider(BaseProvider):
@@ -46,6 +47,10 @@ class FakerProvider(BaseProvider):
     def invalid_uhl_system_number(self):
         return 'ABC'
 
+    def gp_practice_code(self):
+        prefix = choice(['ABCDEFGHIJKLMNOPQRSTUVWXYZ'])
+        return f'{prefix}{randint(10_000, 99_999)}'
+
     def person_details(self):
         if not randint(0, 1):
             return self.female_person_details()
@@ -57,7 +62,9 @@ class FakerProvider(BaseProvider):
             **{
                 'family_name': self.generator.last_name_female(),
                 'given_name': self.generator.first_name_female(),
+                'middle_name': self.generator.first_name_female(),
                 'gender': 'F',
+                'title': self.generator.prefix_female(),
             },
             **self._generic_person_details(),
         }
@@ -67,7 +74,9 @@ class FakerProvider(BaseProvider):
             **{
                 'family_name': self.generator.last_name_male(),
                 'given_name': self.generator.first_name_male(),
+                'middle_name': self.generator.first_name_male(),
                 'gender': 'M',
+                'title': self.generator.prefix_male(),
             },
             **self._generic_person_details(),
         }
@@ -77,12 +86,20 @@ class FakerProvider(BaseProvider):
 
         if randint(0, 10):
             dod = None
+            is_deceased = False
         else:
             dod = self.generator.date_between(start_date=dob, end_date='today')
+            is_deceased = True
 
         return {
             'date_of_birth': dob,
             'date_of_death': dod,
+            'is_deceased': is_deceased,
+            'address': self.generator.address(),
+            'current_gp_practice_code': self.gp_practice_code(),
+            'nhs_number': self.generator.nhs_number(),
+            'uhl_system_number': self.generator.uhl_system_number(),
+            'postcode': self.generator.postcode(),
         }
 
 
@@ -141,14 +158,7 @@ class FakerProviderPmi(BaseProvider):
 
     def create_pmi_details(self):
         f = FakerProvider(self.generator)
-        return {
-            **f.person_details(),
-            **{
-                'nhs_number': f.nhs_number(),
-                'uhl_system_number': f.uhl_system_number(),
-                'postcode': self.generator.postcode(),
-            },
-        }
+        return {key: value for key, value in f.person_details().items() if key in PmiData._fields}
 
 
 @pytest.yield_fixture(scope="function")
