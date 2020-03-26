@@ -390,42 +390,28 @@ def save_demographics_error(demographics_request_id, e):
 def extract_pre_pmi_details(request_id):
     current_app.logger.info(f'extract_pre_pmi_details (request_id={request_id})')
 
-    try:
-        dr = DemographicsRequest.query.get(request_id)
-
-        if dr is None:
-            raise Exception('request not found')
-
-        drd = DemographicsRequestData.query.filter(
-            DemographicsRequestData.demographics_request_id == request_id
-        ).filter(
-            DemographicsRequestData.pmi_pre_processed_datetime.is_(None)
-        ).first()
-
-        if drd is None:
-            current_app.logger.info(f'extract_pre_pmi_details (request_id={request_id}): Done')
-            dr.pmi_data_pre_completed_datetime = datetime.utcnow()
-            db.session.add(dr)
-        else:
-            if not drd.has_error:
-                get_pmi_details(drd)
-
-            drd.pmi_pre_processed_datetime = datetime.utcnow()
-            db.session.add(drd)
-
-        db.session.commit()
-
-        schedule_lookup_tasks(request_id)
-
-    except Exception as e:
-        db.session.rollback()
-        log_exception(e)
-        save_demographics_error(request_id, e)
+    extract_pmi_details(
+        request_id=request_id,
+        data_selection_condition=DemographicsRequestData.pmi_pre_processed_datetime.is_(None),
+        request_completed_attribute='pmi_data_pre_completed_datetime',
+        data_completed_attribute='pmi_pre_processed_datetime',
+    )
 
 
 @celery.task()
 def extract_post_pmi_details(request_id):
-    current_app.logger.info(f'extract_post_pmi_details (request_id={request_id})')
+    current_app.logger.info(f'extract_pre_pmi_details (request_id={request_id})')
+
+    extract_pmi_details(
+        request_id=request_id,
+        data_selection_condition=DemographicsRequestData.pmi_post_processed_datetime.is_(None),
+        request_completed_attribute='pmi_data_post_completed_datetime',
+        data_completed_attribute='pmi_post_processed_datetime',
+    )
+
+
+def extract_pmi_details(request_id, data_selection_condition, request_completed_attribute, data_completed_attribute):
+    current_app.logger.info(f'extract_pmi_details (request_id={request_id})')
 
     try:
         dr = DemographicsRequest.query.get(request_id)
@@ -433,22 +419,17 @@ def extract_post_pmi_details(request_id):
         if dr is None:
             raise Exception('request not found')
 
-        drd = DemographicsRequestData.query.filter(
-            DemographicsRequestData.demographics_request_id == request_id
-        ).filter(
-            DemographicsRequestData.pmi_post_processed_datetime.is_(None)
-        ).first()
+        drd = DemographicsRequestData.query.filter_by(demographics_request_id=request_id).filter(data_selection_condition).first()
 
         if drd is None:
-            current_app.logger.info(f'extract_post_pmi_details (request_id={request_id}): Done')
-            dr.pmi_data_post_completed_datetime = datetime.utcnow()
+            current_app.logger.info(f'extract_pmi_details (request_id={request_id}): Done')
+            setattr(dr, request_completed_attribute, datetime.utcnow())
             db.session.add(dr)
-
         else:
             if not drd.has_error:
                 get_pmi_details(drd)
 
-            drd.pmi_post_processed_datetime = datetime.utcnow()
+            setattr(drd, data_completed_attribute, datetime.utcnow())
             db.session.add(drd)
 
         db.session.commit()
