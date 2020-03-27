@@ -84,48 +84,6 @@ def cleanup_files(client):
     )
 
 
-@pytest.mark.parametrize(
-    "extension,header_count,column_count,row_count",
-    [
-        ('csv', 10, 10, 10),
-        ('xlsx', 10, 10, 10),
-        ('csv', 10, 9, 10),
-        ('xlsx', 10, 9, 10),
-        ('csv', 9, 10, 10),
-        ('xlsx', 9, 10, 10),
-        ('csv', 10, 10, 0),
-        ('xlsx', 10, 10, 0),
-    ],
-)
-def test__extract_data(client, faker, extension, header_count, column_count, row_count):
-    user = login(client, faker)
-
-    headers = faker.pylist(header_count, False, 'str')
-
-    expected_data = [faker.pylist(column_count, False, 'str') for _ in range(row_count)]
-
-    dr = do_create_request(client, faker, user, headers, expected_data, extension)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
-
-    do_submit(client, dr.id)
-
-    do_extract_data(dr.id)
-
-    dr = DemographicsRequest.query.get(dr.id)
-    assert len(dr.data) == len(expected_data)
-    assert dr.data_extracted == True
-    assert dr.data_extracted_datetime is not None
-
-    for e, a in zip(expected_data, dr.data):
-        assert e[0] == a.uhl_system_number
-        assert e[1] == a.nhs_number
-        assert e[2] == a.family_name
-        assert e[3] == a.given_name
-        assert e[4] == a.gender
-        assert e[5] == a.dob
-        assert e[6] == a.postcode
-
-
 _MT_NHS_NUMBER = 0
 _MT_SEARCH = 1
 _MT_INSUFFICIENT = 2

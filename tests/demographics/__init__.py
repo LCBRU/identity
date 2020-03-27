@@ -193,14 +193,18 @@ def do_upload_data(client, faker, data, extension='csv'):
 
 class DemographicsTestHelper():
 
-    def __init__(self, faker, user, extension='csv', row_count=1, include_data_errors=False):
+    def __init__(self, faker, user, extension='csv', row_count=1, include_data_errors=False, column_headings=None):
         self._faker = faker
         self._user = user
         self._extension = extension
         self._row_count = row_count
         self._include_data_errors = include_data_errors
-        self._column_headings = ['uhl_system_number', 'nhs_number', 'family_name', 'given_name', 'gender', 'date_of_birth', 'postcode']
         self._filename = self._faker.file_name(extension=self._extension)
+
+        if column_headings is None:
+            self._column_headings = ['uhl_system_number', 'nhs_number', 'family_name', 'given_name', 'gender', 'date_of_birth', 'postcode']
+        else:
+            self._column_headings = column_headings
 
         self._person_details = []
 
@@ -208,6 +212,14 @@ class DemographicsTestHelper():
             p = self._faker.person_details()
             p['expected_message'] = self._faker.pystr(min_chars=None, max_chars=20)
             self._person_details.append(p)
+
+    def get_input_details(self):
+        result = []
+
+        for p in self._person_details:
+            result.append({key: value for key, value in p.items() if key in self._column_headings})
+        
+        return result
 
 
     def get_demographics_request__uploaded(self):
@@ -235,13 +247,13 @@ class DemographicsTestHelper():
         col_def = DemographicsRequestColumnDefinition(
             demographics_request=result,
             last_updated_by_user=self._user,
-            uhl_system_number_column=cols['uhl_system_number'],
-            nhs_number_column=cols['nhs_number'],
-            family_name_column=cols['family_name'],
-            given_name_column=cols['given_name'],
-            gender_column=cols['gender'],
-            dob_column=cols['date_of_birth'],
-            postcode_column=cols['postcode'],
+            uhl_system_number_column=cols.get('uhl_system_number'),
+            nhs_number_column=cols.get('nhs_number'),
+            family_name_column=cols.get('family_name'),
+            given_name_column=cols.get('given_name'),
+            gender_column=cols.get('gender'),
+            dob_column=cols.get('date_of_birth'),
+            postcode_column=cols.get('postcode'),
         )
 
         db.session.add_all(cols.values())
