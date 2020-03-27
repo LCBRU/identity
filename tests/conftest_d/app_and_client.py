@@ -67,10 +67,10 @@ def app(faker):
 
     yield app
 
-    # shutil.rmtree(
-    #     app.config["FILE_UPLOAD_DIRECTORY"],
-    #     ignore_errors=True,
-    # )
+    shutil.rmtree(
+        app.config["FILE_UPLOAD_DIRECTORY"],
+        ignore_errors=True,
+    )
 
     context.pop()
 
