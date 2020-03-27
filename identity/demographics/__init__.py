@@ -248,9 +248,7 @@ def process_demographics_request_data(request_id):
         if dr is None:
             raise Exception('request not found')
 
-        drd = DemographicsRequestData.query.filter(
-            DemographicsRequestData.demographics_request_id == request_id
-        ).filter(
+        drd = DemographicsRequestData.query.filter_by(demographics_request_id=request_id).filter(
             DemographicsRequestData.processed_datetime.is_(None)
         ).first()
 
@@ -268,7 +266,6 @@ def process_demographics_request_data(request_id):
         db.session.commit()
 
         schedule_lookup_tasks(request_id)
-
 
     except Exception as e:
         log_exception(e)

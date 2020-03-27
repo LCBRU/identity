@@ -1,6 +1,7 @@
 import os
 import csv
 import xlwt
+import pytest
 from openpyxl import Workbook
 from datetime import datetime
 from io import BytesIO
@@ -22,6 +23,31 @@ from identity.demographics.model import (
 )
 from identity.database import db
 from tests import login
+
+
+@pytest.yield_fixture(scope="function")
+def mock_schedule_lookup_tasks(app):
+    with patch('identity.demographics.schedule_lookup_tasks') as mock_schedule_lookup_tasks:
+        yield mock_schedule_lookup_tasks
+
+
+@pytest.yield_fixture(scope="function")
+def mock_pmi_details(app):
+    with patch('identity.demographics.get_pmi') as mock_pmi_details:
+        yield mock_pmi_details
+
+
+@pytest.yield_fixture(scope="function")
+def mock_spine_lookup(app):
+    with patch('identity.demographics.spine_lookup') as mock_spine_lookup:
+        yield mock_spine_lookup
+
+
+@pytest.yield_fixture(scope="function")
+def mock_log_exception(app):
+    with patch('identity.demographics.log_exception') as mock_log_exception:
+        yield mock_log_exception
+
 
 
 def assert_uploaded_file(user, filename, content, headers):
@@ -309,7 +335,7 @@ class DemographicsTestHelper():
             if self._include_data_errors:
                 rows.append(DemographicsRequestDataMessage(
                     demographics_request_data=drd,
-                    type='WARNING',
+                    type='error',
                     source='TEST',
                     scope='DATA',
                     message=p['expected_message'],

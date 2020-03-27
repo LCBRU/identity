@@ -358,14 +358,6 @@ class DemographicsRequestXlsx(DemographicsRequest):
                 ws.cell(row=row, column=insert_col + 7).value = response.address
                 ws.cell(row=row, column=insert_col + 8).value = response.date_of_birth
                 ws.cell(row=row, column=insert_col + 9).value = response.date_of_death
-                # if response.date_of_birth:
-                #     ws.cell(row=row, column=insert_col + 8).value = response.date_of_birth.strftime('%d-%b-%Y')
-                # else:
-                #     ws.cell(row=row, column=insert_col + 8).value = ''
-                # if response.date_of_death:
-                #     ws.cell(row=row, column=insert_col + 9).value = response.date_of_death.strftime('%d-%b-%Y')
-                # else:
-                #     ws.cell(row=row, column=insert_col + 9).value = ''
                 ws.cell(row=row, column=insert_col + 10).value = 'True' if response.is_deceased else 'False'
                 ws.cell(row=row, column=insert_col + 11).value = response.current_gp_practice_code
 
@@ -479,14 +471,6 @@ class DemographicsRequestExcel97(DemographicsRequest):
                 w_sheet.write(row, insert_col + 7, response.address)
                 w_sheet.write(row, insert_col + 8, response.date_of_birth, style)
                 w_sheet.write(row, insert_col + 9, response.date_of_death, style)
-                # if response.date_of_birth:
-                #     w_sheet.write(row, insert_col + 8, response.date_of_birth.strftime('%d-%b-%Y'))
-                # else:
-                #     w_sheet.write(row, insert_col + 8, '')
-                # if response.date_of_death:
-                #     w_sheet.write(row, insert_col + 9, response.date_of_death.strftime('%d-%b-%Y'))
-                # else:
-                #     w_sheet.write(row, insert_col + 9, '')
                 w_sheet.write(row, insert_col + 10, 'True' if response.is_deceased else 'False')
                 w_sheet.write(row, insert_col + 11, response.current_gp_practice_code)
 
