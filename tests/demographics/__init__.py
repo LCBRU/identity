@@ -418,7 +418,13 @@ class DemographicsTestHelper():
         ws.append(self._column_headings)
 
         for p in self._person_details:
-            p_star = [value for key, value in p.items() if key in self._column_headings]
+            p_star = []
+
+            for h in self._column_headings:
+                if h in p.keys():
+                    p_star.append(p[h])
+                else:
+                    p_star.append('')
             ws.append(p_star)
 
         wb.save(filename=result.filepath)

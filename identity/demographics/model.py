@@ -394,10 +394,10 @@ class DemographicsRequestExcel97(DemographicsRequest):
         ws = wb.sheet_by_index(0)
 
         column_names = self.get_column_names()
-        row_iterator = ws.get_rows()
-        next(row_iterator)
-        for r in row_iterator:
-            yield dict(zip(column_names, [c.value for c in r]))
+        rows = ws.get_rows()
+        next(rows)
+        for r in rows:
+            yield dict(zip(column_names, [self._value_from_cell(c, wb.datemode) for c in r]))
 
     def iter_result_rows(self):
         wb = xlrd.open_workbook(filename=self.result_filepath, formatting_info=True)
@@ -607,6 +607,10 @@ class DemographicsRequestColumn(db.Model):
 
     def __lt__(self, other):
         return self.name < other.name
+    
+    def __repr__(self):
+        fields = '; '.join([f'{key}="{value}"' for key, value in self.__dict__.items() if key[0] != '_' ])
+        return f'[{type(self).__name__}({fields})]'
 
 
 class DemographicsRequestColumnDefinition(db.Model):
@@ -689,6 +693,10 @@ class DemographicsRequestData(db.Model):
     @property
     def has_error(self):
         return any(m.is_error for m in self.messages)
+    
+    def __repr__(self):
+        fields = '; '.join([f'{key}="{value}"' for key, value in self.__dict__.items() if key[0] != '_' ])
+        return f'[{type(self).__name__}({fields})]'
 
 
 class DemographicsRequestPmiData(db.Model):
