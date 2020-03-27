@@ -414,16 +414,17 @@ class DemographicsTestHelper():
 
         wb = xlwt.Workbook()
         ws = wb.add_sheet('Test Sheet')
+        style = xlwt.XFStyle()
+        style.num_format_str = 'D-MMM-YY' # Other options: D-MMM-YY, D-MMM, MMM-YY, h:mm, h:mm:ss, h:mm, h:mm:ss, M/D/YY h:mm, mm:ss, [h]:mm:ss, mm:ss.0
 
-        row = ws.row(0)
+        row_index = 0
+        for col_index, h in enumerate(self._column_headings):
+            ws.write(row_index, col_index, h)
 
-        for i, h in enumerate(self._column_headings):
-            row.write(i, h)
-
-        for i, p in enumerate(self._person_details, 1):
-            row = ws.row(i)
-            for j, v in enumerate([value for key, value in p.items() if key in self._column_headings]):
-                row.write(j, v)
+        for row_index, p in enumerate(self._person_details, 1):
+            for col_index, h in enumerate(self._column_headings):
+                if h in p.keys():
+                    ws.write(row_index, col_index, p[h], style)
 
         wb.save(result.filepath)
 

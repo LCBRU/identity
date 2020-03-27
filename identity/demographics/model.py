@@ -4,6 +4,7 @@ import re
 import chardet
 import xlrd
 import xlwt
+import xlutils
 from xlutils.copy import copy
 from shutil import copyfile
 from itertools import takewhile
@@ -397,7 +398,7 @@ class DemographicsRequestExcel97(DemographicsRequest):
         return [c.value for c in takewhile(lambda x: x.value, first_row)]
 
     def iter_rows(self):
-        wb = xlrd.open_workbook(filename=self.filepath)
+        wb = xlrd.open_workbook(filename=self.filepath, formatting_info=True)
         ws = wb.sheet_by_index(0)
 
         column_names = self.get_column_names()
@@ -407,7 +408,7 @@ class DemographicsRequestExcel97(DemographicsRequest):
             yield dict(zip(column_names, [c.value for c in r]))
 
     def iter_result_rows(self):
-        wb = xlrd.open_workbook(filename=self.filepath)
+        wb = xlrd.open_workbook(filename=self.result_filepath, formatting_info=True)
         ws = wb.sheet_by_index(0)
 
         rows = ws.get_rows()
@@ -416,15 +417,24 @@ class DemographicsRequestExcel97(DemographicsRequest):
         column_names = [c.value for c in takewhile(lambda x: x.value, first_row)]
 
         for r in rows:
-            yield dict(zip(column_names, [c.value for c in r]))
+            yield dict(zip(column_names, [self._value_from_cell(c, wb.datemode) for c in r]))
+
+    def _value_from_cell(self, cell, datemode):
+        if cell.ctype == xlrd.book.XL_CELL_DATE:
+            return xlrd.xldate.xldate_as_datetime(cell.value, datemode)
+        else:
+            return cell.value
+
 
     def create_result(self):
         current_app.logger.info('DemographicsRequestExcel97.create_result')
 
-        w_book = copy(xlrd.open_workbook(filename=self.filepath))
+        w_book = copy(xlrd.open_workbook(filename=self.filepath, formatting_info=True))
         w_sheet = w_book.get_sheet(0)
+        style = xlwt.XFStyle()
+        style.num_format_str = 'D-MMM-YY' # Other options: D-MMM-YY, D-MMM, MMM-YY, h:mm, h:mm:ss, h:mm, h:mm:ss, M/D/YY h:mm, mm:ss, [h]:mm:ss, mm:ss.0
 
-        insert_col = len(self.get_column_names()) + 1
+        insert_col = len(self.get_column_names())
 
         fieldnames = [
             'spine_nhs_number',
@@ -467,14 +477,16 @@ class DemographicsRequestExcel97(DemographicsRequest):
                 w_sheet.write(row, insert_col + 5, response.sex)
                 w_sheet.write(row, insert_col + 6, response.postcode)
                 w_sheet.write(row, insert_col + 7, response.address)
-                if response.date_of_birth:
-                    w_sheet.write(row, insert_col + 8, response.date_of_birth.strftime('%d-%b-%Y'))
-                else:
-                    w_sheet.write(row, insert_col + 8, '')
-                if response.date_of_death:
-                    w_sheet.write(row, insert_col + 9, response.date_of_death.strftime('%d-%b-%Y'))
-                else:
-                    w_sheet.write(row, insert_col + 9, '')
+                w_sheet.write(row, insert_col + 8, response.date_of_birth, style)
+                w_sheet.write(row, insert_col + 9, response.date_of_death, style)
+                # if response.date_of_birth:
+                #     w_sheet.write(row, insert_col + 8, response.date_of_birth.strftime('%d-%b-%Y'))
+                # else:
+                #     w_sheet.write(row, insert_col + 8, '')
+                # if response.date_of_death:
+                #     w_sheet.write(row, insert_col + 9, response.date_of_death.strftime('%d-%b-%Y'))
+                # else:
+                #     w_sheet.write(row, insert_col + 9, '')
                 w_sheet.write(row, insert_col + 10, 'True' if response.is_deceased else 'False')
                 w_sheet.write(row, insert_col + 11, response.current_gp_practice_code)
 
@@ -485,8 +497,8 @@ class DemographicsRequestExcel97(DemographicsRequest):
                     w_sheet.write(row, insert_col + 14, pmi_data.family_name)
                     w_sheet.write(row, insert_col + 15, pmi_data.given_name)
                     w_sheet.write(row, insert_col + 16, pmi_data.gender)
-                    w_sheet.write(row, insert_col + 17, pmi_data.date_of_birth)
-                    w_sheet.write(row, insert_col + 18, pmi_data.date_of_death)
+                    w_sheet.write(row, insert_col + 17, pmi_data.date_of_birth, style)
+                    w_sheet.write(row, insert_col + 18, pmi_data.date_of_death, style)
                     w_sheet.write(row, insert_col + 19, pmi_data.postcode)
 
             w_sheet.write(row, insert_col + 20, '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages]))
