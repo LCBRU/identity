@@ -204,13 +204,15 @@ def do_upload_data(client, faker, data, extension='csv'):
 
 class DemographicsTestHelper():
 
-    def __init__(self, faker, user, extension='csv', row_count=1, include_data_errors=False, column_headings=None):
+    def __init__(self, faker, user, extension='csv', row_count=1, include_data_errors=False, column_headings=None, find_pre_pmi_details=True, find_post_pmi_details=True):
         self._faker = faker
         self._user = user
         self._extension = extension
         self._row_count = row_count
         self._include_data_errors = include_data_errors
         self._filename = self._faker.file_name(extension=self._extension)
+        self._find_pre_pmi_details = find_pre_pmi_details
+        self._find_post_pmi_details = find_post_pmi_details
 
         if column_headings is None:
             self._column_headings = ['uhl_system_number', 'nhs_number', 'family_name', 'given_name', 'gender', 'date_of_birth', 'postcode']
@@ -313,18 +315,19 @@ class DemographicsTestHelper():
 
         rows = []
 
-        for drd, p in zip(result.data, self._person_details):
-            rows.append(DemographicsRequestPmiData(
-                demographics_request_data=drd,
-                nhs_number=p['nhs_number'] + '_PRE_PMI',
-                uhl_system_number=p['uhl_system_number'] + '_PRE_PMI',
-                family_name=p['family_name'] + '_PRE_PMI',
-                given_name=p['given_name'] + '_PRE_PMI',
-                gender=p['gender'] + '_PRE_PMI',
-                date_of_birth=p['date_of_birth'],
-                date_of_death=p['date_of_death'],
-                postcode=p['postcode'] + '_PRE_PMI',
-            ))
+        if self._find_pre_pmi_details:
+            for drd, p in zip(result.data, self._person_details):
+                rows.append(DemographicsRequestPmiData(
+                    demographics_request_data=drd,
+                    nhs_number=p['nhs_number'],
+                    uhl_system_number=p['uhl_system_number'],
+                    family_name=p['family_name'],
+                    given_name=p['given_name'],
+                    gender=p['gender'],
+                    date_of_birth=p['date_of_birth'],
+                    date_of_death=p['date_of_death'],
+                    postcode=p['postcode'],
+                ))
 
         result.pmi_data_pre_completed_datetime = datetime.utcnow()
 
@@ -342,17 +345,17 @@ class DemographicsTestHelper():
         for drd, p in zip(result.data, self._person_details):
             rows.append(DemographicsRequestDataResponse(
                 demographics_request_data=drd,
-                title=p['title'] + '_SPINE',
-                forename=p['given_name'] + '_SPINE',
-                middlenames=p['middle_name'] + '_SPINE',
-                lastname=p['family_name'] + '_SPINE',
-                sex=p['gender'] + '_SPINE',
-                postcode=p['postcode'] + '_SPINE',
-                address=p['address'] + '_SPINE',
+                title=p['title'],
+                forename=p['given_name'],
+                middlenames=p['middle_name'],
+                lastname=p['family_name'],
+                sex=p['gender'],
+                postcode=p['postcode'],
+                address=p['address'],
                 date_of_birth=p['date_of_birth'],
                 date_of_death=p['date_of_death'],
                 is_deceased=p['is_deceased'],
-                current_gp_practice_code=p['current_gp_practice_code']  + '_SPINE',
+                current_gp_practice_code=p['current_gp_practice_code'],
             ))
 
             if self._include_data_errors:
@@ -377,18 +380,19 @@ class DemographicsTestHelper():
 
         rows = []
 
-        for drd, p in zip(result.data, self._person_details):
-            rows.append(DemographicsRequestPmiData(
-                demographics_request_data=drd,
-                nhs_number=p['nhs_number'] + '_POST_PMI',
-                uhl_system_number=p['uhl_system_number'] + '_POST_PMI',
-                family_name=p['family_name'] + '_POST_PMI',
-                given_name=p['given_name'] + '_POST_PMI',
-                gender=p['gender'] + '_POST_PMI',
-                date_of_birth=p['date_of_birth'],
-                date_of_death=p['date_of_death'],
-                postcode=p['postcode'] + '_POST_PMI',
-            ))
+        if self._find_post_pmi_details:
+            for drd, p in zip(result.data, self._person_details):
+                rows.append(DemographicsRequestPmiData(
+                    demographics_request_data=drd,
+                    nhs_number=p['nhs_number'],
+                    uhl_system_number=p['uhl_system_number'],
+                    family_name=p['family_name'],
+                    given_name=p['given_name'],
+                    gender=p['gender'],
+                    date_of_birth=p['date_of_birth'],
+                    date_of_death=p['date_of_death'],
+                    postcode=p['postcode'],
+                ))
 
         result.pmi_data_post_completed_datetime = datetime.utcnow()
 

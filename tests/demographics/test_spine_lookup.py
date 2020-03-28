@@ -1168,8 +1168,8 @@ spine_response_full = MagicMock(
 
 def test__spine_lookup__search(client, faker, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search):
     u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, column_headings=['uhl_system_number', 'family_name', 'given_name', 'gender', 'date_of_birth', 'postcode'])
-    dr = dth.get_demographics_request__pre_pmi_lookup()
+    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False, column_headings=['uhl_system_number', 'family_name', 'given_name', 'gender', 'date_of_birth', 'postcode'])
+    dr = dth.get_demographics_request__spine_lookup()
     drd = dr.data[0]
 
     mock_get_demographics_from_search.return_value = spine_response_full
