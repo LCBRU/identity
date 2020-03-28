@@ -49,6 +49,17 @@ def mock_log_exception(app):
         yield mock_log_exception
 
 
+@pytest.yield_fixture(scope="function")
+def mock_get_demographics_from_search(app):
+    with patch('identity.demographics.get_demographics_from_search') as mock_get_demographics_from_search:
+        yield mock_get_demographics_from_search
+
+
+@pytest.yield_fixture(scope="function")
+def mock_get_demographics_from_nhs_number(app):
+    with patch('identity.demographics.get_demographics_from_nhs_number') as mock_get_demographics_from_nhs_number:
+        yield mock_get_demographics_from_nhs_number
+
 
 def assert_uploaded_file(user, filename, content, headers):
     dr = DemographicsRequest.query.filter(
@@ -276,17 +287,17 @@ class DemographicsTestHelper():
 
         rows = []
 
-        for i, p in enumerate(self._person_details):
+        for i, p in enumerate(self.get_input_details()):
             rows.append(DemographicsRequestData(
                 row_number=i,
                 demographics_request=result,
-                nhs_number=p['nhs_number'],
-                uhl_system_number=p['uhl_system_number'],
-                family_name=p['family_name'],
-                given_name=p['given_name'],
-                gender=p['gender'],
-                dob=p['date_of_birth'],
-                postcode=p['postcode'],
+                nhs_number=p.get('nhs_number'),
+                uhl_system_number=p.get('uhl_system_number'),
+                family_name=p.get('family_name'),
+                given_name=p.get('given_name'),
+                gender=p.get('gender'),
+                dob=p.get('date_of_birth'),
+                postcode=p.get('postcode'),
             ))
 
         result.data_extracted_datetime = datetime.utcnow()

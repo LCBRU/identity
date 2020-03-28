@@ -490,5 +490,3 @@ def save_demographics_error(demographics_request_id, e):
         dr.set_error(traceback.format_exc())
         db.session.add(dr)
         db.session.commit()
-
-
