@@ -1,4 +1,6 @@
 import traceback
+from typing import NamedTuple
+from collections import namedtuple
 from datetime import datetime
 from dateutil.parser import parse
 from flask import url_for, current_app, render_template
@@ -69,113 +71,42 @@ def schedule_lookup_tasks(demographics_request_id):
         save_demographics_error(demographics_request_id, e)
 
 
+class SpineParameters:
+
+    Warning = namedtuple('Warning', ['scope', 'message'])
+
+    def __init__(self):
+        self.nhs_number = None
+        self.family_name = None
+        self.given_name = None
+        self.gender = None
+        self.dob = None
+        self.postcode = None
+        self.warnings = []
+
+    @property
+    def valid_nhs_number_lookup_parameters(self):
+        return self.nhs_number and self.dob
+
+    @property
+    def valid_search_lookup_parameters(self):
+        return self.dob
+    
+    def add_warning(self, scope, message):
+        self.warnings.append(SpineParameters.Warning(scope=scope, message=message))
+
+
 def spine_lookup(demographics_request_data):
-    error, v_nhs_number = convert_nhs_number(demographics_request_data.nhs_number)
-    if error is not None:
-        demographics_request_data.messages.append(
-            DemographicsRequestDataMessage(
-                type='warning',
-                source='validation',
-                scope='nhs_number',
-                message=error,
-            )
-        )
-
-    if demographics_request_data.pmi_data:
-        error, v_pmi_nhs_number = convert_nhs_number(demographics_request_data.pmi_data.nhs_number)
-        if error is not None:
-            demographics_request_data.messages.append(
-                DemographicsRequestDataMessage(
-                    type='warning',
-                    source='validation',
-                    scope='pmi_nhs_number',
-                    message=error,
-                )
-            )
-    else:
-        v_pmi_nhs_number = None
-
-    error, v_gender = convert_gender(demographics_request_data.gender)
-    if error is not None:
-        demographics_request_data.messages.append(
-            DemographicsRequestDataMessage(
-                type='warning',
-                source='validation',
-                scope='gender',
-                message=error,
-            )
-        )
-
-    error, v_family_name = convert_name(demographics_request_data.family_name)
-    if error is not None:
-        demographics_request_data.messages.append(
-            DemographicsRequestDataMessage(
-                type='warning',
-                source='validation',
-                scope='family_name',
-                message=error,
-            )
-        )
-
-    error, v_given_name = convert_name(demographics_request_data.given_name)
-    if error is not None:
-        demographics_request_data.messages.append(
-            DemographicsRequestDataMessage(
-                type='warning',
-                source='validation',
-                scope='given_name',
-                message=error,
-            )
-        )
-
-    error, v_dob = convert_dob(demographics_request_data.dob)
-    if error is not None:
-        demographics_request_data.messages.append(
-            DemographicsRequestDataMessage(
-                type='warning',
-                source='validation',
-                scope='dob',
-                message=error,
-            )
-        )
-
-    if demographics_request_data.pmi_data:
-        error, v_pmi_dob = convert_dob(demographics_request_data.pmi_data.date_of_birth)
-        if error is not None:
-            demographics_request_data.messages.append(
-                DemographicsRequestDataMessage(
-                    type='warning',
-                    source='validation',
-                    scope='pmi_date_of_birth',
-                    message=error,
-                )
-            )
-    else:
-        v_pmi_dob = None
-
-    error, v_postcode = convert_postcode(demographics_request_data.postcode)
-    if error is not None:
-        demographics_request_data.messages.append(
-            DemographicsRequestDataMessage(
-                type='warning',
-                source='validation',
-                scope='postcode',
-                message=error,
-            )
-        )
+    params = get_spine_parameters(demographics_request_data)
 
     try:
-        # Use NHS Number and DOB from PMI, if not supplied
-        v_nhs_number = v_nhs_number or v_pmi_nhs_number
-        v_dob = v_dob or v_pmi_dob
-
-        if v_nhs_number and v_dob:
+        if params.valid_nhs_number_lookup_parameters:
             demographics = get_demographics_from_nhs_number(
-                nhs_number=v_nhs_number,
-                dob=v_dob,
+                nhs_number=params.nhs_number,
+                dob=params.dob,
             )
-        elif v_dob:
-            if not v_gender:
+        elif params.valid_search_lookup_parameters:
+            if not params.gender:
                 demographics_request_data.messages.append(
                     DemographicsRequestDataMessage(
                         type='warning',
@@ -186,11 +117,11 @@ def spine_lookup(demographics_request_data):
                 )
 
             demographics = get_demographics_from_search(
-                family_name=v_family_name,
-                given_name=v_given_name,
-                gender=v_gender,
-                dob=v_dob,
-                postcode=v_postcode,
+                family_name=params.family_name,
+                given_name=params.given_name,
+                gender=params.gender,
+                dob=params.dob,
+                postcode=params.postcode,
             )
         else:
             demographics_request_data.messages.append(
@@ -236,6 +167,76 @@ def spine_lookup(demographics_request_data):
                 message=str(e),
             )
         )
+
+
+def get_spine_parameters(demographics_request_data):
+    result = SpineParameters()
+
+    error, v_nhs_number = convert_nhs_number(demographics_request_data.nhs_number)
+    if error is not None:
+        result.add_warning(scope='nhs_number', message=error)
+
+    error, v_gender = convert_gender(demographics_request_data.gender)
+    if error is not None:
+        result.add_warning(scope='gender', message=error)
+
+    error, v_family_name = convert_name(demographics_request_data.family_name)
+    if error is not None:
+        result.add_warning(scope='family_name', message=error)
+
+    error, v_given_name = convert_name(demographics_request_data.given_name)
+    if error is not None:
+        result.add_warning(scope='given_name', message=error)
+
+    error, v_dob = convert_dob(demographics_request_data.dob)
+    if error is not None:
+        result.add_warning(scope='dob', message=error)
+
+    error, v_postcode = convert_postcode(demographics_request_data.postcode)
+    if error is not None:
+        result.add_warning(scope='postcode', message=error)
+
+    if demographics_request_data.pmi_data:
+        error, v_pmi_nhs_number = convert_nhs_number(demographics_request_data.pmi_data.nhs_number)
+        if error is not None:
+            result.add_warning(scope='pmi_nhs_number', message=error)
+
+        error, v_pmi_gender = convert_gender(demographics_request_data.pmi_data.gender)
+        if error is not None:
+            result.add_warning(scope='pmi_gender', message=error)
+
+        error, v_pmi_family_name = convert_name(demographics_request_data.pmi_data.family_name)
+        if error is not None:
+            result.add_warning(scope='pmi_family_name', message=error)
+
+        error, v_pmi_given_name = convert_name(demographics_request_data.pmi_data.given_name)
+        if error is not None:
+            result.add_warning(scope='pmi_given_name', message=error)
+
+        error, v_pmi_dob = convert_dob(demographics_request_data.pmi_data.date_of_birth)
+        if error is not None:
+            result.add_warning(scope='pmi_date_of_birth', message=error)
+
+        error, v_pmi_postcode = convert_postcode(demographics_request_data.pmi_data.postcode)
+        if error is not None:
+            result.add_warning(scope='pmi_postcode', message=error)
+
+    else:
+        v_pmi_nhs_number = None
+        v_pmi_gender = None
+        v_pmi_family_name = None
+        v_pmi_given_name = None
+        v_pmi_dob = None
+        v_pmi_postcode = None
+
+    result.nhs_number=(v_nhs_number or v_pmi_nhs_number)
+    result.dob=(v_dob or v_pmi_dob)
+    result.family_name=(v_family_name or v_pmi_family_name)
+    result.given_name=(v_given_name or v_pmi_given_name)
+    result.gender=(v_gender or v_pmi_gender)
+    result.postcode=(v_postcode or v_pmi_postcode)
+
+    return result
 
 
 @celery.task()

@@ -12,6 +12,7 @@ from identity.database import db
 from identity.demographics import (
     extract_data,
     spine_lookup,
+    get_spine_parameters,
     process_demographics_request_data,
     produce_demographics_result,
     get_pmi_details,
@@ -50,6 +51,11 @@ from tests.demographics import (
     do_upload_data_and_extract,
     mock_get_demographics_from_nhs_number,
     mock_get_demographics_from_search,
+    mock_convert_dob,
+    mock_convert_gender,
+    mock_convert_name,
+    mock_convert_nhs_number,
+    mock_convert_postcode,
     DemographicsTestHelper,
 )
 
@@ -1203,3 +1209,459 @@ def test__spine_lookup__search(client, faker, mock_get_demographics_from_nhs_num
     assert parse_date(drd.response.date_of_death) == parse_date(spine_response_full.date_of_death)
     assert drd.response.is_deceased == spine_response_full.is_deceased
     assert drd.response.current_gp_practice_code == spine_response_full.current_gp_practice_code
+
+
+def test__spine_lookup__nhs_number(client, faker, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False, column_headings=['nhs_number', 'uhl_system_number', 'family_name', 'given_name', 'gender', 'date_of_birth', 'postcode'])
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    mock_get_demographics_from_nhs_number.return_value = spine_response_full
+    mock_get_demographics_from_search.return_value = None
+
+    spine_lookup(drd)
+
+    search_input = dth.get_input_details()[0]
+
+    mock_get_demographics_from_nhs_number.assert_called_once_with(
+        nhs_number=convert_nhs_number(search_input['nhs_number'])[1],
+        dob=convert_dob(search_input['date_of_birth'])[1],
+    )
+    mock_get_demographics_from_search.assert_not_called()
+
+    assert len(drd.messages) == 0
+
+    assert drd.response is not None
+    assert drd.response.nhs_number == spine_response_full.nhs_number
+    assert drd.response.title == spine_response_full.title
+    assert drd.response.forename == spine_response_full.forename
+    assert drd.response.middlenames == spine_response_full.middlenames
+    assert drd.response.lastname == spine_response_full.lastname
+    assert drd.response.sex == spine_response_full.sex
+    assert drd.response.postcode == spine_response_full.postcode
+    assert drd.response.address == spine_response_full.address
+    assert parse_date(drd.response.date_of_birth) == parse_date(spine_response_full.date_of_birth)
+    assert parse_date(drd.response.date_of_death) == parse_date(spine_response_full.date_of_death)
+    assert drd.response.is_deceased == spine_response_full.is_deceased
+    assert drd.response.current_gp_practice_code == spine_response_full.current_gp_practice_code
+
+
+def test__get_spine_parameters__no_pmi__valid_except_nhs_number(client, faker, mock_convert_nhs_number):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_nhs_number.return_value = (error_message, '')
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_nhs_number.assert_called_once_with(drd.nhs_number)
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == None
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'nhs_number'
+    assert actual.warnings[0].message == error_message
+
+
+def test__get_spine_parameters__no_pmi__valid_except_gender(client, faker, mock_convert_gender):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_gender.return_value = (error_message, '')
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_gender.assert_called_once_with(drd.gender)
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == None
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'gender'
+    assert actual.warnings[0].message == error_message
+
+
+def test__get_spine_parameters__no_pmi__valid_except_names(client, faker, mock_convert_name):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_name.return_value = (error_message, '')
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_name.call_count = 2
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == None
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == None
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 2
+    assert actual.warnings[0].scope == 'family_name'
+    assert actual.warnings[0].message == error_message
+    assert actual.warnings[1].scope == 'given_name'
+    assert actual.warnings[1].message == error_message
+
+
+def test__get_spine_parameters__no_pmi__valid_except_dob(client, faker, mock_convert_dob):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_dob.return_value = (error_message, '')
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_dob.assert_called_once_with(drd.dob)
+
+    assert parse_date(actual.dob) == None
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'dob'
+    assert actual.warnings[0].message == error_message
+
+
+def test__get_spine_parameters__no_pmi__valid_except_postcode(client, faker, mock_convert_postcode):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_postcode.return_value = (error_message, '')
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_postcode.assert_called_once_with(drd.postcode)
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == None
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'postcode'
+    assert actual.warnings[0].message == error_message
+
+
+def test__get_spine_parameters__with_pmi__valid_except_nhs_number(client, faker, mock_convert_nhs_number):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_nhs_number.side_effect = [(error_message, ''), (None, drd.pmi_data.nhs_number)]
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_nhs_number.call_count == 2
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.pmi_data.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'nhs_number'
+    assert actual.warnings[0].message == error_message
+
+
+def test__get_spine_parameters__with_pmi__valid_except_pmi_nhs_number(client, faker, mock_convert_nhs_number):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_nhs_number.side_effect = [(None, drd.nhs_number), (error_message, '')]
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_nhs_number.call_count == 2
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'pmi_nhs_number'
+    assert actual.warnings[0].message == error_message
+
+
+def test__get_spine_parameters__with_pmi__valid_except_gender(client, faker, mock_convert_gender):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_gender.side_effect = [(error_message, ''), (None, convert_gender(drd.pmi_data.gender)[1])]
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_gender.call_count == 2
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.pmi_data.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'gender'
+    assert actual.warnings[0].message == error_message
+
+
+def test__get_spine_parameters__with_pmi__valid_except_pmi_gender(client, faker, mock_convert_gender):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_gender.side_effect = [(None, convert_gender(drd.gender))[1], (error_message, '')]
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_gender.call_count == 2
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'pmi_gender'
+    assert actual.warnings[0].message == error_message
+
+
+def test__get_spine_parameters__with_pmi__valid_except_names(client, faker, mock_convert_name):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_name.side_effect = [
+        (error_message, ''),
+        (error_message, ''),
+        (None, drd.pmi_data.family_name),
+        (None, drd.pmi_data.given_name),
+    ]
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_name.call_count = 4
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.pmi_data.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.pmi_data.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 2
+    assert actual.warnings[0].scope == 'family_name'
+    assert actual.warnings[0].message == error_message
+    assert actual.warnings[1].scope == 'given_name'
+    assert actual.warnings[1].message == error_message
+
+
+def test__get_spine_parameters__with_pmi__valid_except_pmi_names(client, faker, mock_convert_name):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_name.side_effect = [
+        (None, drd.family_name),
+        (None, drd.given_name),
+        (error_message, ''),
+        (error_message, ''),
+    ]
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_name.call_count = 4
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 2
+    assert actual.warnings[0].scope == 'pmi_family_name'
+    assert actual.warnings[0].message == error_message
+    assert actual.warnings[1].scope == 'pmi_given_name'
+    assert actual.warnings[1].message == error_message
+
+
+def test__get_spine_parameters__with_pmi__valid_except_dob(client, faker, mock_convert_dob):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_dob.side_effect = [
+        (error_message, None),
+        (None, drd.pmi_data.date_of_birth),
+    ]
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_dob.call_count == 2
+
+    assert parse_date(actual.dob) == parse_date(drd.pmi_data.date_of_birth)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'dob'
+    assert actual.warnings[0].message == error_message
+
+
+def test__get_spine_parameters__with_pmi__valid_except_pmi_dob(client, faker, mock_convert_dob):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_dob.side_effect = [
+        (None, drd.dob),
+        (error_message, None),
+    ]
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_dob.call_count == 2
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'pmi_date_of_birth'
+    assert actual.warnings[0].message == error_message
+
+
+def test__get_spine_parameters__with_pmi__valid_except_postcode(client, faker, mock_convert_postcode):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_postcode.side_effect = [
+        (error_message, ''),
+        (None, drd.pmi_data.postcode),
+    ]
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_postcode.call_count == 2
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.pmi_data.postcode
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'postcode'
+    assert actual.warnings[0].message == error_message
+
+
+def test__get_spine_parameters__with_pmi__valid_except_pmi_postcode(client, faker, mock_convert_postcode):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    error_message = 'ABCDEFG'
+
+    mock_convert_postcode.side_effect = [
+        (None, drd.postcode),
+        (error_message, ''),
+    ]
+
+    actual = get_spine_parameters(drd)
+
+    mock_convert_postcode.call_count == 2
+
+    assert parse_date(actual.dob) == parse_date(drd.dob)
+    assert actual.family_name == drd.family_name
+    assert actual.gender == convert_gender(drd.gender)[1]
+    assert actual.given_name == drd.given_name
+    assert actual.nhs_number == drd.nhs_number
+    assert actual.postcode == drd.postcode
+
+    assert len(actual.warnings) == 1
+    assert actual.warnings[0].scope == 'pmi_postcode'
+    assert actual.warnings[0].message == error_message
+
+

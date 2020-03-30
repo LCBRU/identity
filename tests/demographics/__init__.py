@@ -27,38 +27,68 @@ from tests import login
 
 @pytest.yield_fixture(scope="function")
 def mock_schedule_lookup_tasks(app):
-    with patch('identity.demographics.schedule_lookup_tasks') as mock_schedule_lookup_tasks:
-        yield mock_schedule_lookup_tasks
+    with patch('identity.demographics.schedule_lookup_tasks') as mock:
+        yield mock
 
 
 @pytest.yield_fixture(scope="function")
 def mock_pmi_details(app):
-    with patch('identity.demographics.get_pmi') as mock_pmi_details:
-        yield mock_pmi_details
+    with patch('identity.demographics.get_pmi') as mock:
+        yield mock
 
 
 @pytest.yield_fixture(scope="function")
 def mock_spine_lookup(app):
-    with patch('identity.demographics.spine_lookup') as mock_spine_lookup:
-        yield mock_spine_lookup
+    with patch('identity.demographics.spine_lookup') as mock:
+        yield mock
 
 
 @pytest.yield_fixture(scope="function")
 def mock_log_exception(app):
-    with patch('identity.demographics.log_exception') as mock_log_exception:
-        yield mock_log_exception
+    with patch('identity.demographics.log_exception') as mock:
+        yield mock
 
 
 @pytest.yield_fixture(scope="function")
 def mock_get_demographics_from_search(app):
-    with patch('identity.demographics.get_demographics_from_search') as mock_get_demographics_from_search:
-        yield mock_get_demographics_from_search
+    with patch('identity.demographics.get_demographics_from_search') as mock:
+        yield mock
 
 
 @pytest.yield_fixture(scope="function")
 def mock_get_demographics_from_nhs_number(app):
-    with patch('identity.demographics.get_demographics_from_nhs_number') as mock_get_demographics_from_nhs_number:
-        yield mock_get_demographics_from_nhs_number
+    with patch('identity.demographics.get_demographics_from_nhs_number') as mock:
+        yield mock
+
+
+@pytest.yield_fixture(scope="function")
+def mock_convert_nhs_number(app):
+    with patch('identity.demographics.convert_nhs_number') as mock:
+        yield mock
+
+
+@pytest.yield_fixture(scope="function")
+def mock_convert_gender(app):
+    with patch('identity.demographics.convert_gender') as mock:
+        yield mock
+
+
+@pytest.yield_fixture(scope="function")
+def mock_convert_name(app):
+    with patch('identity.demographics.convert_name') as mock:
+        yield mock
+
+
+@pytest.yield_fixture(scope="function")
+def mock_convert_dob(app):
+    with patch('identity.demographics.convert_dob') as mock:
+        yield mock
+
+
+@pytest.yield_fixture(scope="function")
+def mock_convert_postcode(app):
+    with patch('identity.demographics.convert_postcode') as mock:
+        yield mock
 
 
 def assert_uploaded_file(user, filename, content, headers):
