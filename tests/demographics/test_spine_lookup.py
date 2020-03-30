@@ -1,32 +1,12 @@
-# -*- coding: utf-8 -*-
-
-import os
 import pytest
-import shutil
-import datetime
-from dateutil.parser import parse
-from unittest.mock import patch, MagicMock, PropertyMock
-from flask import current_app
+from unittest.mock import MagicMock
 from identity.services.validators import parse_date
-from identity.database import db
 from identity.demographics import (
-    extract_data,
     spine_lookup,
-    get_spine_parameters,
-    process_demographics_request_data,
-    produce_demographics_result,
-    get_pmi_details,
-    extract_pre_pmi_details,
-)
-from identity.demographics.model import (
-    DemographicsRequest,
-    DemographicsRequestData,
-    DemographicsRequestPmiData,
-    DemographicsRequestDataMessage,
+    SpineParameters,
+    SmspException,
 )
 from identity.demographics.smsp import (
-    SMSP_SEX_FEMALE,
-    SMSP_SEX_MALE,
     SmspNoMatchException,
     SmspMultipleMatchesException,
     SmspNhsNumberSupersededException,
@@ -34,1128 +14,14 @@ from identity.demographics.smsp import (
     SmspNhsNumberNotVerifiedException,
     SmspNhsNumberNotNewStyleException,
 )
-from identity.demographics.data_conversions import (
-    convert_dob,
-    convert_gender,
-    convert_name,
-    convert_nhs_number,
-    convert_postcode,
-    convert_uhl_system_number,
-)
 from tests import login
 from tests.demographics import (
-    do_create_request,
-    do_define_columns_post,
-    do_submit,
-    do_extract_data,
-    do_upload_data_and_extract,
     mock_get_demographics_from_nhs_number,
     mock_get_demographics_from_search,
-    mock_convert_dob,
-    mock_convert_gender,
-    mock_convert_name,
-    mock_convert_nhs_number,
-    mock_convert_postcode,
+    mock_get_spine_parameters,
     DemographicsTestHelper,
 )
 
-PMI_DETAILS = {
-    'nhs_number': '4444444444',
-    'uhl_system_number': 'S154367',
-    'family_name': 'Smith',
-    'given_name': 'Frances',
-    'gender': 'F',
-    'dob': parse('1976-01-01', dayfirst=True).date(),
-    'date_of_death': parse('2010-03-04', dayfirst=True).date(),
-    'postcode': 'LE5 9UH',
-}
-
-EXPECTED_PMI_DETAILS = DemographicsRequestPmiData(
-    nhs_number=PMI_DETAILS['nhs_number'],
-    uhl_system_number=PMI_DETAILS['uhl_system_number'],
-    family_name=PMI_DETAILS['family_name'],
-    given_name=PMI_DETAILS['given_name'],
-    gender=PMI_DETAILS['gender'],
-    date_of_birth=PMI_DETAILS['dob'],
-    date_of_death=PMI_DETAILS['date_of_death'],
-    postcode=PMI_DETAILS['postcode'],
-)
-
-PMI_DETAILS_2 = {
-    'nhs_number': '5555555555',
-    'uhl_system_number': 'S6543217',
-    'family_name': 'Jones',
-    'given_name': 'Martin',
-    'gender': 'M',
-    'dob': parse('1985-02-02', dayfirst=True).date(),
-    'date_of_death': None,
-    'postcode': 'LE3 9HY',
-}
-
-_MT_NHS_NUMBER = 0
-_MT_SEARCH = 1
-_MT_INSUFFICIENT = 2
-
-# @pytest.mark.parametrize(
-#     "data, messages, match_type, parameters",
-#     [
-#         # A valid example with all: Female
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '19700101',
-#             },
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Jane', 'F', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '19700101',
-#             },
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Jane', ' F ', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '19700101',
-#             },
-#         ),
-#         # A valid example with all: Male
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '19700101',
-#             },
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '19700101',
-#             },
-#         ),
-#         # Missing NHS Number
-#         (
-#             ['S1234567', '', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Dave',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         (
-#             ['S1234567', '    ', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Dave',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         (
-#             ['S1234567', None, 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Dave',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         # Invalid NHS Number
-#         (
-#             ['S1234567', '3333987934', 'Smith', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'nhs_number',
-#                     'message': 'Invalid format',
-#                 }
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Dave',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         # Missing Family Name
-#         (
-#             ['S1234567', '', '', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': '',
-#                 'given_name': 'Dave',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', '      ', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': '',
-#                 'given_name': 'Dave',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', None, 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': '',
-#                 'given_name': 'Dave',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         # Invalid Family Name
-#         (
-#             ['S1234567', '', 'N', 'Dave', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'family_name',
-#                     'message': 'Must be at least 2 characters',
-#                 }
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': '',
-#                 'given_name': 'Dave',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         # Missing Given Name
-#         (
-#             ['S1234567', '', 'Smith', '', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': '',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', '      ', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': '',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', None, 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': '',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         # Invalid Given Name
-#         (
-#             ['S1234567', '', 'Smith', 'D', 'Male', '01-Jan-1970', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'given_name',
-#                     'message': 'Must be at least 2 characters',
-#                 }
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': '',
-#                 'gender': SMSP_SEX_MALE,
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         # Missing Gender
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Frankie', '', '01-Jan-1970', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '19700101',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', '', '01-Jan-1970', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'gender',
-#                     'message': 'Missing value',
-#                 },
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': '',
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', '    ', '01-Jan-1970', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'gender',
-#                     'message': 'Missing value',
-#                 },
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': '',
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', None, '01-Jan-1970', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'gender',
-#                     'message': 'Missing value',
-#                 },
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': '',
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         # Invalid gender
-#         (
-#             ['S1234567', '', 'Smith', 'Dave', 'Fred', '01-Jan-1970', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'gender',
-#                     'message': 'Invalid format',
-#                 },
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'gender',
-#                     'message': 'Missing value',
-#                 },
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Dave',
-#                 'gender': '',
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Dave', 'Malevolent', '01-Jan-1970', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'gender',
-#                     'message': 'Invalid format',
-#                 },
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'gender',
-#                     'message': 'Missing value',
-#                 },
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Dave',
-#                 'gender': '',
-#                 'dob': '19700101',
-#                 'postcode': 'LE10 8HG',
-#             },
-#         ),
-#         # Invalid DOBs
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '31-Dec-1899', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Date out of range',
-#                 },
-#                 {
-#                     'type': 'error',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Missing required value',
-#                 },
-#             ],
-#             _MT_INSUFFICIENT,
-#             {},
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01-Jan-2100', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Date out of range',
-#                 },
-#                 {
-#                     'type': 'error',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Missing required value',
-#                 },
-#             ],
-#             _MT_INSUFFICIENT,
-#             {},
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01-Fred-2000', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Invalid date',
-#                 },
-#                 {
-#                     'type': 'error',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Missing required value',
-#                 },
-#             ],
-#             _MT_INSUFFICIENT,
-#             {},
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '30-02-2000', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Invalid date',
-#                 },
-#                 {
-#                     'type': 'error',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Missing required value',
-#                 },
-#             ],
-#             _MT_INSUFFICIENT,
-#             {},
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '13-13-2000', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Invalid date',
-#                 },
-#                 {
-#                     'type': 'error',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Missing required value',
-#                 },
-#             ],
-#             _MT_INSUFFICIENT,
-#             {},
-#         ),
-#         # Valid DOBs
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01-Jan-2000', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '20000101',
-#             },
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', 'January 1st 2000', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '20000101',
-#             },
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01 January 2000', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '20000101',
-#             },
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', 'Monday 01 January 2000', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '20000101',
-#             },
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '01/02/2000', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '20000201',
-#             },
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '20000203', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '20000203',
-#             },
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Dave', 'M', '2000-02-03', 'LE10 8HG'],
-#             [],
-#             _MT_NHS_NUMBER,
-#             {
-#                 'nhs_number': '3333333333',
-#                 'dob': '20000203',
-#             },
-#         ),
-#         # Missing DOB
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Frankie', 'F', '', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'error',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Missing required value',
-#                 },
-#             ],
-#             _MT_INSUFFICIENT,
-#             {},
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Frankie', 'F', '     ', 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'error',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Missing required value',
-#                 },
-#             ],
-#             _MT_INSUFFICIENT,
-#             {},
-#         ),
-#         (
-#             ['S1234567', '3333333333', 'Smith', 'Frankie', 'Female', None, 'LE10 8HG'],
-#             [
-#                 {
-#                     'type': 'error',
-#                     'source': 'validation',
-#                     'scope': 'dob',
-#                     'message': 'Missing required value',
-#                 },
-#             ],
-#             _MT_INSUFFICIENT,
-#             {},
-#         ),
-#         # Invalid postcodes
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'LE101 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'postcode',
-#                     'message': 'Invalid format',
-#                 }
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': '',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', '10 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'postcode',
-#                     'message': 'Invalid format',
-#                 }
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': '',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'Female', '20000203', 'LE10 887HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'postcode',
-#                     'message': 'Invalid format',
-#                 }
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': '',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'Female', '20000203', 'LE10A 8HG'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'postcode',
-#                     'message': 'Invalid format',
-#                 }
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': '',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'Female', '20000203', 'LE10 8HG and something else'],
-#             [
-#                 {
-#                     'type': 'warning',
-#                     'source': 'validation',
-#                     'scope': 'postcode',
-#                     'message': 'Invalid format',
-#                 }
-#             ],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': '',
-#             },
-#         ),
-#         # Valid postcodes
-#         # - 149 Piccadilly, London. House of the Duke of Wellington
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'W1J 7NT'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'W1J 7NT',
-#             },
-#         ),
-#         # - 17 Burton Road Coton in the Elms, Derbyshire. The Black Horse Pub, possibly the furthest pub from the sea in the UK.
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'DE12 8HJ'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'DE12 8HJ',
-#             },
-#         ),
-#         # - Buckingham Palace
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'SW1A 1AA'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'SW1A 1AA',
-#             },
-#         ),
-#         # - covers 7 streets; the most in the UK
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'HD7 5UZ'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'HD7 5UZ',
-#             },
-#         ),
-#         # - the longest addresses in terms of numbers of elements
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'CH5 3QW'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'CH5 3QW',
-#             },
-#         ),
-#         # - the Post Town is CLARBESTON ROAD
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'SA63 4QJ'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'SA63 4QJ',
-#             },
-#         ),
-#         # - When all the premises get expanded you'll get the longest 'premise string' in the UK
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'W2 1JB'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'W2 1JB',
-#             },
-#         ),
-#         # - Devon and Cornwall Police vs Devon and Cornwall Constabulary
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'PL7 1RF'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'PL7 1RF',
-#             },
-#         ),
-#         # - special case Postcode for Girobank at Bootle
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'GIR 0AA'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'GIR 0AA',
-#             },
-#         ),
-#         # - You will find that 'towns and large villages' are classed as Localities; Jersey; the Isle of Man and Guernsey are the Post Towns.
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'JE3 1EP'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'JE3 1EP',
-#             },
-#         ),
-#         # - You will find that 'towns and large villages' are classed as Localities; Jersey; the Isle of Man and Guernsey are the Post Towns.
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'JE2 3XP'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'JE2 3XP',
-#             },
-#         ),
-#         # - You will find that 'towns and large villages' are classed as Localities; Jersey; the Isle of Man and Guernsey are the Post Towns.
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'IM9 4EB'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'IM9 4EB',
-#             },
-#         ),
-#         # - has no street
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'IM9 4AJ'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'IM9 4AJ',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'WC1A 1AA'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'WC1A 1AA',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'M1 1AA'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'M1 1AA',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'AB10 1JB'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'AB10 1JB',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', 'ZE3 9JZ'],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': 'ZE3 9JZ',
-#             },
-#         ),
-#         # Missing postcode
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', ''],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': '',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', '      '],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': '',
-#             },
-#         ),
-#         (
-#             ['S1234567', '', 'Smith', 'Frankie', 'F', '20000203', None],
-#             [],
-#             _MT_SEARCH,
-#             {
-#                 'family_name': 'Smith',
-#                 'given_name': 'Frankie',
-#                 'gender': SMSP_SEX_FEMALE,
-#                 'dob': '20000203',
-#                 'postcode': '',
-#             },
-#         ),
-#     ],
-# )
-# def test__spine_lookup(client, faker, data, messages, match_type, parameters):
-
-#     drd = do_upload_data_and_extract(client, faker, data)
-
-#     with patch('identity.demographics.get_demographics_from_nhs_number') as mock_get_demographics_from_nhs_number, \
-#         patch('identity.demographics.get_demographics_from_search') as mock_get_demographics_from_search:
-
-#         response = MagicMock(
-#             title='Ms',
-#             forename='Janet',
-#             middlenames='Sarah',
-#             lastname='Smyth',
-#             postcode='LE8 10TY',
-#             address='1 The Road, Leicester',
-#             date_of_birth='01-Jan-1970',
-#             date_of_death='31-Dec-2010',
-#             is_deceased=True,
-#             current_gp_practice_code='G98764',
-#             sex='Female',
-#             nhs_number='3333333333',
-#         )
-#         mock_get_demographics_from_nhs_number.return_value = response
-#         mock_get_demographics_from_search.return_value = response
-
-#         spine_lookup(drd)
-
-#         if match_type == _MT_NHS_NUMBER:
-#             mock_get_demographics_from_nhs_number.assert_called_once_with(**parameters)
-#             mock_get_demographics_from_search.assert_not_called()
-#         elif match_type == _MT_SEARCH:
-#             mock_get_demographics_from_nhs_number.assert_not_called()
-#             mock_get_demographics_from_search.assert_called_once_with(**parameters)
-#         elif match_type == _MT_INSUFFICIENT:
-#             mock_get_demographics_from_nhs_number.assert_not_called()
-#             mock_get_demographics_from_search.assert_not_called()
-
-#     drd = DemographicsRequestData.query.get(drd.id)
-
-#     assert drd.processed_datetime is not None
-
-#     print(data)
-#     assert len(drd.messages) == len(messages)
-
-#     actual_messages = [
-#         {
-#             'type': m.type,
-#             'source': m.source,
-#             'scope': m.scope,
-#             'message': m.message,
-#         } for m in drd.messages
-#     ]
-
-#     assert actual_messages == messages
-
-#     if match_type != _MT_INSUFFICIENT:
-#         assert drd.response is not None
-#         assert drd.response.title == 'Ms'
-#         assert drd.response.forename == 'Janet'
-#         assert drd.response.middlenames == 'Sarah'
-#         assert drd.response.lastname == 'Smyth'
-#         assert drd.response.postcode == 'LE8 10TY'
-#         assert drd.response.address == '1 The Road, Leicester'
-#         assert drd.response.date_of_birth ==  datetime.date(1970,1,1)
-#         assert drd.response.date_of_death ==  datetime.date(2010,12,31)
-#         assert drd.response.is_deceased == True
-#         assert drd.response.current_gp_practice_code == 'G98764'
-
-
-# @pytest.mark.parametrize(
-#     "exception_class",
-#     [
-#         (SmspNoMatchException),
-#         (SmspMultipleMatchesException),
-#         (SmspNhsNumberSupersededException),
-#         (SmspNhsNumberInvalidException),
-#         (SmspNhsNumberNotVerifiedException),
-#         (SmspNhsNumberNotNewStyleException),
-#     ],
-# )
-# def test__spine_nhs_lookup_exceptions(client, faker, exception_class):
-#     drd = do_upload_data_and_extract(client, faker, ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
-
-#     with patch('identity.demographics.get_demographics_from_nhs_number') as mock_get_demographics_from_nhs_number:
-
-#         mock_get_demographics_from_nhs_number.side_effect = exception_class()
-
-#         spine_lookup(drd)
-
-#     drd = DemographicsRequestData.query.get(drd.id)
-
-#     assert drd.processed_datetime is not None
-#     assert len(drd.messages) == 1
-
-#     assert drd.messages[0].type == 'error'
-#     assert drd.messages[0].source == 'spine'
-#     assert drd.messages[0].scope == 'request'
-#     assert drd.messages[0].message == exception_class().message
-
-
-# @pytest.mark.parametrize(
-#     "exception_class",
-#     [
-#         (SmspNoMatchException),
-#         (SmspMultipleMatchesException),
-#         (SmspNhsNumberSupersededException),
-#         (SmspNhsNumberInvalidException),
-#         (SmspNhsNumberNotVerifiedException),
-#         (SmspNhsNumberNotNewStyleException),
-#     ],
-# )
-# def test__spine_search_exceptions(client, faker, exception_class):
-#     drd = do_upload_data_and_extract(client, faker, ['S1234567', '', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
-
-#     with patch('identity.demographics.get_demographics_from_search') as mock_get_demographics_from_search:
-
-#         mock_get_demographics_from_search.side_effect = exception_class()
-
-#         spine_lookup(drd)
-
-#     drd = DemographicsRequestData.query.get(drd.id)
-
-#     assert drd.processed_datetime is not None
-#     assert len(drd.messages) == 1
-
-#     assert drd.messages[0].type == 'error'
-#     assert drd.messages[0].source == 'spine'
-#     assert drd.messages[0].scope == 'request'
-#     assert drd.messages[0].message == exception_class().message
-
-
-# def test__spine_nhs_lookup_response(client, faker):
-#     drd = do_upload_data_and_extract(client, faker, ['S1234567', '3333333333', 'Smith', 'Jane', 'Female', '01-Jan-1970', 'LE10 8HG'])
-
-#     with patch('identity.demographics.get_demographics_from_nhs_number') as mock_get_demographics_from_nhs_number:
-
-#         mock_get_demographics_from_nhs_number.return_value = MagicMock(
-#             title='Ms',
-#             forename='Janet',
-#             middlenames='Sarah',
-#             lastname='Smyth',
-#             postcode='LE8 10TY',
-#             address='1 The Road, Leicester',
-#             date_of_birth='01-Jan-1970',
-#             date_of_death='31-Dec-2010',
-#             is_deceased=True,
-#             current_gp_practice_code='G98764',
-#             sex='Female',
-#             nhs_number='3333333333',
-#         )
-
-#         spine_lookup(drd)
-
-#     drd = DemographicsRequestData.query.get(drd.id)
-
-#     assert drd.processed_datetime is not None
-#     assert len(drd.messages) == 0
-
-#     assert drd.response is not None
-#     assert drd.response.title == 'Ms'
-#     assert drd.response.forename == 'Janet'
-#     assert drd.response.middlenames == 'Sarah'
-#     assert drd.response.lastname == 'Smyth'
-#     assert drd.response.postcode == 'LE8 10TY'
-#     assert drd.response.address == '1 The Road, Leicester'
-#     assert drd.response.date_of_birth == datetime.date(1970,1,1)
-#     assert drd.response.date_of_death == datetime.date(2010,12,31)
-#     assert drd.response.is_deceased == True
-#     assert drd.response.current_gp_practice_code == 'G98764'
 
 spine_response_full = MagicMock(
     title='Ms',
@@ -1172,65 +38,109 @@ spine_response_full = MagicMock(
     nhs_number='3333333333',
 )
 
-def test__spine_lookup__search(client, faker, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search):
+@pytest.mark.parametrize(
+    "warning_count",
+    [
+        (0),
+        (1),
+        (10),
+    ],
+)
+def test__spine_lookup__nhs_number(client, faker, mock_get_spine_parameters, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search, warning_count):
     u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False, column_headings=['uhl_system_number', 'family_name', 'given_name', 'gender', 'date_of_birth', 'postcode'])
+    dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__spine_lookup()
     drd = dr.data[0]
 
-    mock_get_demographics_from_search.return_value = spine_response_full
-    mock_get_demographics_from_nhs_number.return_value = None
+    params = SpineParameters()
+    params.nhs_number=drd.nhs_number
+    params.dob=drd.dob
+    params.family_name=drd.family_name
+    params.given_name=drd.given_name
+    params.gender=drd.gender
+    params.postcode=drd.postcode
 
-    spine_lookup(drd)
+    for i in range(warning_count):
+        params.add_warning(
+            scope=f'scope {i}',
+            message=f'message {i}',
+        )
 
-    search_input = dth.get_input_details()[0]
-
-    mock_get_demographics_from_search.assert_called_once_with(
-        family_name=convert_name(search_input['family_name'])[1],
-        given_name=convert_name(search_input['given_name'])[1],
-        gender=convert_gender(search_input['gender'])[1],
-        dob=convert_dob(search_input['date_of_birth'])[1],
-        postcode=convert_postcode(search_input['postcode'])[1],
-    )
-    mock_get_demographics_from_nhs_number.assert_not_called()
-
-    assert len(drd.messages) == 0
-
-    assert drd.response is not None
-    assert drd.response.nhs_number == spine_response_full.nhs_number
-    assert drd.response.title == spine_response_full.title
-    assert drd.response.forename == spine_response_full.forename
-    assert drd.response.middlenames == spine_response_full.middlenames
-    assert drd.response.lastname == spine_response_full.lastname
-    assert drd.response.sex == spine_response_full.sex
-    assert drd.response.postcode == spine_response_full.postcode
-    assert drd.response.address == spine_response_full.address
-    assert parse_date(drd.response.date_of_birth) == parse_date(spine_response_full.date_of_birth)
-    assert parse_date(drd.response.date_of_death) == parse_date(spine_response_full.date_of_death)
-    assert drd.response.is_deceased == spine_response_full.is_deceased
-    assert drd.response.current_gp_practice_code == spine_response_full.current_gp_practice_code
-
-
-def test__spine_lookup__nhs_number(client, faker, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False, column_headings=['nhs_number', 'uhl_system_number', 'family_name', 'given_name', 'gender', 'date_of_birth', 'postcode'])
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
+    mock_get_spine_parameters.return_value = params
     mock_get_demographics_from_nhs_number.return_value = spine_response_full
-    mock_get_demographics_from_search.return_value = None
 
     spine_lookup(drd)
-
-    search_input = dth.get_input_details()[0]
 
     mock_get_demographics_from_nhs_number.assert_called_once_with(
-        nhs_number=convert_nhs_number(search_input['nhs_number'])[1],
-        dob=convert_dob(search_input['date_of_birth'])[1],
+        nhs_number=params.nhs_number,
+        dob=params.dob,
     )
     mock_get_demographics_from_search.assert_not_called()
 
-    assert len(drd.messages) == 0
+    assert drd.response is not None
+    assert drd.response.nhs_number == spine_response_full.nhs_number
+    assert drd.response.title == spine_response_full.title
+    assert drd.response.forename == spine_response_full.forename
+    assert drd.response.middlenames == spine_response_full.middlenames
+    assert drd.response.lastname == spine_response_full.lastname
+    assert drd.response.sex == spine_response_full.sex
+    assert drd.response.postcode == spine_response_full.postcode
+    assert drd.response.address == spine_response_full.address
+    assert parse_date(drd.response.date_of_birth) == parse_date(spine_response_full.date_of_birth)
+    assert parse_date(drd.response.date_of_death) == parse_date(spine_response_full.date_of_death)
+    assert drd.response.is_deceased == spine_response_full.is_deceased
+    assert drd.response.current_gp_practice_code == spine_response_full.current_gp_practice_code
+
+    assert len(drd.messages) == warning_count
+
+    for i, w in enumerate(drd.messages):
+        assert w.type == 'warning'
+        assert w.source == 'validation'
+        assert w.scope == f'scope {i}'
+        assert w.message == f'message {i}'
+
+
+@pytest.mark.parametrize(
+    "warning_count",
+    [
+        (0),
+        (1),
+        (10),
+    ],
+)
+def test__spine_lookup__search(client, faker, mock_get_spine_parameters, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search, warning_count):
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u)
+    dr = dth.get_demographics_request__spine_lookup()
+    drd = dr.data[0]
+
+    params = SpineParameters()
+    params.nhs_number=''
+    params.dob=drd.dob
+    params.family_name=drd.family_name
+    params.given_name=drd.given_name
+    params.gender=drd.gender
+    params.postcode=drd.postcode
+
+    for i in range(warning_count):
+        params.add_warning(
+            scope=f'scope {i}',
+            message=f'message {i}',
+        )
+
+    mock_get_spine_parameters.return_value = params
+    mock_get_demographics_from_search.return_value = spine_response_full
+
+    spine_lookup(drd)
+
+    mock_get_demographics_from_search.assert_called_once_with(
+        family_name=params.family_name,
+        given_name=params.given_name,
+        gender=params.gender,
+        dob=params.dob,
+        postcode=params.postcode,
+    )
+    mock_get_demographics_from_nhs_number.assert_not_called()
 
     assert drd.response is not None
     assert drd.response.nhs_number == spine_response_full.nhs_number
@@ -1246,422 +156,123 @@ def test__spine_lookup__nhs_number(client, faker, mock_get_demographics_from_nhs
     assert drd.response.is_deceased == spine_response_full.is_deceased
     assert drd.response.current_gp_practice_code == spine_response_full.current_gp_practice_code
 
+    assert len(drd.messages) == warning_count
 
-def test__get_spine_parameters__no_pmi__valid_except_nhs_number(client, faker, mock_convert_nhs_number):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_nhs_number.return_value = (error_message, '')
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_nhs_number.assert_called_once_with(drd.nhs_number)
-
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == None
-    assert actual.postcode == drd.postcode
-
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'nhs_number'
-    assert actual.warnings[0].message == error_message
+    for i, w in enumerate(drd.messages):
+        assert w.type == 'warning'
+        assert w.source == 'validation'
+        assert w.scope == f'scope {i}'
+        assert w.message == f'message {i}'
 
 
-def test__get_spine_parameters__no_pmi__valid_except_gender(client, faker, mock_convert_gender):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_gender.return_value = (error_message, '')
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_gender.assert_called_once_with(drd.gender)
-
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == None
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.postcode
-
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'gender'
-    assert actual.warnings[0].message == error_message
-
-
-def test__get_spine_parameters__no_pmi__valid_except_names(client, faker, mock_convert_name):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_name.return_value = (error_message, '')
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_name.call_count = 2
-
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == None
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == None
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.postcode
-
-    assert len(actual.warnings) == 2
-    assert actual.warnings[0].scope == 'family_name'
-    assert actual.warnings[0].message == error_message
-    assert actual.warnings[1].scope == 'given_name'
-    assert actual.warnings[1].message == error_message
-
-
-def test__get_spine_parameters__no_pmi__valid_except_dob(client, faker, mock_convert_dob):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_dob.return_value = (error_message, '')
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_dob.assert_called_once_with(drd.dob)
-
-    assert parse_date(actual.dob) == None
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.postcode
-
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'dob'
-    assert actual.warnings[0].message == error_message
-
-
-def test__get_spine_parameters__no_pmi__valid_except_postcode(client, faker, mock_convert_postcode):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, find_pre_pmi_details=False)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_postcode.return_value = (error_message, '')
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_postcode.assert_called_once_with(drd.postcode)
-
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == None
-
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'postcode'
-    assert actual.warnings[0].message == error_message
-
-
-def test__get_spine_parameters__with_pmi__valid_except_nhs_number(client, faker, mock_convert_nhs_number):
+def test__spine_lookup__search_no_gender(client, faker, mock_get_spine_parameters, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search):
     u = login(client, faker)
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__spine_lookup()
     drd = dr.data[0]
 
-    error_message = 'ABCDEFG'
+    params = SpineParameters()
+    params.nhs_number=''
+    params.dob=drd.dob
+    params.family_name=drd.family_name
+    params.given_name=drd.given_name
+    params.gender=None
+    params.postcode=drd.postcode
 
-    mock_convert_nhs_number.side_effect = [(error_message, ''), (None, drd.pmi_data.nhs_number)]
+    mock_get_spine_parameters.return_value = params
+    mock_get_demographics_from_search.return_value = spine_response_full
 
-    actual = get_spine_parameters(drd)
+    spine_lookup(drd)
 
-    mock_convert_nhs_number.call_count == 2
+    mock_get_demographics_from_search.assert_called_once_with(
+        family_name=params.family_name,
+        given_name=params.given_name,
+        gender=params.gender,
+        dob=params.dob,
+        postcode=params.postcode,
+    )
+    mock_get_demographics_from_nhs_number.assert_not_called()
 
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.pmi_data.nhs_number
-    assert actual.postcode == drd.postcode
+    assert drd.response is not None
+    assert drd.response.nhs_number == spine_response_full.nhs_number
+    assert drd.response.title == spine_response_full.title
+    assert drd.response.forename == spine_response_full.forename
+    assert drd.response.middlenames == spine_response_full.middlenames
+    assert drd.response.lastname == spine_response_full.lastname
+    assert drd.response.sex == spine_response_full.sex
+    assert drd.response.postcode == spine_response_full.postcode
+    assert drd.response.address == spine_response_full.address
+    assert parse_date(drd.response.date_of_birth) == parse_date(spine_response_full.date_of_birth)
+    assert parse_date(drd.response.date_of_death) == parse_date(spine_response_full.date_of_death)
+    assert drd.response.is_deceased == spine_response_full.is_deceased
+    assert drd.response.current_gp_practice_code == spine_response_full.current_gp_practice_code
 
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'nhs_number'
-    assert actual.warnings[0].message == error_message
+    assert len(drd.messages) == 1
+
+    assert drd.messages[0].type == 'warning'
+    assert drd.messages[0].source == 'validation'
+    assert drd.messages[0].scope == 'gender'
+    assert drd.messages[0].message == 'Missing value'
 
 
-def test__get_spine_parameters__with_pmi__valid_except_pmi_nhs_number(client, faker, mock_convert_nhs_number):
+def test__spine_lookup__no_parameters(client, faker, mock_get_spine_parameters, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search):
     u = login(client, faker)
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__spine_lookup()
     drd = dr.data[0]
 
-    error_message = 'ABCDEFG'
+    params = SpineParameters()
 
-    mock_convert_nhs_number.side_effect = [(None, drd.nhs_number), (error_message, '')]
+    mock_get_spine_parameters.return_value = params
+    mock_get_demographics_from_search.return_value = spine_response_full
 
-    actual = get_spine_parameters(drd)
+    spine_lookup(drd)
 
-    mock_convert_nhs_number.call_count == 2
+    mock_get_demographics_from_search.assert_not_called()
+    mock_get_demographics_from_nhs_number.assert_not_called()
 
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.postcode
+    assert drd.response is None
 
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'pmi_nhs_number'
-    assert actual.warnings[0].message == error_message
+    assert len(drd.messages) == 1
+
+    assert drd.messages[0].type == 'error'
+    assert drd.messages[0].source == 'validation'
+    assert drd.messages[0].scope == 'request'
+    assert drd.messages[0].message == 'Not enough values to perform Spine lookup'
 
 
-def test__get_spine_parameters__with_pmi__valid_except_gender(client, faker, mock_convert_gender):
+@pytest.mark.parametrize(
+    "exception_class,message_type",
+    [
+        (SmspNoMatchException, 'error'),
+        (SmspMultipleMatchesException, 'error'),
+        (SmspNhsNumberSupersededException, 'error'),
+        (SmspNhsNumberInvalidException, 'error'),
+        (SmspNhsNumberNotVerifiedException, 'error'),
+        (SmspNhsNumberNotNewStyleException, 'error'),
+        (SmspException, 'error'),
+        (Exception, 'unknown error'),
+    ],
+)
+def test__spine_lookup__spine_exception(client, faker, mock_get_spine_parameters, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search, exception_class, message_type):
     u = login(client, faker)
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__spine_lookup()
     drd = dr.data[0]
 
-    error_message = 'ABCDEFG'
+    params = SpineParameters()
+    params.nhs_number=drd.nhs_number
+    params.dob=drd.dob
 
-    mock_convert_gender.side_effect = [(error_message, ''), (None, convert_gender(drd.pmi_data.gender)[1])]
+    mock_get_spine_parameters.return_value = params
+    mock_get_demographics_from_nhs_number.side_effect = exception_class
 
-    actual = get_spine_parameters(drd)
+    spine_lookup(drd)
 
-    mock_convert_gender.call_count == 2
+    assert drd.response is None
 
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.pmi_data.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.postcode
+    assert len(drd.messages) == 1
 
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'gender'
-    assert actual.warnings[0].message == error_message
-
-
-def test__get_spine_parameters__with_pmi__valid_except_pmi_gender(client, faker, mock_convert_gender):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_gender.side_effect = [(None, convert_gender(drd.gender))[1], (error_message, '')]
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_gender.call_count == 2
-
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.postcode
-
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'pmi_gender'
-    assert actual.warnings[0].message == error_message
-
-
-def test__get_spine_parameters__with_pmi__valid_except_names(client, faker, mock_convert_name):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_name.side_effect = [
-        (error_message, ''),
-        (error_message, ''),
-        (None, drd.pmi_data.family_name),
-        (None, drd.pmi_data.given_name),
-    ]
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_name.call_count = 4
-
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.pmi_data.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.pmi_data.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.postcode
-
-    assert len(actual.warnings) == 2
-    assert actual.warnings[0].scope == 'family_name'
-    assert actual.warnings[0].message == error_message
-    assert actual.warnings[1].scope == 'given_name'
-    assert actual.warnings[1].message == error_message
-
-
-def test__get_spine_parameters__with_pmi__valid_except_pmi_names(client, faker, mock_convert_name):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_name.side_effect = [
-        (None, drd.family_name),
-        (None, drd.given_name),
-        (error_message, ''),
-        (error_message, ''),
-    ]
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_name.call_count = 4
-
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.postcode
-
-    assert len(actual.warnings) == 2
-    assert actual.warnings[0].scope == 'pmi_family_name'
-    assert actual.warnings[0].message == error_message
-    assert actual.warnings[1].scope == 'pmi_given_name'
-    assert actual.warnings[1].message == error_message
-
-
-def test__get_spine_parameters__with_pmi__valid_except_dob(client, faker, mock_convert_dob):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_dob.side_effect = [
-        (error_message, None),
-        (None, drd.pmi_data.date_of_birth),
-    ]
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_dob.call_count == 2
-
-    assert parse_date(actual.dob) == parse_date(drd.pmi_data.date_of_birth)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.postcode
-
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'dob'
-    assert actual.warnings[0].message == error_message
-
-
-def test__get_spine_parameters__with_pmi__valid_except_pmi_dob(client, faker, mock_convert_dob):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_dob.side_effect = [
-        (None, drd.dob),
-        (error_message, None),
-    ]
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_dob.call_count == 2
-
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.postcode
-
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'pmi_date_of_birth'
-    assert actual.warnings[0].message == error_message
-
-
-def test__get_spine_parameters__with_pmi__valid_except_postcode(client, faker, mock_convert_postcode):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_postcode.side_effect = [
-        (error_message, ''),
-        (None, drd.pmi_data.postcode),
-    ]
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_postcode.call_count == 2
-
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.pmi_data.postcode
-
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'postcode'
-    assert actual.warnings[0].message == error_message
-
-
-def test__get_spine_parameters__with_pmi__valid_except_pmi_postcode(client, faker, mock_convert_postcode):
-    u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u)
-    dr = dth.get_demographics_request__spine_lookup()
-    drd = dr.data[0]
-
-    error_message = 'ABCDEFG'
-
-    mock_convert_postcode.side_effect = [
-        (None, drd.postcode),
-        (error_message, ''),
-    ]
-
-    actual = get_spine_parameters(drd)
-
-    mock_convert_postcode.call_count == 2
-
-    assert parse_date(actual.dob) == parse_date(drd.dob)
-    assert actual.family_name == drd.family_name
-    assert actual.gender == convert_gender(drd.gender)[1]
-    assert actual.given_name == drd.given_name
-    assert actual.nhs_number == drd.nhs_number
-    assert actual.postcode == drd.postcode
-
-    assert len(actual.warnings) == 1
-    assert actual.warnings[0].scope == 'pmi_postcode'
-    assert actual.warnings[0].message == error_message
-
-
+    assert drd.messages[0].type == message_type
+    assert drd.messages[0].source == 'spine'
+    assert drd.messages[0].scope == 'request'

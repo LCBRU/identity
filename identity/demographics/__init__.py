@@ -73,7 +73,7 @@ def schedule_lookup_tasks(demographics_request_id):
 
 class SpineParameters:
 
-    Warning = namedtuple('Warning', ['scope', 'message'])
+    Warning = namedtuple('Warning', ['scope', 'message', 'message_type', 'source'])
 
     def __init__(self):
         self.nhs_number = None
@@ -92,8 +92,8 @@ class SpineParameters:
     def valid_search_lookup_parameters(self):
         return self.dob
     
-    def add_warning(self, scope, message):
-        self.warnings.append(SpineParameters.Warning(scope=scope, message=message))
+    def add_warning(self, scope, message, message_type='warning', source='validation'):
+        self.warnings.append(SpineParameters.Warning(scope=scope, message=message, message_type=message_type, source=source))
 
 
 def spine_lookup(demographics_request_data):
@@ -107,14 +107,7 @@ def spine_lookup(demographics_request_data):
             )
         elif params.valid_search_lookup_parameters:
             if not params.gender:
-                demographics_request_data.messages.append(
-                    DemographicsRequestDataMessage(
-                        type='warning',
-                        source='validation',
-                        scope='gender',
-                        message='Missing value',
-                    )
-                )
+                params.add_warning(scope='gender', message='Missing value')
 
             demographics = get_demographics_from_search(
                 family_name=params.family_name,
@@ -124,14 +117,7 @@ def spine_lookup(demographics_request_data):
                 postcode=params.postcode,
             )
         else:
-            demographics_request_data.messages.append(
-                DemographicsRequestDataMessage(
-                    type='error',
-                    source='validation',
-                    scope='dob',
-                    message='Missing required value',
-                )
-            )
+            params.add_warning(message_type='error', scope='request', message='Not enough values to perform Spine lookup')
             demographics = None
 
         if demographics:
@@ -149,24 +135,21 @@ def spine_lookup(demographics_request_data):
                 is_deceased=demographics.is_deceased,
                 current_gp_practice_code=demographics.current_gp_practice_code,
             )
+
     except SmspException as e:
-        demographics_request_data.messages.append(
-            DemographicsRequestDataMessage(
-                type='error',
-                source='spine',
-                scope='request',
-                message=e.message,
-            )
-        )
+        params.add_warning(message_type='error', source='spine', scope='request', message=e.message)
     except Exception as e:
-        demographics_request_data.messages.append(
-            DemographicsRequestDataMessage(
-                type='unknown error',
-                source='spine',
-                scope='request',
-                message=str(e),
+        params.add_warning(message_type='unknown error', source='spine', scope='request', message=str(e))
+    finally:
+        for w in params.warnings:
+            demographics_request_data.messages.append(
+                DemographicsRequestDataMessage(
+                    type=w.message_type,
+                    source=w.source,
+                    scope=w.scope,
+                    message=w.message,
+                )
             )
-        )
 
 
 def get_spine_parameters(demographics_request_data):

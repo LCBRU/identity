@@ -91,6 +91,12 @@ def mock_convert_postcode(app):
         yield mock
 
 
+@pytest.yield_fixture(scope="function")
+def mock_get_spine_parameters(app):
+    with patch('identity.demographics.get_spine_parameters') as mock:
+        yield mock
+
+
 def assert_uploaded_file(user, filename, content, headers):
     dr = DemographicsRequest.query.filter(
         DemographicsRequest.filename == filename
