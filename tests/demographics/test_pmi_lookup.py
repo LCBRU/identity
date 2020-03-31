@@ -226,7 +226,7 @@ def test__extract_post_pmi_details__no_data(client, faker, mock_pmi_details, moc
 )
 def test__extract_post_pmi_details__first_processed(client, faker, mock_pmi_details, row_count, mock_schedule_lookup_tasks):
     u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, row_count=row_count)
+    dth = DemographicsTestHelper(faker=faker, user=u, row_count=row_count, find_pre_pmi_details=False)
     dr = dth.get_demographics_request__post_pmi_lookup()
 
     expected = PmiData(**faker.pmi_details(1))
@@ -245,7 +245,7 @@ def test__extract_post_pmi_details__first_processed(client, faker, mock_pmi_deta
 
 def test__extract_post_pmi_details__next_processed(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, row_count=2)
+    dth = DemographicsTestHelper(faker=faker, user=u, row_count=2, find_pre_pmi_details=False)
     dr = dth.get_demographics_request__post_pmi_lookup()
 
     dr.data[0].pmi_post_processed_datetime = datetime.datetime.utcnow()
@@ -268,7 +268,7 @@ def test__extract_post_pmi_details__next_processed(client, faker, mock_pmi_detai
 
 def test__extract_post_pmi_details__last_processed(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, row_count=1)
+    dth = DemographicsTestHelper(faker=faker, user=u, row_count=1, find_pre_pmi_details=False)
     dr = dth.get_demographics_request__post_pmi_lookup()
 
     dr.data[0].pmi_post_processed_datetime = datetime.datetime.utcnow()
@@ -286,7 +286,7 @@ def test__extract_post_pmi_details__last_processed(client, faker, mock_pmi_detai
 
 def test__extract_post_pmi_details__invalid_nhs_number(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, row_count=1)
+    dth = DemographicsTestHelper(faker=faker, user=u, row_count=1, find_pre_pmi_details=False)
     dr = dth.get_demographics_request__post_pmi_lookup()
 
     dr.data[0].nhs_number = faker.invalid_nhs_number()
@@ -315,7 +315,7 @@ def test__extract_post_pmi_details__invalid_nhs_number(client, faker, mock_pmi_d
 
 def test__extract_post_pmi_details__invalid_uhl_system_number(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, row_count=1)
+    dth = DemographicsTestHelper(faker=faker, user=u, row_count=1, find_pre_pmi_details=False)
     dr = dth.get_demographics_request__post_pmi_lookup()
 
     dr.data[0].uhl_system_number = faker.invalid_uhl_system_number()
@@ -344,7 +344,7 @@ def test__extract_post_pmi_details__invalid_uhl_system_number(client, faker, moc
 
 def test__extract_post_pmi_details__pmi_not_found(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, row_count=1)
+    dth = DemographicsTestHelper(faker=faker, user=u, row_count=1, find_pre_pmi_details=False)
     dr = dth.get_demographics_request__post_pmi_lookup()
 
     mock_pmi_details.return_value = None
@@ -364,7 +364,7 @@ def test__extract_post_pmi_details__pmi_exception(client, faker, mock_pmi_detail
     ERROR_MESSAGE = 'An Exception'
 
     u = login(client, faker)
-    dth = DemographicsTestHelper(faker=faker, user=u, row_count=1)
+    dth = DemographicsTestHelper(faker=faker, user=u, row_count=1, find_pre_pmi_details=False)
     dr = dth.get_demographics_request__post_pmi_lookup()
 
     mock_pmi_details.side_effect = PmiException(ERROR_MESSAGE)

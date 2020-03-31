@@ -398,7 +398,7 @@ def extract_pmi_details(request_id, data_selection_condition, request_completed_
             setattr(dr, request_completed_attribute, datetime.utcnow())
             db.session.add(dr)
         else:
-            if not drd.has_error:
+            if not drd.has_error and drd.pmi_data is None:
                 get_pmi_details(drd)
 
             setattr(drd, data_completed_attribute, datetime.utcnow())

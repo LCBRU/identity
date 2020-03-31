@@ -97,6 +97,36 @@ def mock_get_spine_parameters(app):
         yield mock
 
 
+@pytest.yield_fixture(scope="function")
+def mock_process_demographics_request_data(app):
+    with patch('identity.demographics.process_demographics_request_data') as mock:
+        yield mock
+
+
+@pytest.yield_fixture(scope="function")
+def mock_extract_data(app):
+    with patch('identity.demographics.extract_data') as mock:
+        yield mock
+
+
+@pytest.yield_fixture(scope="function")
+def mock_produce_demographics_result(app):
+    with patch('identity.demographics.produce_demographics_result') as mock:
+        yield mock
+
+
+@pytest.yield_fixture(scope="function")
+def mock_extract_pre_pmi_details(app):
+    with patch('identity.demographics.extract_pre_pmi_details') as mock:
+        yield mock
+
+
+@pytest.yield_fixture(scope="function")
+def mock_extract_post_pmi_details(app):
+    with patch('identity.demographics.extract_post_pmi_details') as mock:
+        yield mock
+
+
 def assert_uploaded_file(user, filename, content, headers):
     dr = DemographicsRequest.query.filter(
         DemographicsRequest.filename == filename
@@ -374,7 +404,7 @@ class DemographicsTestHelper():
 
 
     def get_demographics_request__post_pmi_lookup(self):
-        result = self.get_demographics_request__pre_pmi_lookup()
+        result = self.get_demographics_request__spine_lookup()
 
         rows = []
 
@@ -435,6 +465,17 @@ class DemographicsTestHelper():
         db.session.add_all(rows)
         db.session.add(result)
         db.session.commit()
+        return result
+
+
+    def get_demographics_request__download(self):
+        result = self.get_demographics_request__create_results()
+
+        result.create_result()
+        result.result_created_datetime = datetime.utcnow()
+        db.session.add(result)
+        db.session.commit()
+
         return result
 
 
