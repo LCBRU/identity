@@ -3,7 +3,7 @@
     {% for l in study.label_packs | sort(attribute='name') %}
         <div class="card-button-list">
             <div class="btn-group">
-                <a class="btn btn-primary" href="{{ url_for('ui.label_print', referrer=referrer, study_id=study.id, set=l.type, count=1) }}">{{ l.name}}</a>
+                <a class="btn btn-primary" href="{{ url_for('ui.label_print', referrer=referrer, study_id=study.id, pack_name=l.type, count=1) }}">{{ l.name}}</a>
 
                 {% if l.allow_batch_printing() %}
                     <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -11,9 +11,9 @@
                     </button>
 
                     <div class="dropdown-menu">
-                        <a href="{{ url_for('ui.label_print', referrer=referrer, study_id=study.id, set=l.type, count=5) }}">{{ l.name}} x5</a>
-                        <a href="{{ url_for('ui.label_print', referrer=referrer, study_id=study.id, set=l.type, count=10) }}">{{ l.name}} x10</a>
-                        <a href="{{ url_for('ui.label_print', referrer=referrer, study_id=study.id, set=l.type, count=50) }}">{{ l.name}} x50</a>
+                        <a href="{{ url_for('ui.label_print', referrer=referrer, study_id=study.id, pack_name=l.type, count=5) }}">{{ l.name}} x5</a>
+                        <a href="{{ url_for('ui.label_print', referrer=referrer, study_id=study.id, pack_name=l.type, count=10) }}">{{ l.name}} x10</a>
+                        <a href="{{ url_for('ui.label_print', referrer=referrer, study_id=study.id, pack_name=l.type, count=50) }}">{{ l.name}} x50</a>
                     </div>
                 {% endif %}
             </div>

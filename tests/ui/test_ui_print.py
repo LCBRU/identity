@@ -1,323 +1,241 @@
-# -*- coding: utf-8 -*-
-
 import pytest
-import datetime
+from unittest.mock import patch
 from flask import url_for
+from identity.printing.model import LabelPack
+from identity.printing.cardiomet import ID_TYPE_PARTICIPANT as CARDIOMET_ID_TYPE_PARTICIPANT
+from identity.printing.go_dcm import ID_TYPE_PARTICIPANT as GO_DCM_ID_TYPE_PARTICIPANT
+from identity.model import PseudoRandomId, PseudoRandomIdProvider
 from tests import login, add_all_studies
-from identity.printing.briccs import (
-    ID_NAME_BRICCS_PARTICIPANT,
-    ID_NAME_BRICCS_SAMPLE,
-    ID_NAME_BRICCS_ALIQUOT,
-)
-from identity.model import (
-    SequentialIdProvider,
-    LegacyIdProvider,
-    BioresourceIdProvider,
-    PseudoRandomIdProvider,
-    PseudoRandomId,
-    User,
-    LegacyId,
-    BioresourceId,
-)
-from identity.printing.model import (
-    LabelPack,
-)
 
 
-@pytest.mark.parametrize(
-    "pack_name, samples_per_participant, set_count",
-    [
-        # ("MermaidPack", 10, 1),
-        # ("MermaidPack", 10, 10),
-        ("BriccsPack", 8, 1),
-        ("BriccsPack", 8, 10),
-        ("BriccsKetteringPack", 3, 1),
-        ("BriccsKetteringPack", 3, 10),
-    ],
-)
-def test__ui_print_briccs_packs(client, faker, pack_name, set_count, samples_per_participant):
+def test__labels(client, faker):
     user = login(client, faker)
     add_all_studies(user)
 
-    pack = LabelPack.query.filter_by(type=pack_name).one()
+    resp = client.get(url_for(
+        'ui.labels',
+        _external=True,
+    ))
 
-    before = datetime.datetime.utcnow()
-
-    resp = client.get(url_for('ui.label_print', study_id=pack.study_id, referrer='', set=pack_name, count=set_count, _external=True))
-
-    after = datetime.datetime.utcnow()
-
-    assert resp.status_code == 302
-    assert resp.location == url_for('ui.labels', _external=True)
-
-    participant_provider_name = ID_NAME_BRICCS_PARTICIPANT
-    sample_provider_name = ID_NAME_BRICCS_SAMPLE
-
-    bpt_provider = LegacyIdProvider.query.filter_by(name=participant_provider_name).first()
-    bsa_provider = LegacyIdProvider.query.filter_by(name=sample_provider_name).first()
-
-    assert (LegacyId.query
-            .filter_by(legacy_id_provider_id=bpt_provider.id)
-            .filter(LegacyId.last_updated_datetime >= before)
-            .filter(LegacyId.last_updated_datetime <= after)
-        ).count() == set_count
-
-    assert (LegacyId.query
-            .filter_by(legacy_id_provider_id=bsa_provider.id)
-            .filter(LegacyId.last_updated_datetime >= before)
-            .filter(LegacyId.last_updated_datetime <= after)
-        ).count() == set_count * samples_per_participant
+    assert resp.status_code == 200
 
 
 @pytest.mark.parametrize(
-    "set_count",
+    "pack_count",
     [
         (1),
         (10),
+        (50),
     ],
 )
-def test__ui_print_briccs_sample_pack(client, faker, set_count):
+def test__label_print__no_id_entry__study_redirect(client, faker, pack_count):
     user = login(client, faker)
     add_all_studies(user)
 
-    before = datetime.datetime.utcnow()
+    pack = LabelPack.query.filter_by(type='CardiometPack').one()
 
-    resp = client.get(url_for('ui.label_print', set='BriccsSamplePack', count=set_count, _external=True))
-
-    after = datetime.datetime.utcnow()
+    resp = client.get(url_for(
+        'ui.label_print',
+        referrer='study',
+        study_id=pack.study_id,
+        pack_name=pack.type,
+        count=pack_count,
+        _external=True,
+    ))
 
     assert resp.status_code == 302
-    assert resp.location == url_for('ui.labels', _external=True)
+    assert resp.location == url_for('ui.study', id=pack.study_id, _external=True)
 
-    sample_provider_name = ID_NAME_BRICCS_SAMPLE
-
-    bsa_provider = LegacyIdProvider.query.filter_by(name=sample_provider_name).first()
-
-    assert (LegacyId.query
-            .filter_by(legacy_id_provider_id=bsa_provider.id)
-            .filter(LegacyId.last_updated_datetime >= before)
-            .filter(LegacyId.last_updated_datetime <= after)
-        ).count() == set_count
+    assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix=CARDIOMET_ID_TYPE_PARTICIPANT).count() == pack_count
 
 
 @pytest.mark.parametrize(
-    "set_count",
+    "pack_count",
     [
         (1),
         (10),
+        (50),
     ],
 )
-def test__ui_print_bioresource_pack(client, faker, set_count):
+def test__label_print__no_id_entry__labels_redirect(client, faker, pack_count):
     user = login(client, faker)
     add_all_studies(user)
 
-    before = datetime.datetime.utcnow()
+    pack = LabelPack.query.filter_by(type='CardiometPack').one()
 
-    resp = client.get(url_for('ui.label_print', set='BioresourcePack', count=set_count, _external=True))
-
-    after = datetime.datetime.utcnow()
+    resp = client.get(url_for(
+        'ui.label_print',
+        referrer='labels',
+        study_id=pack.study_id,
+        pack_name=pack.type,
+        count=pack_count,
+        _external=True,
+    ))
 
     assert resp.status_code == 302
     assert resp.location == url_for('ui.labels', _external=True)
 
-    provider = BioresourceIdProvider.query.filter_by(prefix='BR').first()
-
-    assert (BioresourceId.query
-            .filter_by(bioresource_id_provider_id=provider.id)
-            .filter(BioresourceId.last_updated_datetime >= before)
-            .filter(BioresourceId.last_updated_datetime <= after)
-        ).count() == set_count
+    assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix=CARDIOMET_ID_TYPE_PARTICIPANT).count() == pack_count
 
 
-@pytest.mark.parametrize(
-    "pack_name, aliquots_per_participant, set_count, site_name",
-    [
-        ("BriccsKetteringPack", 1, 1, 'KETTERING'),
-        ("BriccsKetteringPack", 1, 10, 'KETTERING'),
-    ],
-)
-def test__ui_print_pack_aliquots(client, faker, pack_name, set_count, aliquots_per_participant, site_name):
+def test__label_print__requires_id_entry(client, faker):
     user = login(client, faker)
     add_all_studies(user)
 
-    ali_provider = SequentialIdProvider.query.filter_by(name=site_name + ' ' + ID_NAME_BRICCS_ALIQUOT).first()
+    pack = LabelPack.query.filter_by(type='GoDcmPack').one()
 
-    before_number = ali_provider.last_number
+    resp = client.get(url_for(
+        'ui.label_print',
+        referrer='study',
+        study_id=pack.study_id,
+        pack_name=pack.type,
+        count=1,
+        _external=True,
+    ))
 
-    before = datetime.datetime.utcnow()
+    assert resp.status_code == 302
+    assert resp.location == url_for(
+        'ui.label_print_definition',
+        referrer='study',
+        study_id=pack.study_id,
+        pack_name=pack.type,
+        count=1,
+        _external=True,
+    )
 
-    resp = client.get(url_for('ui.label_print', set=pack_name, count=set_count, _external=True))
+    assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix=GO_DCM_ID_TYPE_PARTICIPANT).count() == 0
 
-    after = datetime.datetime.utcnow()
+
+def test__label_print__not_a_user_study(client, faker):
+    user = login(client, faker)
+
+    pack = LabelPack.query.filter_by(type='GoDcmPack').one()
+
+    resp = client.get(url_for(
+        'ui.label_print',
+        referrer='study',
+        study_id=pack.study_id,
+        pack_name=pack.type,
+        count=1,
+        _external=True,
+    ))
+
+    assert resp.status_code == 403
+
+
+def test__label_print_definition__get(client, faker):
+    user = login(client, faker)
+    add_all_studies(user)
+
+    pack = LabelPack.query.filter_by(type='GoDcmPack').one()
+
+    resp = client.get(url_for(
+        'ui.label_print_definition',
+        referrer='study',
+        study_id=pack.study_id,
+        pack_name=pack.type,
+        count=1,
+        _external=True,
+    ))
+
+    assert resp.status_code == 200
+
+
+def test__label_print_definition__not_a_study_user__get(client, faker):
+    user = login(client, faker)
+
+    pack = LabelPack.query.filter_by(type='GoDcmPack').one()
+
+    resp = client.get(url_for(
+        'ui.label_print_definition',
+        referrer='study',
+        study_id=pack.study_id,
+        pack_name=pack.type,
+        count=1,
+        _external=True,
+    ))
+
+    assert resp.status_code == 403
+
+
+def test__label_print_definition__post__study_redirect(client, faker):
+    user = login(client, faker)
+    add_all_studies(user)
+
+    pack = LabelPack.query.filter_by(type='GoDcmPack').one()
+
+    data = {
+        'participant_id': 'ABCDEFG'
+    }
+
+    resp = client.post(
+        url_for(
+            'ui.label_print_definition',
+            referrer='study',
+            study_id=pack.study_id,
+            pack_name=pack.type,
+            count=1,
+            _external=True,
+        ),
+        buffered=True,
+        content_type="multipart/form-data",
+        data=data,
+    )
+
+    assert resp.status_code == 302
+    assert resp.location == url_for('ui.study', id=pack.study_id, _external=True)
+
+
+def test__label_print_definition__post__labels_redirect(client, faker):
+    user = login(client, faker)
+    add_all_studies(user)
+
+    pack = LabelPack.query.filter_by(type='GoDcmPack').one()
+
+    data = {
+        'participant_id': 'ABCDEFG'
+    }
+
+    resp = client.post(
+        url_for(
+            'ui.label_print_definition',
+            referrer='labels',
+            study_id=pack.study_id,
+            pack_name=pack.type,
+            count=1,
+            _external=True,
+        ),
+        buffered=True,
+        content_type="multipart/form-data",
+        data=data,
+    )
 
     assert resp.status_code == 302
     assert resp.location == url_for('ui.labels', _external=True)
 
-    ali_provider = SequentialIdProvider.query.filter_by(name=site_name + ' ' + ID_NAME_BRICCS_ALIQUOT).first()
 
-    assert ali_provider.last_number == before_number + (aliquots_per_participant * set_count)
-
-    if aliquots_per_participant > 0:
-        assert before < ali_provider.last_updated_datetime < after
-        assert ali_provider.last_updated_by_user_id == user.id
-
-
-@pytest.mark.parametrize(
-    "pack_name, ids_per_prefix_per_sample, set_count",
-    [
-        (
-            "BravePack",
-            {
-                "BavPt": 1,
-                "BavSa": 5,
-                "BavFm": 1,
-            },
-            1,
-        ),
-        (
-            "BravePolandPack",
-            {
-                "BavPl": 1,
-                "BavSa": 5,
-                "BavFm": 1,
-            },
-            1,
-        ),
-        (
-            "BraveExternalPack",
-            {
-                "BavXPt": 1,
-                "BavSa": 3,
-                "BavFm": 1,
-            },
-            1,
-        ),
-        (
-            "CaePack",
-            {
-                "CaePt": 1,
-                "CaeSa": 3,
-            },
-            1,
-        ),
-        (
-            "CardiometPack",
-            {
-                "CarPt": 1,
-                "CarSa": 17,
-            },
-            1,
-        ),
-        (
-            "CiaPack",
-            {
-                "CiaPt": 1,
-                "CiaSa": 2,
-            },
-            1,
-        ),
-        (
-            "DiscordancePack",
-            {
-                "DisPt": 1,
-            },
-            1,
-        ),
-        (
-            "FastPack",
-            {
-                "FST": 1,
-            },
-            1,
-        ),
-        (
-            "IndapamidePack",
-            {
-                "IndPt": 1,
-                "IndSa": 16,
-            },
-            1,
-        ),
-        (
-            "LentenPack",
-            {
-                "LenPt": 1,
-                "LenSa": 12,
-            },
-            1,
-        ),
-        (
-            "LimbPack",
-            {
-                "LMbPt": 1,
-                "LMbSa": 2,
-            },
-            1,
-        ),
-        (
-            "PredictPack",
-            {
-                "PrePt": 1,
-                "PreSa": 5,
-            },
-            1,
-        ),
-        (
-            "PreeclampsiaPack",
-            {
-                "PePt": 1,
-                "PeSa": 5,
-            },
-            1,
-        ),
-        (
-            "ScadPack",
-            {
-                "ScPt": 1,
-                "ScSa": 7,
-            },
-            1,
-        ),
-        (
-            "ScadBloodOnlyPack",
-            {
-                "ScPt": 1,
-                "ScSa": 3,
-            },
-            1,
-        ),
-        (
-            "ScadFamilyPack",
-            {
-                "ScFm": 1,
-            },
-            1,
-        ),
-        (
-            "SpiralPack",
-            {
-                "SpPt": 1,
-            },
-            1,
-        ),
-    ],
-)
-def test__ui_print_pseudorandom_packs(client, faker, pack_name, ids_per_prefix_per_sample, set_count):
+def test__label_print_definition__post__no_id_given(client, faker):
     user = login(client, faker)
     add_all_studies(user)
 
-    before = datetime.datetime.utcnow()
+    pack = LabelPack.query.filter_by(type='GoDcmPack').one()
 
-    resp = client.get(url_for('ui.label_print', set=pack_name, count=set_count, _external=True))
+    data = {
+        'participant_id': ''
+    }
 
-    after = datetime.datetime.utcnow()
+    resp = client.post(
+        url_for(
+            'ui.label_print_definition',
+            referrer='labels',
+            study_id=pack.study_id,
+            pack_name=pack.type,
+            count=1,
+            _external=True,
+        ),
+        buffered=True,
+        content_type="multipart/form-data",
+        data=data,
+    )
 
-    assert resp.status_code == 302
-    assert resp.location == url_for('ui.labels', _external=True)
-
-    for prefix, expected in ids_per_prefix_per_sample.items():
-        provider = PseudoRandomIdProvider.query.filter_by(prefix=prefix).first()
-        actual = (PseudoRandomId.query
-            .filter_by(pseudo_random_id_provider=provider).count()
-        )
-        assert actual == expected
+    assert resp.status_code == 200

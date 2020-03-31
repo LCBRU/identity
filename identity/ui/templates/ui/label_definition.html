@@ -16,7 +16,7 @@
     
             <div class="card-body">
     
-                <form action="{{ url_for('ui.label_print_definition', set=set, referrer=referrer, study_id=study_id, count=count) }}" method="POST" class="form panel-body">
+                <form action="{{ url_for('ui.label_print_definition', pack_name=pack_name, referrer=referrer, study_id=study_id, count=count) }}" method="POST" class="form panel-body">
                     <fieldset>
                         {{ form.hidden_tag() }}
     

@@ -25,14 +25,13 @@ def labels():
     )
 
 
-@blueprint.route("/labels/study/<int:study_id>/<string:set>/print/<int:count>/referrer/<string:referrer>")
+@blueprint.route("/labels/study/<int:study_id>/<string:pack_name>/print/<int:count>/referrer/<string:referrer>")
 @assert_study_user()
-def label_print(set, referrer, study_id, count=1):
-    print('*'*500)
-    label_pack = LabelPack.query.filter_by(type=set).one()
+def label_print(pack_name, referrer, study_id, count=1):
+    label_pack = LabelPack.query.filter_by(type=pack_name).one()
 
     if label_pack.user_defined_participant_id():
-        return redirect(url_for("ui.label_print_definition", set=set, referrer=referrer, study_id=study_id, count=count))
+        return redirect(url_for("ui.label_print_definition", pack_name=pack_name, referrer=referrer, study_id=study_id, count=count))
 
     try:
         label_pack.print(count)
@@ -44,10 +43,10 @@ def label_print(set, referrer, study_id, count=1):
         return redirect(redirect_to_referrer(referrer, study_id))
 
 
-@blueprint.route("/labels/study/<int:study_id>/<string:set>/define/<int:count>/referrer/<string:referrer>", methods=['GET', 'POST'])
+@blueprint.route("/labels/study/<int:study_id>/<string:pack_name>/define/<int:count>/referrer/<string:referrer>", methods=['GET', 'POST'])
 @assert_study_user()
-def label_print_definition(set, referrer, study_id, count=1):
-    label_pack = LabelPack.query.filter_by(type=set).one()
+def label_print_definition(pack_name, referrer, study_id, count=1):
+    label_pack = LabelPack.query.filter_by(type=pack_name).one()
     form = LabelDefinition()
 
     if form.validate_on_submit():
@@ -67,7 +66,7 @@ def label_print_definition(set, referrer, study_id, count=1):
         form=form,
         label_pack=label_pack,
         study_id=study_id,
-        set=set,
+        pack_name=pack_name,
         referrer=referrer,
         count=count,
         back=f'ui.{referrer}',

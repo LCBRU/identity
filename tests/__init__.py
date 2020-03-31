@@ -18,6 +18,8 @@ def login(client, faker):
     # Some stuff is created on first request, so do that
     client.get("/")
 
+    login_user(u)
+
     return u
 
 
