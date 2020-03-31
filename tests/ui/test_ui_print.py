@@ -5,6 +5,7 @@ from identity.printing.model import LabelPack
 from identity.printing.cardiomet import ID_TYPE_PARTICIPANT as CARDIOMET_ID_TYPE_PARTICIPANT
 from identity.printing.go_dcm import ID_TYPE_PARTICIPANT as GO_DCM_ID_TYPE_PARTICIPANT
 from identity.model import PseudoRandomId, PseudoRandomIdProvider
+from identity.database import db
 from tests import login, add_all_studies
 
 
@@ -239,3 +240,29 @@ def test__label_print_definition__post__no_id_given(client, faker):
     )
 
     assert resp.status_code == 200
+
+
+@pytest.mark.parametrize(
+    "pack_name, visible",
+    [
+        ("ScadPack", True),
+        ("ScadBloodOnlyPack", True),
+        ("ScadFamilyPack", True),
+        ("MermaidPack", True),
+        ("BriccsPack", False),
+    ],
+)
+def test__ui_buttons_visible(client, faker, pack_name, visible):
+    user = login(client, faker)
+
+    pack = LabelPack.query.filter_by(type=pack_name).one()
+
+    if visible:
+        user.studies.add(pack.study)
+        db.session.commit()
+
+    resp = client.get(url_for('ui.labels', _external=True))
+
+    assert resp.status_code == 200
+
+    assert (resp.soup.find("a", href=url_for('ui.label_print', referrer='labels', pack_name=pack_name, study_id=pack.study_id, count=1)) is not None) == visible
