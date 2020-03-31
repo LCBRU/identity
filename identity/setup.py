@@ -42,7 +42,7 @@ PSEUDORANDOM_ID_PROVIDERS = {}
 
 
 def create_base_data():
-    print('Creating Base Data')
+    current_app.logger.info('create_base_data')
 
     system = get_system_user()
 
@@ -54,7 +54,7 @@ def create_base_data():
 
 
 def import_ids():
-    print('Importing IDs')
+    current_app.logger.info('import_ids')
 
     system = get_system_user()
 
@@ -65,6 +65,8 @@ def import_ids():
 
 
 def load_legacy_briccs_ids(admin):
+    current_app.logger.info('load_legacy_briccs_ids')
+
     if LegacyId.query.count() == 0:
         briccs_partipants = LegacyIdProvider.query.filter_by(name=ID_NAME_BRICCS_PARTICIPANT).first()
         briccs_samples = LegacyIdProvider.query.filter_by(name=ID_NAME_BRICCS_SAMPLE).first()
@@ -88,7 +90,7 @@ def load_legacy_briccs_ids(admin):
 
                 number = int(id[4:])
 
-                print('Creating:', provider.prefix + id[4:])
+                current_app.logger.info(f'Creating: {provider.prefix}{id[4:]}')
                 legacy_ids.append(LegacyId(
                     legacy_id_provider_id=provider.id,
                     number=number,
@@ -103,6 +105,8 @@ def load_legacy_briccs_ids(admin):
 
 
 def load_legacy_bioresource_ids(admin):
+    current_app.logger.info(f'load_legacy_bioresource_ids')
+
     if BioresourceId.query.count() == 0:
         bioresource_id_provider = BioresourceIdProvider.query.filter_by(prefix='BR').first()
 
@@ -127,7 +131,7 @@ def load_legacy_bioresource_ids(admin):
                 if not bioresource_id_provider.validate(new_id.full_code):
                     raise Exception('Invalid legacy Bioresource id: {}'.format(new_id.full_code))
 
-                print('Creating:', new_id.full_code)
+                current_app.logger.info(f'Creating: {new_id.full_code}')
 
                 bioresource_ids.append(new_id)
 
@@ -139,7 +143,7 @@ def load_legacy_bioresource_ids(admin):
 
 
 def load_legacy_pseudorandom_ids(admin):
-    print('Loading Pseudi IDs')
+    current_app.logger.info(f'load_legacy_pseudorandom_ids')
 
     for provider in PseudoRandomIdProvider.query.all():
 
@@ -163,7 +167,7 @@ def load_legacy_pseudorandom_ids(admin):
                     AND ordinal > :previous_ordinal
                 ;"""), prefix=provider.prefix, previous_ordinal=previous_ordinal)
 
-            print('{}: existing = {}; new = {}'.format(provider.prefix, previous_ordinal, current_ordinal))
+            current_app.logger.info(f'{provider.prefix}: existing = {previous_ordinal}; new = {current_ordinal}')
             pseudo_random_ids = []
 
             for row in rs:
@@ -182,7 +186,7 @@ def load_legacy_pseudorandom_ids(admin):
                 if provider._get_id(row['ordinal']) != row['fullcode']:
                     raise Exception('Legacy PseudoRandom ID (\'{}\') does not match current algorithm (\'{}\')'.format(row['fullcode'], provider._get_id(row['ordinal'])))
 
-                print('Creating:', row['fullcode'])
+                current_app.logger.info(f'Creating: {row["fullcode"]}')
                 pseudo_random_ids.append(new_id)
 
             db.session.bulk_save_objects(pseudo_random_ids)
@@ -193,12 +197,12 @@ def load_legacy_pseudorandom_ids(admin):
 
 
 def load_legacy_blind_ids(admin):
-    print('Loading Blind IDs')
+    current_app.logger.info(f'Loading Blind IDs')
 
     for bt in BlindingType.query.all():
         
         if len(bt.blindings) == 0:
-            print('Loading Blind IDs of type {}'.format(bt.name))
+            current_app.logger.info(f'Loading Blind IDs of type {bt.name}')
 
             engine = create_engine(current_app.config['LEGACY_PSEUDORANDOM_ID_URI'])
 
@@ -224,7 +228,7 @@ def load_legacy_blind_ids(admin):
                         last_updated_by_user_id=admin.id,
                     )
 
-                    print('Creating Blinding:', blinding)
+                    current_app.logger.info(f'Creating Blinding: {blinding}')
 
                     db.session.add(blinding)
 
@@ -234,12 +238,12 @@ def load_legacy_blind_ids(admin):
 
 
 def create_label_sets(user):
-    print('Creating Label Sets')
+    current_app.logger.info(f'Creating Label Sets')
 
     for x in get_concrete_label_sets():
 
         if LabelPack.query.filter_by(type=x.__class__.__name__).count() == 0:
-            print('Creating ' + x.name)
+            current_app.logger.info(f'Creating {x.name}')
 
             x.study = Study.query.filter_by(name=x.__study_name__).first()
 
@@ -249,6 +253,7 @@ def create_label_sets(user):
 
 
 def get_concrete_label_sets(cls=None):
+    current_app.logger.info(f'get_concrete_label_sets')
 
     if (cls is None):
         cls = LabelPack
@@ -287,11 +292,11 @@ def get_concrete_id_specifications(cls=None):
 
 
 def create_providers(user):
-    print('Creating Providers')
+    current_app.logger.info(f'Creating Providers')
 
     for prefix, name in ChainMap({}, *chain.from_iterable([x.pseudo_identifier_types for x in get_concrete_id_specifications()])).items():
         if PseudoRandomIdProvider.query.filter_by(name=name).count() == 0:
-            print(f'Creating provider {name}')
+            current_app.logger.info(f'Creating provider {name}')
             db.session.add(PseudoRandomIdProvider(
                 name=name,
                 prefix=prefix,
@@ -300,7 +305,7 @@ def create_providers(user):
 
     for prefix, name in ChainMap({}, *chain.from_iterable([x.legacy_identifier_types for x in get_concrete_id_specifications()])).items():
         if LegacyIdProvider.query.filter_by(name=name).count() == 0:
-            print(f'Creating provider {name}')
+            current_app.logger.info(f'Creating provider {name}')
             db.session.add(LegacyIdProvider(
                 name=name,
                 prefix=prefix,
@@ -310,7 +315,7 @@ def create_providers(user):
 
     for params in chain.from_iterable([x.sequential_identifier_types for x in get_concrete_id_specifications()]):
         if SequentialIdProvider.query.filter_by(name=params['name']).count() == 0:
-            print(f'Creating provider {name}')
+            current_app.logger.info(f'Creating provider {name}')
             db.session.add(SequentialIdProvider(
                 last_updated_by_user=user,
                 **params,
@@ -318,7 +323,7 @@ def create_providers(user):
 
     for prefix, name in ChainMap({}, *chain.from_iterable([x.bioresource_identifier_types for x in get_concrete_id_specifications()])).items():
         if BioresourceIdProvider.query.filter_by(name=name).count() == 0:
-            print(f'Creating provider {name}')
+            current_app.logger.info(f'Creating provider {name}')
             db.session.add(BioresourceIdProvider(
                 name=name,
                 prefix=prefix,
@@ -329,13 +334,13 @@ def create_providers(user):
 
 
 def create_studies(user):
-    print('Creating Studies')
+    current_app.logger.info(f'Creating Studies')
 
     for study_name in set([x.__study_name__ for x in get_concrete_label_sets()]):
         study = Study.query.filter_by(name=study_name).first()
 
         if not study:
-            print('Creating study ' + study_name)
+            current_app.logger.info(f'Creating Study {study_name}')
 
             study = Study(name=study_name)
             db.session.add(study)
@@ -348,13 +353,13 @@ def create_studies(user):
 
 
 def create_blinding_sets(user):
-    print('Creating Blinding Sets')
+    current_app.logger.info(f'create_blinding_sets')
 
     for blinding_set_name, bs in BLINDING_SETS.items():
 
         if BlindingSet.query.filter_by(name=blinding_set_name).count() == 0:
 
-            print('Creating Blinding Set "{}"'.format(blinding_set_name))
+            current_app.logger.info(f'Creating Blinding Set "{blinding_set_name}"')
 
             study = Study.query.filter_by(name=bs['study']).first()
             blinding_set = BlindingSet(name=blinding_set_name, study=study)
@@ -368,7 +373,7 @@ def create_blinding_sets(user):
                 if not pseudo_random_id_provider:
                     prid_name='{}: {}'.format(blinding_set_name, type_name)
 
-                    print('Creating Pseudorandom ID Provider "{}"'.format(prid_name))
+                    current_app.logger.info(f'Creating Pseudorandom ID Provider "{prid_name}"')
             
                     pseudo_random_id_provider = PseudoRandomIdProvider(
                         name=prid_name,
@@ -377,7 +382,7 @@ def create_blinding_sets(user):
                     )
                     db.session.add(pseudo_random_id_provider)
                 
-                print('Creating Blinding Type "{}"'.format(type_name))
+                current_app.logger.info(f'Creating Blinding Type "{type_name}"')
             
                 blinding_type = BlindingType(
                     name=type_name,
@@ -391,11 +396,11 @@ def create_blinding_sets(user):
 
 
 def create_participant_id_types(user):
-    print('Creating Participant ID Types')
+    current_app.logger.info(f'Creating Participant ID Types')
 
     for name in ParticipantIdentifierType.__TYPE_NAMES__:
         if ParticipantIdentifierType.query.filter_by(name=name).count() == 0:
-            print(f'Creating Participant ID Type "{name}"')
+            current_app.logger.info(f'Creating Participant ID Type "{name}"')
 
             db.session.add(ParticipantIdentifierType(
                 name=name,

@@ -24,7 +24,7 @@ def create_app(config=BaseConfig):
     app.config.from_pyfile("application.cfg", silent=True)
 
     with app.app_context():
-        app.logger.setLevel(logging.INFO)
+        app.logger.setLevel(logging.WARNING)
         db.init_app(app)
         init_mail(app)
         init_template_filters(app)

@@ -45,7 +45,6 @@ def test__produce_demographics_result(client, faker, mock_email, row_count, exte
     assert os.path.isfile(dr.result_filepath)
 
     for row, expected in zip(dr.iter_result_rows(), dth._person_details):
-        print(row)
         assert row['spine_title'] == expected['title'] + '_SPINE'
         assert row['spine_forename'] == expected['given_name'] + '_SPINE'
         assert row['spine_middlenames'] == expected['middle_name'] + '_SPINE'

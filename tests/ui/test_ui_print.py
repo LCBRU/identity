@@ -43,7 +43,6 @@ def test__ui_print_briccs_packs(client, faker, pack_name, set_count, samples_per
 
     before = datetime.datetime.utcnow()
 
-    print(url_for('ui.label_print', study_id=pack.study_id, referrer='', set=pack_name, count=set_count, _external=True))
     resp = client.get(url_for('ui.label_print', study_id=pack.study_id, referrer='', set=pack_name, count=set_count, _external=True))
 
     after = datetime.datetime.utcnow()

@@ -119,8 +119,6 @@ def test__schedule_lookup_tasks__pmi_extracted_pre(client, faker):
         
         extract_pre_pmi_details(dr.id)
 
-    print(dr.status)
-
     with patch('identity.demographics.process_demographics_request_data') as mock_process_demographics_request_data, \
         patch('identity.demographics.email') as mock_email, \
         patch('identity.demographics.log_exception') as mock_log_exception, \
