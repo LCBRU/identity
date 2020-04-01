@@ -6,6 +6,7 @@ from flask import url_for
 from identity.database import db
 from tests import login
 from identity.model import Study
+from identity.printing.model import LabelPack
 
 
 @pytest.mark.parametrize(
@@ -70,6 +71,9 @@ def test__ui_study_page_visible(client, faker, study_name, visible):
 def test__ui_print_buttons_visible(client, faker, pack_name, visible):
     user = login(client, faker)
 
+    pack = LabelPack.query.filter_by(type=pack_name).one()
+
+
     scad_study = Study.query.filter_by(name="SCAD").first()
 
     user.studies.add(Study.query.filter_by(name="MERMAID").first())
@@ -80,10 +84,10 @@ def test__ui_print_buttons_visible(client, faker, pack_name, visible):
 
     assert resp.status_code == 200
 
-    assert (resp.soup.find("a", href=url_for('ui.study_label_print', set=pack_name, count=1, id=scad_study.id)) is not None) == visible
-    assert (resp.soup.find("a", href=url_for('ui.study_label_print', set=pack_name, count=5, id=scad_study.id)) is not None) == visible
-    assert (resp.soup.find("a", href=url_for('ui.study_label_print', set=pack_name, count=10, id=scad_study.id)) is not None) == visible
-    assert (resp.soup.find("a", href=url_for('ui.study_label_print', set=pack_name, count=50, id=scad_study.id)) is not None) == visible
+    assert (resp.soup.find("a", href=url_for('ui.label_print', set=pack_name, count=1, id=scad_study.id)) is not None) == visible
+    assert (resp.soup.find("a", href=url_for('ui.label_print', set=pack_name, count=5, id=scad_study.id)) is not None) == visible
+    assert (resp.soup.find("a", href=url_for('ui.label_print', set=pack_name, count=10, id=scad_study.id)) is not None) == visible
+    assert (resp.soup.find("a", href=url_for('ui.label_print', set=pack_name, count=50, id=scad_study.id)) is not None) == visible
 
 
 @pytest.mark.parametrize(
