@@ -237,7 +237,7 @@ def _encode_barcode(barcode):
 
     encoded_parts.append('>:')
 
-    for p in re.split('(\d+)', barcode):
+    for p in re.split(r'(\d+)', barcode):
         if p.isnumeric():
             if len(p) % 2 == 1:
                 encoded_parts.append('>5')
