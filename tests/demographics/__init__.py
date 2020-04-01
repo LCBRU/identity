@@ -159,7 +159,7 @@ def assert_uploaded_file_not_exists(user, filename, content, headers):
 
 def do_create_request(client, faker, user, headers=None, data=None, extension='csv'):
     if headers is None:
-        headers = faker.pylist(10, False, 'str')
+        headers = [chr(65 + i) * 10 for i in range(10)]
 
     if extension == 'csv':
         content = faker.csv_string(headers=headers, data=data).encode('utf-8')

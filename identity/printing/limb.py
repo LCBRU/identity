@@ -1,12 +1,14 @@
 from flask_login import current_user
 from ..model import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
+    PRINTER_LIMB,
+    LabelPack,
+)
+from .printing_methods import (
     print_sample,
     print_bag_small,
     print_barcode,
     print_recruited_notice,
-    PRINTER_LIMB,
-    LabelPack,
 )
 
 

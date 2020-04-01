@@ -5,12 +5,14 @@ from ..model import (
     StudyIdSpecification,
 )
 from .model import (
-    print_sample,
     PRINTER_BRU_CRF_BAG,
     PRINTER_BRU_CRF_SAMPLE,
     SampleContext,
     BagContext,
     LabelPack,
+)
+from .printing_methods import (
+    print_sample,
     print_notes_label,
 )
 from .briccs import BriccsBags

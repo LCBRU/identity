@@ -1,13 +1,15 @@
 from flask_login import current_user
 from ..model import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
-    print_bag,
-    print_sample,
     PRINTER_BRU_CRF_SAMPLE,
     PRINTER_BRU_CRF_BAG,
     BagContext,
     SampleContext,
     LabelPack,
+)
+from .printing_methods import (
+    print_bag,
+    print_sample,
 )
 from .briccs import BriccsBags
 

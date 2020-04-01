@@ -1,15 +1,17 @@
 from flask_login import current_user
 from ..model import LegacyIdProvider, SequentialIdProvider, StudyIdSpecification
 from .model import (
-    print_aliquot,
-    print_bag,
-    print_barcode,
-    print_sample,
     PRINTER_BRU_CRF_SAMPLE,
     PRINTER_BRU_CRF_BAG,
     BagContext,
     SampleContext,
     LabelPack,
+)
+from .printing_methods import (
+    print_aliquot,
+    print_bag,
+    print_barcode,
+    print_sample,
 )
 
 ID_NAME_BRICCS_PARTICIPANT='BRICCS Participant Number'

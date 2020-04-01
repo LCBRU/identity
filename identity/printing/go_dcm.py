@@ -6,14 +6,16 @@ from ..model import (
     FixedIdProvider,
 )
 from .model import (
-    print_barcode,
     PRINTER_TMF_SAMPLE,
     PRINTER_TMF_BAG,
     BagContext,
     SampleContext,
     LabelPack,
-    print_notes_label,
     LabelSet,
+)
+from .printing_methods import (
+    print_barcode,
+    print_notes_label,
 )
 from ..database import db
 

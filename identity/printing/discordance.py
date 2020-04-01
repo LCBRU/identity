@@ -1,10 +1,10 @@
 from ..model import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
-    print_sample,
     PRINTER_BRU_CRF_SAMPLE,
     SampleContext,
     LabelPack,
 )
+from .printing_methods import print_sample
 
 
 ID_TYPE_PARTICIPANT = "DisPt"
