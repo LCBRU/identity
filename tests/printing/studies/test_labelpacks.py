@@ -104,7 +104,7 @@ def assert_id_saved(pack, id, user):
         (ScadFamilyPack, False),
         (ScadPack, True),
         (ScadRegistryPack, False),
-        (SpiralPack, False),
+        (SpiralPack, True),
     ],
 )
 def test__pack__print(client, faker, mock_print_label, mock_datetime, PackClass, id_saved):
