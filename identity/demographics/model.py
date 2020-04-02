@@ -14,7 +14,7 @@ from flask import current_app
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from ..database import db
-from ..model import User
+from identity.model.security import User
 
 # Statuses:
 #

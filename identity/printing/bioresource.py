@@ -1,4 +1,4 @@
-from ..model import BioresourceIdProvider, StudyIdSpecification
+from identity.model.id import BioresourceIdProvider, StudyIdSpecification
 from .model import (
     PRINTER_BRU_CRF_SAMPLE,
     SampleContext,

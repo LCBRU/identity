@@ -12,7 +12,8 @@ from flask import (
 from flask_login import current_user
 from .. import blueprint, db
 from identity.blinding.model import BlindingSet, Blinding
-from identity.model import Study, PseudoRandomId, ParticipantIdentifier
+from identity.model import Study
+from identity.model.id import PseudoRandomId, ParticipantIdentifier
 from ..forms import BlindingForm, UnblindingForm
 from ..decorators import assert_study_user
 

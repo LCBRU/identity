@@ -1,5 +1,5 @@
 from flask_login import current_user
-from ..model import (
+from identity.model.id import (
     PseudoRandomIdProvider,
     StudyIdSpecification,
     ParticipantIdentifier,

@@ -4,7 +4,7 @@ import pytest
 import glob
 import os
 import csv
-from identity.model import BioresourceIdProvider
+from identity.model.id import BioresourceIdProvider
 
 def test_validate(client):
     iut = BioresourceIdProvider(prefix='BR')

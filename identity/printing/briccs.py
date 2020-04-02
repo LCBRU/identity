@@ -1,5 +1,5 @@
 from flask_login import current_user
-from ..model import LegacyIdProvider, SequentialIdProvider, StudyIdSpecification
+from identity.model.id import LegacyIdProvider, SequentialIdProvider, StudyIdSpecification
 from .model import (
     PRINTER_BRU_CRF_SAMPLE,
     PRINTER_BRU_CRF_BAG,

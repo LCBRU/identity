@@ -1,5 +1,5 @@
 from flask_login import current_user
-from ..model import PseudoRandomIdProvider, StudyIdSpecification
+from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
     PRINTER_BRU_CRF_SAMPLE,
     PRINTER_BRU_CRF_BAG,

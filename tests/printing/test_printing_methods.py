@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from identity.model import FixedIdProvider
+from identity.model.id import FixedIdProvider
 from identity.printing.printing_methods import (
     print_label,
     print_barcode,

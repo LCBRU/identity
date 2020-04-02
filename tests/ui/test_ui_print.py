@@ -4,7 +4,7 @@ from flask import url_for
 from identity.printing.model import LabelPack
 from identity.printing.cardiomet import ID_TYPE_PARTICIPANT as CARDIOMET_ID_TYPE_PARTICIPANT
 from identity.printing.go_dcm import ID_TYPE_PARTICIPANT as GO_DCM_ID_TYPE_PARTICIPANT
-from identity.model import PseudoRandomId, PseudoRandomIdProvider
+from identity.model.id import PseudoRandomId, PseudoRandomIdProvider
 from identity.database import db
 from tests import login, add_all_studies
 

@@ -12,6 +12,7 @@ from identity.emailing import email
 from identity.database import pmi_engine
 from dateutil.parser import parse
 
+
 @blueprint.route("/email")
 def email_test():
     email(
@@ -21,6 +22,7 @@ def email_test():
     )
 
     return redirect(url_for('ui.index'))
+
 
 @blueprint.route("/pmi")
 def pmi_test():

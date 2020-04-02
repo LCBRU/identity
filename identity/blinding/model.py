@@ -1,11 +1,12 @@
 from datetime import datetime
 from ..database import db
-from ..model import (
-    Study,
+from identity.model import Study
+from identity.model.id import (
     PseudoRandomIdProvider,
     PseudoRandomId,
-    User,
 )
+from identity.model.security import User
+
 
 class BlindingSet(db.Model):
     id = db.Column(db.Integer, primary_key=True)

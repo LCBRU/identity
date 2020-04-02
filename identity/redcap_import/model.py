@@ -1,10 +1,10 @@
 from dateutil.parser import parse
 from flask import current_app
-from identity.model import (
-    EcrfDetail,
+from identity.model.id import (
     ParticipantIdentifier,
     ParticipantIdentifierType,
 )
+from identity.model import EcrfDetail
 
 class ParticipantImportStrategy:
     def __init__(self, fields):

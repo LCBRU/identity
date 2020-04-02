@@ -11,7 +11,7 @@ from flask_login import (
     logout_user,
     current_user,
 )
-from .model import User, Role
+from identity.model.security import User, Role
 from .database import db
 
 SYSTEM_USER_NAME = 'system'

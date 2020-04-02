@@ -4,7 +4,7 @@ import pytest
 import glob
 import os
 import csv
-from identity.model import PseudoRandomIdProvider
+from identity.model.id import PseudoRandomIdProvider
 
 def test_all_numbers_unique(client):
     iut = PseudoRandomIdProvider(prefix='Tst')

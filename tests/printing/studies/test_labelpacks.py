@@ -23,7 +23,7 @@ from identity.printing.predict import PredictPack
 from identity.printing.preeclampsia import PreeclampsiaPack
 from identity.printing.scad import ScadBloodOnlyPack, ScadFamilyPack, ScadPack, ScadRegistryPack
 from identity.printing.spiral import SpiralPack
-from identity.model import LabelParticipantIdentifier, ParticipantIdentifierType
+from identity.model.id import LabelParticipantIdentifier, ParticipantIdentifierType
 from tests import login
 
 

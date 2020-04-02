@@ -7,7 +7,7 @@ from flask import current_app
 from itertools import groupby, chain
 from collections import ChainMap
 from .database import db
-from .model import (
+from identity.model.id import (
     SequentialIdProvider,
     LegacyIdProvider,
     LegacyId,
@@ -15,10 +15,10 @@ from .model import (
     PseudoRandomId,
     BioresourceIdProvider,
     BioresourceId,
-    Study,
     StudyIdSpecification,
     ParticipantIdentifierType,
 )
+from identity.model import Study
 from .security import get_system_user, get_admin_user
 from .printing.briccs import (
     ID_NAME_BRICCS_PARTICIPANT,
