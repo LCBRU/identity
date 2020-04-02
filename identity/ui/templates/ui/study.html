@@ -20,6 +20,25 @@
     <div class="col-sm-6 col-md-7 col-xl-9">
         <section>
             <h2>{{ study.name }}</h2>
+
+            {% if participants.items | length > 0 %}
+
+                <ul class="list-group">
+
+                    {% for p in participants.items %}
+                        <li class="list-group-item">
+                            <header class="row">
+                                <h1>{{ p.identifier }}</a></h1>
+                            </header>
+                        </li>
+                    {% endfor %}
+                </ul>
+        
+            {% endif %}
+        
+            {{ formhelper.render_pagination(participants, 'ui.study') }}
+      
+
         </section>                
     </div>
     <div class="col-sm-6 col-md-5 col-xl-3">

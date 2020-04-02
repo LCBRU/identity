@@ -12,7 +12,7 @@ from flask import (
 from flask_login import current_user
 from .. import blueprint, db
 from identity.blinding.model import BlindingSet, Blinding
-from identity.model import Study, PseudoRandomId
+from identity.model import Study, PseudoRandomId, ParticipantIdentifier
 from ..forms import BlindingForm, UnblindingForm
 from ..decorators import assert_study_user
 
@@ -78,8 +78,9 @@ def unblinding(id):
 
 
 @blueprint.route("/study/<int:id>")
+@blueprint.route('/study/<int:id>?page=<int:page>')
 @assert_study_user()
-def study(id):
+def study(id, page=1):
     study = Study.query.get_or_404(id)
     blinding_form = None
     unblinding_form = None
@@ -90,10 +91,19 @@ def study(id):
         blinding_form.blinding_set_id.choices = [(s.id, s.name) for s in sorted(study.blinding_sets, key=lambda s: s.name)]
         unblinding_form = UnblindingForm()
 
+    participants = ParticipantIdentifier.query.filter_by(study_id=id).order_by(
+        ParticipantIdentifier.identifier,
+    ).paginate(
+        page=page,
+        per_page=10,
+        error_out=False,
+    )
+
     return render_template(
         "ui/study.html",
         study=study,
         blinding_form=blinding_form,
         unblinding_form=unblinding_form,
         blinding_info=blinding_info,
+        participants=participants,
     )
