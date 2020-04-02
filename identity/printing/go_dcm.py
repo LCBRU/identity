@@ -44,7 +44,7 @@ class GoDcmPack(LabelPack):
     __study_name__ = 'GO-DCM'
 
     def set_participant_id(self, participant_id):
-        self.set_participant_id_provider(FixedIdProvider(participant_id))
+        self._participant_id = participant_id
 
     def user_defined_participant_id(self):
         return True
@@ -52,13 +52,13 @@ class GoDcmPack(LabelPack):
     def allow_batch_printing(self):
         return False
 
-    def _do_print(self, participant_id):
+    def _do_print(self):
 
-        self.save_participant_id(participant_id)
+        self.save_participant_id(self._participant_id)
 
         bag_context = BagContext(
             printer=PRINTER_TMF_BAG,
-            participant_id=participant_id,
+            participant_id=self._participant_id,
             side_bar=self.__study_name__,
         )
 
@@ -110,7 +110,7 @@ class GoDcmPack(LabelPack):
 
         print_barcode(
             printer=PRINTER_TMF_SAMPLE,
-            barcode=participant_id,
+            barcode=self._participant_id,
             count=5,
         )
 
@@ -123,5 +123,5 @@ class GoDcmPack(LabelPack):
             study_sponsor='NIHR CRN: North West London',
             iras_id='237880',
             version='1.0',
-            participant_id=participant_id,
+            participant_id=self._participant_id,
         )

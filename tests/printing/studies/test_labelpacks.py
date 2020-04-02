@@ -23,6 +23,7 @@ from identity.printing.predict import PredictPack
 from identity.printing.preeclampsia import PreeclampsiaPack
 from identity.printing.scad import ScadBloodOnlyPack, ScadFamilyPack, ScadPack, ScadRegistryPack
 from identity.printing.spiral import SpiralPack
+from identity.model import LabelParticipantIdentifier, ParticipantIdentifierType
 from tests import login
 
 
@@ -71,6 +72,16 @@ def assert_calls_data(test_name, calls):
     assert expected == actual
 
 
+def assert_id_saved(pack, id, user):
+    pit = ParticipantIdentifierType.get_study_participant_id()
+    assert LabelParticipantIdentifier.query.filter_by(
+        participant_identifier_type_id=pit.id,
+        study_id=pack.study_id,
+        identifier=id,
+        last_updated_by_user_id=user.id,
+    ).one_or_none() is not None
+
+
 @pytest.mark.parametrize(
     "PackClass",
     [
@@ -117,10 +128,12 @@ def test__pack__print(client, faker, mock_print_label, mock_datetime, PackClass)
     ],
 )
 def test__pack__print_with_id(client, faker, mock_print_label, mock_datetime, PackClass):
-    login(client, faker)
+    u = login(client, faker)
+
+    EXPECTED_ID = 'ABC12345C'
 
     t = PackClass.query.first()
-    t.set_participant_id('ABC12345C')
+    t.set_participant_id(EXPECTED_ID)
 
     mock_datetime.date.today.return_value = datetime.date(2000, 1, 1)
 
@@ -129,21 +142,23 @@ def test__pack__print_with_id(client, faker, mock_print_label, mock_datetime, Pa
     mock_print_label.assert_called()
 
     assert_calls_data(f'test__{PackClass.__name__}__print', mock_print_label.mock_calls)
+    assert_id_saved(t, EXPECTED_ID, u)
 
 
 @pytest.mark.parametrize(
-    "PackClass",
+    "PackClass, id_saved",
     [
-        (BriccsPack),
-        (BriccsKetteringPack),
-        (BriccsSamplePack),
-        (MermaidPack),
+        (BriccsPack, True),
+        (BriccsKetteringPack, True),
+        (BriccsSamplePack, False),
+        (MermaidPack, True),
     ],
 )
-def test__briccs_pack__print(client, faker, mock_print_label, mock_briccs_id_provider, PackClass):
-    login(client, faker)
+def test__briccs_pack__print(client, faker, mock_print_label, mock_briccs_id_provider, PackClass, id_saved):
+    u = login(client, faker)
 
-    mock_briccs_id_provider.allocate_id.return_value.barcode = 'BPt1245678'
+    EXPECTED_ID = 'BPt1245678'
+    mock_briccs_id_provider.allocate_id.return_value.barcode = EXPECTED_ID
 
     t = PackClass.query.first()
 
@@ -152,6 +167,8 @@ def test__briccs_pack__print(client, faker, mock_print_label, mock_briccs_id_pro
     mock_print_label.assert_called()
 
     assert_calls_data(f'test__{PackClass.__name__}__print', mock_print_label.mock_calls)
+    if id_saved:
+        assert_id_saved(t, EXPECTED_ID, u)
 
 
 def test__bioresource_pack__print(client, faker, mock_print_label, mock_bioresource_id_provider):

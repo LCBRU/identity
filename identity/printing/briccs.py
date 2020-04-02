@@ -63,6 +63,8 @@ class BriccsBags():
         for _ in range(additional_sample_label_count):
             print_sample(sample_context)
 
+        return participant_id
+
 
     def print_serum_bag(
         self,
@@ -191,7 +193,8 @@ class BriccsPack(LabelPack):
 
     def _do_print(self):
         bb = BriccsBags()
-        bb.print_pack(study_name='BRICCS', additional_sample_label_count=2)
+        participant_id = bb.print_pack(study_name='BRICCS', additional_sample_label_count=2)
+        self.save_participant_id(participant_id)
 
 
 class BriccsKetteringPack(LabelPack):
@@ -202,10 +205,12 @@ class BriccsKetteringPack(LabelPack):
     __study_name__ = 'BRICCS'
 
     def _do_print(self):
-        self.print_pack(
+        participant_id = self.print_pack(
             site_prefix='91',
             site_name='Kettering',
         )
+        self.save_participant_id(participant_id)
+        
 
     def print_pack(self, site_prefix, site_name, additional_sample_label_count=0):
         participant_id_provider = LegacyIdProvider.query.filter_by(name=ID_NAME_BRICCS_PARTICIPANT).first()
@@ -254,6 +259,8 @@ class BriccsKetteringPack(LabelPack):
 
         for _ in range(additional_sample_label_count):
             print_sample(sample_context)
+
+        return participant_id
 
 
 class BriccsSamplePack(LabelPack):

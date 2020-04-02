@@ -65,9 +65,6 @@ class LabelPack(db.Model):
         "polymorphic_on": type,
     }
 
-    def set_participant_id_provider(self, participant_id_provider):
-        self._participant_id_provider = participant_id_provider
-
     def user_defined_participant_id(self):
         return False
 
@@ -82,10 +79,7 @@ class LabelPack(db.Model):
         for _ in range(count):
             current_app.logger.info(f'Printing label for study {self.study.name}')
 
-            if hasattr(self, '_participant_id_provider'):
-                self._do_print(self._participant_id_provider.allocate_id(current_user).barcode)
-            else:
-                self._do_print()
+            self._do_print()
 
             db.session.commit()
 
