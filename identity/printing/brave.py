@@ -21,7 +21,7 @@ ID_TYPE_POLAND_PARTICIPANT = "BavPl"
 ID_TYPE_EXTERNAL_PARTICIPANT = "BavXPt"
 
 
-class AlleviateIdSpecification(StudyIdSpecification):
+class BraveIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
             study_name='BRAVE',

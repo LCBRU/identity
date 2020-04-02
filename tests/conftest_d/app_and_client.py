@@ -10,6 +10,8 @@ from bs4 import BeautifulSoup
 import identity
 from identity.database import db
 from identity.config import TestConfig, TestConfigCRSF
+from identity.setup import create_base_data
+from identity.security import init_users
 
 
 class DateTimeEncoder(json.JSONEncoder):
@@ -64,6 +66,8 @@ def app(faker):
     context = app.test_request_context()
     context.push()
     db.create_all()
+    init_users()
+    create_base_data()
 
     yield app
 
