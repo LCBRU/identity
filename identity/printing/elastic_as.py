@@ -41,6 +41,8 @@ class ElasticAsPack(LabelPack):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
+        self.save_participant_id(participant_id)
+
         bag_context = BagContext(
             printer=PRINTER_TMF_BAG,
             participant_id=participant_id,

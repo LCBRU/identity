@@ -46,6 +46,8 @@ class BravePack(LabelPack):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
+        self.save_participant_id(participant_id)
+
         bag_context = BagContext(
             printer=PRINTER_BRU_CRF_BAG,
             participant_id=participant_id,
@@ -81,6 +83,8 @@ class BraveExternalPack(LabelPack):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_EXTERNAL_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
 
+        self.save_participant_id(participant_id)
+
         bag_context = BagContext(
             printer=PRINTER_BRU_CRF_BAG,
             participant_id=participant_id,
@@ -114,6 +118,8 @@ class BravePolandPack(LabelPack):
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_POLAND_PARTICIPANT).first()
         participant_id = participant_id_provider.allocate_id(current_user).barcode
+
+        self.save_participant_id(participant_id)
 
         bag_context = BagContext(
             printer=PRINTER_BRU_CRF_BAG,

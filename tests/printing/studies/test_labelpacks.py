@@ -83,32 +83,32 @@ def assert_id_saved(pack, id, user):
 
 
 @pytest.mark.parametrize(
-    "PackClass",
+    "PackClass, id_saved",
     [
-        (AlleviatePack),
-        (BravePack),
-        (BraveExternalPack),
-        (BravePolandPack),
-        (CaePack),
-        (CardiometPack),
-        (CiaPack),
-        (DiscordancePack),
-        (ElasticAsPack),
-        (FastPack),
-        (IndapamidePack),
-        (LentenPack),
-        (LimbPack),
-        (PredictPack),
-        (PreeclampsiaPack),
-        (ScadBloodOnlyPack),
-        (ScadFamilyPack),
-        (ScadPack),
-        (ScadRegistryPack),
-        (SpiralPack),
+        (AlleviatePack, True),
+        (BravePack, True),
+        (BraveExternalPack, True),
+        (BravePolandPack, True),
+        (CaePack, True),
+        (CardiometPack, True),
+        (CiaPack, True),
+        (DiscordancePack, False),
+        (ElasticAsPack, True),
+        (FastPack, False),
+        (IndapamidePack, True),
+        (LentenPack, True),
+        (LimbPack, True),
+        (PredictPack, True),
+        (PreeclampsiaPack, True),
+        (ScadBloodOnlyPack, False),
+        (ScadFamilyPack, False),
+        (ScadPack, True),
+        (ScadRegistryPack, False),
+        (SpiralPack, False),
     ],
 )
-def test__pack__print(client, faker, mock_print_label, mock_datetime, PackClass):
-    login(client, faker)
+def test__pack__print(client, faker, mock_print_label, mock_datetime, PackClass, id_saved):
+    u = login(client, faker)
 
     t = PackClass.query.first()
 
@@ -119,6 +119,16 @@ def test__pack__print(client, faker, mock_print_label, mock_datetime, PackClass)
     mock_print_label.assert_called()
 
     assert_calls_data(f'test__{PackClass.__name__}__print', mock_print_label.mock_calls)
+
+    if id_saved:
+        # Only check if a record has been created because we can't know what the
+        # participant ID will be in these cases
+        pit = ParticipantIdentifierType.get_study_participant_id()
+        assert LabelParticipantIdentifier.query.filter_by(
+            participant_identifier_type_id=pit.id,
+            study_id=t.study_id,
+            last_updated_by_user_id=u.id,
+        ).one_or_none() is not None
 
 
 @pytest.mark.parametrize(
@@ -172,9 +182,10 @@ def test__briccs_pack__print(client, faker, mock_print_label, mock_briccs_id_pro
 
 
 def test__bioresource_pack__print(client, faker, mock_print_label, mock_bioresource_id_provider):
-    login(client, faker)
+    u = login(client, faker)
 
-    mock_bioresource_id_provider.allocate_id.return_value.barcode = 'BR1245678A'
+    EXPECTED_ID = 'BR1245678A'
+    mock_bioresource_id_provider.allocate_id.return_value.barcode = EXPECTED_ID
 
     t = BioresourcePack.query.first()
 
