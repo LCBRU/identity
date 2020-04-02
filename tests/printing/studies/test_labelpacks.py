@@ -15,6 +15,14 @@ from identity.printing.discordance import DiscordancePack
 from identity.printing.elastic_as import ElasticAsPack
 from identity.printing.fast import FastPack
 from identity.printing.go_dcm import GoDcmPack
+from identity.printing.indapamide import IndapamidePack
+from identity.printing.lenten import LentenPack
+from identity.printing.limb import LimbPack
+from identity.printing.mermaid import MermaidPack
+from identity.printing.predict import PredictPack
+from identity.printing.preeclampsia import PreeclampsiaPack
+from identity.printing.scad import ScadBloodOnlyPack, ScadFamilyPack, ScadPack, ScadRegistryPack
+from identity.printing.spiral import SpiralPack
 from tests import login
 
 
@@ -76,6 +84,16 @@ def assert_calls_data(test_name, calls):
         (DiscordancePack),
         (ElasticAsPack),
         (FastPack),
+        (IndapamidePack),
+        (LentenPack),
+        (LimbPack),
+        (PredictPack),
+        (PreeclampsiaPack),
+        (ScadBloodOnlyPack),
+        (ScadFamilyPack),
+        (ScadPack),
+        (ScadRegistryPack),
+        (SpiralPack),
     ],
 )
 def test__pack__print(client, faker, mock_print_label, mock_datetime, PackClass):
@@ -119,6 +137,7 @@ def test__pack__print_with_id(client, faker, mock_print_label, mock_datetime, Pa
         (BriccsPack),
         (BriccsKetteringPack),
         (BriccsSamplePack),
+        (MermaidPack),
     ],
 )
 def test__briccs_pack__print(client, faker, mock_print_label, mock_briccs_id_provider, PackClass):
