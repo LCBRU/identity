@@ -232,6 +232,38 @@ dd {
   font-size: 20px;
 }
 
+.list-group {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.list-group-item {
+  padding: 10px;
+}
+
+.list-group-item header {
+  padding-bottom: 20px;
+}
+
+.list-group-item h1 {
+  font-size: 20px;
+  color: #23527c;
+  font-weight: bold;
+  margin: 0;
+}
+
+.list-group-item h2 {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.list-group-item .badge {
+  margin-left: 10px;
+  margin-bottom: 10px;
+  font-size: 80%;
+}
+
 .study_list li {
   list-style: none;
 }

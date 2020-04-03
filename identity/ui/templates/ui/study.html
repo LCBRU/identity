@@ -27,9 +27,21 @@
 
                     {% for p in participants.items %}
                         <li class="list-group-item">
-                            <header class="row">
-                                <h1>{{ p.identifier }}</a></h1>
-                            </header>
+                            <div class="row">
+                                <div class="col-7">
+                                    <h1>{{ p.identifier }}</h1>
+                                </div>
+                                <div class="col-5">
+                                    <h2>Ids</h2>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    {% for rp in study.redcap_projects %}
+                                        <a href='{{ rp.get_link(p.identifier) }}' target="_blank">{{ rp.name }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>

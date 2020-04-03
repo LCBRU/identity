@@ -164,11 +164,13 @@ def test__pack__print_with_id(client, faker, mock_print_label, mock_datetime, Pa
         (MermaidPack, True),
     ],
 )
-def test__briccs_pack__print(client, faker, mock_print_label, mock_briccs_id_provider, PackClass, id_saved):
+def test__briccs_pack__print(client, faker, mock_print_label, mock_briccs_id_provider, mock_datetime, PackClass, id_saved):
     u = login(client, faker)
 
     EXPECTED_ID = 'BPt1245678'
     mock_briccs_id_provider.allocate_id.return_value.barcode = EXPECTED_ID
+
+    mock_datetime.date.today.return_value = datetime.date(2000, 1, 1)
 
     t = PackClass.query.first()
 
@@ -181,11 +183,13 @@ def test__briccs_pack__print(client, faker, mock_print_label, mock_briccs_id_pro
         assert_id_saved(t, EXPECTED_ID, u)
 
 
-def test__bioresource_pack__print(client, faker, mock_print_label, mock_bioresource_id_provider):
+def test__bioresource_pack__print(client, faker, mock_print_label, mock_bioresource_id_provider, mock_datetime):
     u = login(client, faker)
 
     EXPECTED_ID = 'BR1245678A'
     mock_bioresource_id_provider.allocate_id.return_value.barcode = EXPECTED_ID
+
+    mock_datetime.date.today.return_value = datetime.date(2000, 1, 1)
 
     t = BioresourcePack.query.first()
 

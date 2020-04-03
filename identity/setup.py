@@ -18,7 +18,7 @@ from identity.model.id import (
     StudyIdSpecification,
     ParticipantIdentifierType,
 )
-from identity.model import Study
+from identity.model import Study, RedcapInstance
 from .security import get_system_user, get_admin_user
 from .printing.briccs import (
     ID_NAME_BRICCS_PARTICIPANT,
@@ -51,6 +51,7 @@ def create_base_data():
     create_label_sets(system)
     create_blinding_sets(system)
     create_participant_id_types(system)
+    create_redcap_instances(system)
 
 
 def import_ids():
@@ -406,4 +407,42 @@ def create_participant_id_types(user):
                 name=name,
                 last_updated_by_user=user,
             ))
+    db.session.commit()
+
+
+def create_redcap_instances(user):
+    current_app.logger.info(f'Creating REDCap Instances')
+
+    instances = [
+        {
+            'name': 'UHL Live',
+            'database_name': 'redcap6170_briccs',
+            'base_url': 'https://briccs.xuhl-tr.nhs.uk/redcap/redcap_v7.2.2/',
+        },
+        {
+            'name': 'UHL HSCN',
+            'database_name': 'redcap6170_briccsext',
+            'base_url': 'https://uhlbriccsext01.xuhl-tr.nhs.uk/redcap/redcap_v7.2.2/',
+        },
+        {
+            'name': 'GENVASC',
+            'database_name': 'redcap_genvasc',
+            'base_url': 'https://genvasc.uhl-tr.nhs.uk/redcap/redcap_v7.2.2/',
+        },
+        {
+            'name': 'UoL CRF',
+            'database_name': 'uol_crf_redcap',
+            'base_url': 'https://crf.lcbru.le.ac.uk/redcap_v7.2.2/',
+        },
+        {
+            'name': 'UoL Internet',
+            'database_name': 'uol_survey_redcap',
+            'base_url': 'https://redcap.lcbru.le.ac.uk/redcap_v7.2.2/',
+        },
+    ]
+
+    for i in instances:
+        if RedcapInstance.query.filter_by(name=i['name']).count() == 0:
+            db.session.add(RedcapInstance(**i, last_updated_by_user=user))
+
     db.session.commit()

@@ -1,3 +1,4 @@
+import urllib.parse
 from datetime import datetime
 from identity.database import db
 from .security import User
@@ -38,6 +39,9 @@ class RedcapProject(db.Model):
 
     def __str__(self):
         return self.name
+
+    def get_link(self, record_id):
+        return urllib.parse.urljoin(self.redcap_instance.base_url, f'DataEntry/record_home.php?pid={self.project_id}&id={record_id}')
 
 
 ecrf_details__participant_identifiers = db.Table(

@@ -78,7 +78,7 @@ def import_project_details():
                     rp.last_updated_datetime = datetime.utcnow()
                     db.session.add(rp)
 
-    db.session.commit()
+            db.session.commit()
     current_app.logger.info('Importing REDCap projects - COMPLETED')
 
 

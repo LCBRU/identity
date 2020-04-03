@@ -6,6 +6,7 @@ from identity.model.id import (
 )
 from identity.model import EcrfDetail
 
+
 class ParticipantImportStrategy:
     def __init__(self, fields):
         self._fields = fields
