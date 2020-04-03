@@ -17,6 +17,7 @@ class RedcapInstance(db.Model):
     name = db.Column(db.String(100), nullable=False)
     database_name = db.Column(db.String(100), nullable=False)
     base_url = db.Column(db.String(500), nullable=False)
+    version = db.Column(db.String(10), nullable=False)
     last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)
@@ -25,6 +26,13 @@ class RedcapInstance(db.Model):
         return self.name
 
 
+def urljoin(*args):
+    """
+    Joins given arguments into an url. Trailing but not leading slashes are
+    stripped for each argument.
+    """
+
+    
 class RedcapProject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
@@ -41,7 +49,10 @@ class RedcapProject(db.Model):
         return self.name
 
     def get_link(self, record_id):
-        return urllib.parse.urljoin(self.redcap_instance.base_url, f'DataEntry/record_home.php?pid={self.project_id}&id={record_id}')
+        return "/".join(map(lambda x: str(x).rstrip('/'), [
+            self.redcap_instance.base_url,
+            f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
+        ))
 
 
 ecrf_details__participant_identifiers = db.Table(

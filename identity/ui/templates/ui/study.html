@@ -28,18 +28,23 @@
                     {% for p in participants.items %}
                         <li class="list-group-item">
                             <div class="row">
-                                <div class="col-7">
+                                <div class="col-12">
                                     <h1>{{ p.identifier }}</h1>
-                                </div>
-                                <div class="col-5">
-                                    <h2>Ids</h2>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col">
-                                    {% for rp in study.redcap_projects %}
-                                        <a href='{{ rp.get_link(p.identifier) }}' target="_blank">{{ rp.name }}</a>
-                                    {% endfor %}
+                                <div class="col-4">
+                                    <h2>REDCap</h2>
+                                    <ul>
+                                        {% for rp in study.redcap_projects %}
+                                            <li><a href='{{ rp.get_link(p.identifier) }}' target="_blank">{{ rp.name }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="col-4">
+                                    <h2>Identifiers</h2>
+                                    <ul>
+                                    </ul>
                                 </div>
                             </div>
                         </li>

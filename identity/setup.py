@@ -417,27 +417,32 @@ def create_redcap_instances(user):
         {
             'name': 'UHL Live',
             'database_name': 'redcap6170_briccs',
-            'base_url': 'https://briccs.xuhl-tr.nhs.uk/redcap/redcap_v7.2.2/',
+            'base_url': 'https://briccs.xuhl-tr.nhs.uk/redcap',
+            'version': '7.2.2',
         },
         {
             'name': 'UHL HSCN',
             'database_name': 'redcap6170_briccsext',
-            'base_url': 'https://uhlbriccsext01.xuhl-tr.nhs.uk/redcap/redcap_v7.2.2/',
+            'base_url': 'https://uhlbriccsext01.xuhl-tr.nhs.uk/redcap',
+            'version': '7.2.2',
         },
         {
             'name': 'GENVASC',
             'database_name': 'redcap_genvasc',
-            'base_url': 'https://genvasc.uhl-tr.nhs.uk/redcap/redcap_v7.2.2/',
+            'base_url': 'https://genvasc.uhl-tr.nhs.uk/redcap',
+            'version': '9.1.15',
         },
         {
             'name': 'UoL CRF',
             'database_name': 'uol_crf_redcap',
-            'base_url': 'https://crf.lcbru.le.ac.uk/redcap_v7.2.2/',
+            'base_url': 'https://crf.lcbru.le.ac.uk',
+            'version': '7.2.2',
         },
         {
             'name': 'UoL Internet',
             'database_name': 'uol_survey_redcap',
-            'base_url': 'https://redcap.lcbru.le.ac.uk/redcap_v7.2.2/',
+            'base_url': 'https://redcap.lcbru.le.ac.uk',
+            'version': '7.2.2',
         },
     ]
 
