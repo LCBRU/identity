@@ -105,7 +105,7 @@ class ParticipantImportStrategy(db.Model):
 
 class BriccsParticipantImportStrategy(ParticipantImportStrategy):
     __mapper_args__ = {
-        "polymorphic_identity": 'AlleviatePack',
+        "polymorphic_identity": 'Briccs Participant Import Strategy',
     }
 
     def __init__(self):

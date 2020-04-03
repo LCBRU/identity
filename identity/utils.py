@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import inspect
 import traceback
 from flask import current_app
 from identity.emailing import email
@@ -50,3 +51,20 @@ def log_exception(e):
         message=traceback.format_exc(),
         recipients=current_app.config["ADMIN_EMAIL_ADDRESSES"].split(";"),
     )
+
+
+def get_concrete_classes(cls):
+    current_app.logger.info(f'get_concrete_label_packs')
+
+    result = [sub() for sub in cls.__subclasses__()
+              if len(sub.__subclasses__()) == 0 and
+              # If the constructor requires parameters
+              # other than self (i.e., it has more than 1
+              # argument), it's an abstract class
+              len(inspect.getfullargspec(sub.__init__)[0]) == 1]
+
+    for sub in [sub for sub in cls.__subclasses__()
+                if len(sub.__subclasses__()) != 0]:
+        result += get_concrete_classes(sub)
+
+    return result

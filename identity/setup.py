@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import inspect
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 from flask import current_app
@@ -18,24 +17,26 @@ from identity.model.id import (
     StudyIdSpecification,
     ParticipantIdentifierType,
 )
+from identity.utils import get_concrete_classes
 from identity.model import Study, RedcapInstance
-from .security import get_system_user, get_admin_user
-from .printing.briccs import (
+from identity.security import get_system_user, get_admin_user
+from identity.printing.briccs import (
     ID_NAME_BRICCS_PARTICIPANT,
     ID_NAME_BRICCS_SAMPLE,
     ID_NAME_BRICCS_ALIQUOT,
 )
-from .printing.scad import (
+from identity.printing.scad import (
     ID_NAME_SCAD_REG,
     PREFIX_SCAD_REG,
 )
-from .printing.model import LabelPack
-from .blinding import BLINDING_SETS
-from .blinding.model import (
+from identity.printing.model import LabelPack
+from identity.blinding import BLINDING_SETS
+from identity.blinding.model import (
     BlindingSet,
     BlindingType,
     Blinding,
 )
+from identity.redcap_import.model import ParticipantImportStrategy
 
 
 PSEUDORANDOM_ID_PROVIDERS = {}
@@ -48,9 +49,10 @@ def create_base_data():
 
     create_providers(system)
     create_studies(system)
-    create_label_sets(system)
+    create_label_packs(system)
     create_blinding_sets(system)
     create_participant_id_types(system)
+    create_participant_import_strategies(system)
     create_redcap_instances(system)
 
 
@@ -238,10 +240,10 @@ def load_legacy_blind_ids(admin):
     db.session.commit()
 
 
-def create_label_sets(user):
-    current_app.logger.info(f'Creating Label Sets')
+def create_label_packs(user):
+    current_app.logger.info(f'Creating Label Packs')
 
-    for x in get_concrete_label_sets():
+    for x in get_concrete_classes(LabelPack):
 
         if LabelPack.query.filter_by(type=x.__class__.__name__).count() == 0:
             current_app.logger.info(f'Creating {x.name}')
@@ -253,49 +255,23 @@ def create_label_sets(user):
     db.session.commit()
 
 
-def get_concrete_label_sets(cls=None):
-    current_app.logger.info(f'get_concrete_label_sets')
+def create_participant_import_strategies(user):
+    current_app.logger.info(f'Creating Redcap Participant Import Stragtegies')
 
-    if (cls is None):
-        cls = LabelPack
+    for x in get_concrete_classes(ParticipantImportStrategy):
 
-    result = [sub() for sub in cls.__subclasses__()
-              if len(sub.__subclasses__()) == 0 and
-              # If the constructor requires parameters
-              # other than self (i.e., it has more than 1
-              # argument), it's an abstract class
-              len(inspect.getfullargspec(sub.__init__)[0]) == 1]
+        if ParticipantImportStrategy.query.filter_by(type=x.__class__.__name__).count() == 0:
+            current_app.logger.info(f'Creating {x.__class__.__name__}')
 
-    for sub in [sub for sub in cls.__subclasses__()
-                if len(sub.__subclasses__()) != 0]:
-        result += get_concrete_label_sets(sub)
+            db.session.add(x)
 
-    return result
-
-
-def get_concrete_id_specifications(cls=None):
-
-    if (cls is None):
-        cls = StudyIdSpecification
-
-    result = [sub() for sub in cls.__subclasses__()
-              if len(sub.__subclasses__()) == 0 and
-              # If the constructor requires parameters
-              # other than self (i.e., it has more than 1
-              # argument), it's an abstract class
-              len(inspect.getfullargspec(sub.__init__)[0]) == 1]
-
-    for sub in [sub for sub in cls.__subclasses__()
-                if len(sub.__subclasses__()) != 0]:
-        result += get_concrete_id_specifications(sub)
-
-    return result
+    db.session.commit()
 
 
 def create_providers(user):
     current_app.logger.info(f'Creating Providers')
 
-    for prefix, name in ChainMap({}, *chain.from_iterable([x.pseudo_identifier_types for x in get_concrete_id_specifications()])).items():
+    for prefix, name in ChainMap({}, *chain.from_iterable([x.pseudo_identifier_types for x in get_concrete_classes(StudyIdSpecification)])).items():
         if PseudoRandomIdProvider.query.filter_by(name=name).count() == 0:
             current_app.logger.info(f'Creating provider {name}')
             db.session.add(PseudoRandomIdProvider(
@@ -304,7 +280,7 @@ def create_providers(user):
                 last_updated_by_user=user,
             ))
 
-    for prefix, name in ChainMap({}, *chain.from_iterable([x.legacy_identifier_types for x in get_concrete_id_specifications()])).items():
+    for prefix, name in ChainMap({}, *chain.from_iterable([x.legacy_identifier_types for x in get_concrete_classes(StudyIdSpecification)])).items():
         if LegacyIdProvider.query.filter_by(name=name).count() == 0:
             current_app.logger.info(f'Creating provider {name}')
             db.session.add(LegacyIdProvider(
@@ -314,7 +290,7 @@ def create_providers(user):
                 last_updated_by_user=user,
             ))
 
-    for params in chain.from_iterable([x.sequential_identifier_types for x in get_concrete_id_specifications()]):
+    for params in chain.from_iterable([x.sequential_identifier_types for x in get_concrete_classes(StudyIdSpecification)]):
         if SequentialIdProvider.query.filter_by(name=params['name']).count() == 0:
             current_app.logger.info(f'Creating provider {name}')
             db.session.add(SequentialIdProvider(
@@ -322,7 +298,7 @@ def create_providers(user):
                 **params,
             ))
 
-    for prefix, name in ChainMap({}, *chain.from_iterable([x.bioresource_identifier_types for x in get_concrete_id_specifications()])).items():
+    for prefix, name in ChainMap({}, *chain.from_iterable([x.bioresource_identifier_types for x in get_concrete_classes(StudyIdSpecification)])).items():
         if BioresourceIdProvider.query.filter_by(name=name).count() == 0:
             current_app.logger.info(f'Creating provider {name}')
             db.session.add(BioresourceIdProvider(
@@ -337,7 +313,7 @@ def create_providers(user):
 def create_studies(user):
     current_app.logger.info(f'Creating Studies')
 
-    for study_name in set([x.__study_name__ for x in get_concrete_label_sets()]):
+    for study_name in set([x.__study_name__ for x in get_concrete_classes(LabelPack)]):
         study = Study.query.filter_by(name=study_name).first()
 
         if not study:
