@@ -4,10 +4,19 @@ from identity.model.id import (
     ParticipantIdentifier,
     ParticipantIdentifierType,
 )
-from identity.model import EcrfDetail
+from identity.model import EcrfDetail, RedcapProject
+from identity.database import db
 
 
-class ParticipantImportStrategy:
+class ParticipantImportStrategy(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(100), nullable=False)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "ParticipantImportStrategy",
+        "polymorphic_on": type,
+    }
+
     def __init__(self, fields):
         self._fields = fields
 
@@ -94,7 +103,11 @@ class ParticipantImportStrategy:
         return {}
 
 
-class BriccsImportStrategy(ParticipantImportStrategy):
+class BriccsParticipantImportStrategy(ParticipantImportStrategy):
+    __mapper_args__ = {
+        "polymorphic_identity": 'AlleviatePack',
+    }
+
     def __init__(self):
         super().__init__([
             'int_date',
