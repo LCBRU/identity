@@ -341,9 +341,15 @@ class StudyIdSpecification():
 class ParticipantIdentifierType(db.Model):
 
     __STUDY_PARTICIPANT_ID__ = 'study_participant_id'
+    __BRICCS_ID__ = 'briccs_id'
+    __NHS_NUMBER__ = 'nhs_number'
+    __UHL_SYSTEM_NUMBER__ = 'study_participant_id'
 
     __TYPE_NAMES__ = [
         __STUDY_PARTICIPANT_ID__,
+        __BRICCS_ID__,
+        __NHS_NUMBER__,
+        __UHL_SYSTEM_NUMBER__,
     ]
 
     id = db.Column(db.Integer, primary_key=True)
@@ -357,10 +363,14 @@ class ParticipantIdentifierType(db.Model):
         return self.name
 
     @staticmethod
-    def get_study_participant_id():
+    def get_type(type_name):
         return ParticipantIdentifierType.query.filter_by(
-            name=ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__
+            name=type_name,
         ).one_or_none()
+
+    @staticmethod
+    def get_study_participant_id():
+        return ParticipantIdentifierType.get_type(ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__)
 
 
 class ParticipantIdentifier(db.Model):

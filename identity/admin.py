@@ -12,6 +12,7 @@ from identity.model import Study
 from identity.redcap.model import (
     RedcapInstance,
     RedcapProject,
+    ParticipantImportStrategy,
 )
 from identity.security import get_admin_role
 
@@ -61,7 +62,7 @@ class RedcapInstanceView(CustomView):
 
 
 class RedcapProjectView(CustomView):
-    form_columns = ["study", "redcap_instance", "project_id"]
+    form_columns = ["study", "redcap_instance", "project_id", "participant_import_strategy"]
 
     def on_model_change(self, form, model, is_created):
         model.last_updated_datetime = datetime.datetime.utcnow()

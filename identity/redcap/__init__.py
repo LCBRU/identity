@@ -90,48 +90,58 @@ def import_new_participants():
 
     system_user = get_system_user()
 
-    for p in RedcapProject.query.filter(RedcapProject.study_id != None).all():
-        _load_participants(p)
+    for p in RedcapProject.query.filter(RedcapProject.study_id != None, RedcapProject.participant_import_strategy_id != None).all():
+        _load_participants(p, system_user)
+
+    db.session.commit()
 
     current_app.logger.info('Importing REDCap particiapnts - Done')
 
 
-def _load_participants(project):
+def _load_participants(project, system_user):
     current_app.logger.info(f'_load_instance_participants: project="{project.name}"')
 
     max_timestamp, = db.session.query(func.max(EcrfDetail.ecrf_timestamp)).filter_by(redcap_project_id=project.id).one()
     current_app.logger.info(f'Project {project.name} previous timestamp: {max_timestamp}')
 
     with redcap_engine(project.redcap_instance.database_name) as conn:
-        pass
+        imports = []
 
-    #     strategy = BriccsImportStrategy()
-    
-    #     for p in conn.execute(
-    #         text(strategy.get_query()),
-    #         timestamp=max_timestamp or 0,
-    #         project_id=24,
-    #     ):
+        for participant in conn.execute(
+            text(project.participant_import_strategy.get_query()),
+            timestamp=max_timestamp or 0,
+            project_id=project.project_id,
+        ):
+            ecrf = project.participant_import_strategy.fill_ecrf(
+                redcap_project=project,
+                participant_details=participant,
+                existing_ecrf=EcrfDetail.query.filter_by(
+                    redcap_project_id=project.id,
+                    ecrf_participant_identifier=participant['record']
+                ).one_or_none(),
+            )
 
-    #         ecrf = strategy.fill_ecrf(
-    #             p,
-    #             EcrfDetail.query.filter_by(
-    #                 project_id=p['project_id'],
-    #                 ecrf_participant_identifier=p['record']
-    #             ).one_or_none(),
-    #         )
+            ecrf.ecrf_timestamp=participant['last_update_timestamp']
+            ecrf.last_updated_by_user_id=system_user.id
+            ecrf.last_updated_datetime=datetime.utcnow()
 
-    #         ecrf.ecrf_timestamp=p['last_update_timestamp']
-    #         ecrf.last_updated_by_user_id=system_user.id
-    #         ecrf.last_updated_datetime=datetime.utcnow()
+            imports.append(ecrf)
+        
+        db.session.add_all(imports)
 
-    #         db.session.add(ecrf)
+        db.session.flush()
 
-    #         db.session.flush()
+        ids = []
 
-    #         strategy.fill_identifiers(p, ecrf, system_user)
-    #         db.session.add_all(ecrf.identifiers)
+        for i in imports:
+            # Inline this function!
+            project.participant_import_strategy.fill_identifiers(participant, i, system_user)
+            ids.extend(ecrf.identifiers)
 
-    #         db.session.flush()
+        db.session.add_all(ids)
 
-    #         db.session.add(ecrf)
+        db.session.flush()
+
+        db.session.add_all(imports)
+
+    current_app.logger.info(f'_load_instance_participants: project="{project.name}" COMPLETED')

@@ -21,12 +21,9 @@ class ParticipantImportStrategy(db.Model):
         "polymorphic_on": type,
     }
 
-    def __init__(self, fields):
-        self._fields = fields
-
     def get_query(self):
-        group_concats = ", ".join(f"GROUP_CONCAT(DISTINCT CASE WHEN field_name = '{f}' THEN VALUE ELSE NULL END) AS {f}" for f in self._fields)
-        ins = ", ".join((f"'{f}'" for f in self._fields))
+        group_concats = ", ".join(f"GROUP_CONCAT(DISTINCT CASE WHEN field_name = '{f}' THEN VALUE ELSE NULL END) AS {f}" for f in self._get_fields())
+        ins = ", ".join((f"'{f}'" for f in self._get_fields()))
 
         return f"""
             SELECT
@@ -57,21 +54,20 @@ class ParticipantImportStrategy(db.Model):
             GROUP BY rd.record, rd.project_id
         """
 
-    def fill_ecrf(self, record, existing_ecrf):
+    def fill_ecrf(self, redcap_project, participant_details, existing_ecrf):
 
         if existing_ecrf is None:
-            current_app.logger.info(f'Creating ecrf for participant "{record["record"]}"')
+            current_app.logger.info(f'Creating ecrf for participant "{participant_details["record"]}"')
             result = EcrfDetail(
-                project_id=record['project_id'],
-                ecrf_participant_identifier=record['record'],
+                redcap_project_id=redcap_project.id,
+                ecrf_participant_identifier=participant_details['record'],
             )
         else:
-            current_app.logger.info(f'Updating ecrf for participant: {record["record"]}')
+            current_app.logger.info(f'Updating ecrf for participant: {participant_details["record"]}')
             result = existing_ecrf
 
-        return self._fill_ecrf_details(record, result)
+        return self._fill_ecrf_details(participant_details, result)
 
-    
     def fill_identifiers(self, record, ecrf, user):
         ecrf.identifiers.clear()
 
@@ -79,11 +75,11 @@ class ParticipantImportStrategy(db.Model):
             if not record[identifier]:
                 continue
 
-            id_type = ParticipantIdentifierType.get_or_create_type(id_type_name, user)
+            id_type = ParticipantIdentifierType.get_type(id_type_name)
 
             i = ParticipantIdentifier.query.filter_by(
                 participant_identifier_type_id=id_type.id,
-                identifier=record[identifier].strip(),                
+                identifier=record[identifier].strip(),
             ).one_or_none()
 
             if i is None:
@@ -96,7 +92,6 @@ class ParticipantImportStrategy(db.Model):
             current_app.logger.info(i)
 
             ecrf.identifiers.add(i)
-
     
     # Abstract Methods
 
@@ -106,14 +101,20 @@ class ParticipantImportStrategy(db.Model):
     def _get_identifier_type_fields(self):
         return {}
 
+    def _get_fields(self):
+        return []
+
+    def __str__(self):
+        return self.type
+
 
 class BriccsParticipantImportStrategy(ParticipantImportStrategy):
     __mapper_args__ = {
         "polymorphic_identity": 'Briccs Participant Import Strategy',
     }
 
-    def __init__(self):
-        super().__init__([
+    def _get_fields(self):
+        return [
             'int_date',
             'nhs_number',
             's_number',
@@ -126,7 +127,7 @@ class BriccsParticipantImportStrategy(ParticipantImportStrategy):
             'non_complete_rsn',
             'wthdrw_date',
             'wthdrwl_optn_chsn',
-        ])
+        ]
     
     def _fill_ecrf_details(self, record, ecrf):
         ecrf.recruitment_date=parse(record['int_date']) if record['int_date'] else None
@@ -146,9 +147,10 @@ class BriccsParticipantImportStrategy(ParticipantImportStrategy):
 
     def _get_identifier_type_fields(self):
         return {
-            'briccs_id': 'record',
-            'nhs_number': 'nhs_number',
-            'uhl_system_number': 's_number',
+            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
+            ParticipantIdentifierType.__BRICCS_ID__: 'record',
+            ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_number',
+            ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_number',
         }
 
 
@@ -166,13 +168,6 @@ class RedcapInstance(db.Model):
         return self.name
 
 
-def urljoin(*args):
-    """
-    Joins given arguments into an url. Trailing but not leading slashes are
-    stripped for each argument.
-    """
-
-    
 class RedcapProject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
