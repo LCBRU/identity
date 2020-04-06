@@ -14,9 +14,9 @@ from flask import (
 )
 from flask_login import logout_user
 from .forms import LoginForm
-from ..database import db
-from ..model import User
-from ..security import login as login_user
+from identity.database import db
+from identity.model.security import User
+from identity.security import login as login_user
 
 
 blueprint = Blueprint("security_ui", __name__, template_folder="templates")

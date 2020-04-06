@@ -9,10 +9,8 @@ from identity.printing.briccs import (
     ID_NAME_BRICCS_SAMPLE,
     ID_NAME_BRICCS_ALIQUOT,
 )
-from identity.model import (
-    User,
-    Study,
-)
+from identity.model.security import User
+from identity.model import Study
 from identity.blinding.model import (
     BlindingSet,
     Blinding,

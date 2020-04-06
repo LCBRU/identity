@@ -8,10 +8,10 @@ from identity.model.security import (
     User,
     Role,
 )
-from identity.model import (
+from identity.model import Study
+from identity.redcap.model import (
     RedcapInstance,
     RedcapProject,
-    Study,
 )
 from identity.security import get_admin_role
 

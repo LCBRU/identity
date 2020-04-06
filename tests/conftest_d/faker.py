@@ -6,7 +6,7 @@ import pytest
 import datetime
 from faker import Faker
 from faker.providers import BaseProvider
-from identity.model import User
+from identity.model.security import User
 from openpyxl import Workbook
 from random import randint, choice
 from identity.services.validators import (

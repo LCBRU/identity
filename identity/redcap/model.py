@@ -1,11 +1,15 @@
+import urllib.parse
 from dateutil.parser import parse
 from flask import current_app
 from identity.model.id import (
     ParticipantIdentifier,
     ParticipantIdentifierType,
 )
-from identity.model import EcrfDetail, RedcapProject
 from identity.database import db
+from datetime import datetime
+from identity.database import db
+from identity.model import Study
+from identity.model.security import User
 
 
 class ParticipantImportStrategy(db.Model):
@@ -146,3 +150,103 @@ class BriccsParticipantImportStrategy(ParticipantImportStrategy):
             'nhs_number': 'nhs_number',
             'uhl_system_number': 's_number',
         }
+
+
+class RedcapInstance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    database_name = db.Column(db.String(100), nullable=False)
+    base_url = db.Column(db.String(500), nullable=False)
+    version = db.Column(db.String(10), nullable=False)
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def __str__(self):
+        return self.name
+
+
+def urljoin(*args):
+    """
+    Joins given arguments into an url. Trailing but not leading slashes are
+    stripped for each argument.
+    """
+
+    
+class RedcapProject(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    project_id = db.Column(db.Integer, nullable=False)
+    redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
+    redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
+    study_id = db.Column(db.Integer, db.ForeignKey(Study.id))
+    study = db.relationship(Study, backref=db.backref("redcap_projects"))
+    participant_import_strategy_id =  db.Column(db.Integer, db.ForeignKey(ParticipantImportStrategy.id), nullable=True)
+    participant_import_strategy = db.relationship(ParticipantImportStrategy, backref=db.backref("redcap_projects"))
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def __repr__(self):
+        return f'<Project: "{self.name}" from instance "{self.redcap_instance.name}">'
+
+    def __str__(self):
+        return self.name
+
+    def get_link(self, record_id):
+        return "/".join(map(lambda x: str(x).rstrip('/'), [
+            self.redcap_instance.base_url,
+            f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
+        ))
+
+
+ecrf_details__participant_identifiers = db.Table(
+    'ecrf_details__participant_identifiers',
+    db.Column(
+        'ecrf_detail_id',
+        db.Integer(),
+        db.ForeignKey('ecrf_detail.id'),
+        primary_key=True,
+    ),
+    db.Column(
+        'participant_identifier_id',
+        db.Integer(),
+        db.ForeignKey('participant_identifier.id'),
+        primary_key=True,
+    ),
+)
+
+
+class EcrfDetail(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    redcap_project_id = db.Column(db.Integer, db.ForeignKey(RedcapProject.id), nullable=False)
+    redcap_project = db.relationship(RedcapProject, backref=db.backref("details"))
+
+    ecrf_participant_identifier = db.Column(db.String(100))
+    recruitment_date = db.Column(db.Date)
+    first_name = db.Column(db.String(100))
+    last_name = db.Column(db.String(100))
+    sex = db.Column(db.String(1))
+    postcode = db.Column(db.String(10))
+    birth_date = db.Column(db.Date)
+    complete_or_expected = db.Column(db.Boolean)
+    non_completion_reason = db.Column(db.String(10))
+    withdrawal_date = db.Column(db.Date)
+    post_withdrawal_keep_samples = db.Column(db.Boolean)
+    post_withdrawal_keep_data = db.Column(db.Boolean)
+    brc_opt_out = db.Column(db.Boolean)
+    ecrf_timestamp = db.Column(db.BigInteger)
+
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    identifiers = db.relationship(
+        "ParticipantIdentifier",
+        secondary=ecrf_details__participant_identifiers,
+        collection_class=set,
+        backref=db.backref("ecrf_details", lazy="dynamic")
+    )
+
+    def __str__(self):
+        return self.ecrf_participant_identifier

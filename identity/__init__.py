@@ -15,7 +15,7 @@ from .setup import import_ids, create_base_data
 from .utils import ReverseProxied
 from .celery import init_celery, celery
 from .config import BaseConfig
-from .redcap_import import init_redcap_import
+from .redcap import init_redcap
 
 def create_app(config=BaseConfig):
     app = Flask(__name__)
@@ -33,7 +33,7 @@ def create_app(config=BaseConfig):
         init_admin(app)
         init_printing(app)
         init_celery(app)
-        init_redcap_import(app)
+        init_redcap(app)
 
     app.register_blueprint(security_ui_blueprint)
     app.register_blueprint(ui_blueprint)

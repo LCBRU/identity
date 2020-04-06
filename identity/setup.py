@@ -18,7 +18,8 @@ from identity.model.id import (
     ParticipantIdentifierType,
 )
 from identity.utils import get_concrete_classes
-from identity.model import Study, RedcapInstance
+from identity.model import Study
+from identity.redcap.model import RedcapInstance
 from identity.security import get_system_user, get_admin_user
 from identity.printing.briccs import (
     ID_NAME_BRICCS_PARTICIPANT,
@@ -36,7 +37,7 @@ from identity.blinding.model import (
     BlindingType,
     Blinding,
 )
-from identity.redcap_import.model import ParticipantImportStrategy
+from identity.redcap.model import ParticipantImportStrategy
 
 
 PSEUDORANDOM_ID_PROVIDERS = {}
@@ -260,8 +261,8 @@ def create_participant_import_strategies(user):
 
     for x in get_concrete_classes(ParticipantImportStrategy):
 
-        if ParticipantImportStrategy.query.filter_by(type=x.__class__.__name__).count() == 0:
-            current_app.logger.info(f'Creating {x.__class__.__name__}')
+        if ParticipantImportStrategy.query.filter_by(type=x.type).count() == 0:
+            current_app.logger.info(f'Creating {x.type}')
 
             db.session.add(x)
 
