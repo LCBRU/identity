@@ -68,30 +68,15 @@ class ParticipantImportStrategy(db.Model):
 
         return self._fill_ecrf_details(participant_details, result)
 
-    def fill_identifiers(self, record, ecrf, user):
-        ecrf.identifiers.clear()
-
-        for id_type_name, identifier in self._get_identifier_type_fields().items():
-            if not record[identifier]:
-                continue
-
-            id_type = ParticipantIdentifierType.get_type(id_type_name)
-
-            i = ParticipantIdentifier.query.filter_by(
-                participant_identifier_type_id=id_type.id,
-                identifier=record[identifier].strip(),
-            ).one_or_none()
-
-            if i is None:
-                i = ParticipantIdentifier(
-                    participant_identifier_type_id=id_type.id,
-                    identifier=record[identifier].strip(),
-                    last_updated_by_user_id=user.id,
-                )
-            
-            current_app.logger.info(i)
-
-            ecrf.identifiers.add(i)
+    def extract_identifiers(self, participant_details):
+        return [
+            {
+                'type': type,
+                'identifier': participant_details[field].strip(),
+            }
+            for type, field in self._get_identifier_type_fields().items()
+            if (participant_details[field] or '').strip()
+        ]
     
     # Abstract Methods
 
@@ -151,6 +136,30 @@ class BriccsParticipantImportStrategy(ParticipantImportStrategy):
             ParticipantIdentifierType.__BRICCS_ID__: 'record',
             ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_number',
             ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_number',
+        }
+
+
+class PilotParticipantImportStrategy(ParticipantImportStrategy):
+    __mapper_args__ = {
+        "polymorphic_identity": 'Pilot Participant Import Strategy',
+    }
+
+    def _get_fields(self):
+        return [
+            'date_time_of_admission',
+            'sex',
+        ]
+    
+    def _fill_ecrf_details(self, record, ecrf):
+        ecrf.recruitment_date=parse(record['date_time_of_admission']) if record['date_time_of_admission'] else None
+        ecrf.sex=record['sex']
+
+        return ecrf
+
+    def _get_identifier_type_fields(self):
+        return {
+            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
+            ParticipantIdentifierType.__PILOT_ID__: 'record',
         }
 
 

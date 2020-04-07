@@ -342,12 +342,14 @@ class ParticipantIdentifierType(db.Model):
 
     __STUDY_PARTICIPANT_ID__ = 'study_participant_id'
     __BRICCS_ID__ = 'briccs_id'
+    __PILOT_ID__ = 'pilot_id'
     __NHS_NUMBER__ = 'nhs_number'
-    __UHL_SYSTEM_NUMBER__ = 'study_participant_id'
+    __UHL_SYSTEM_NUMBER__ = 'uhl_system_number'
 
     __TYPE_NAMES__ = [
         __STUDY_PARTICIPANT_ID__,
         __BRICCS_ID__,
+        __PILOT_ID__,
         __NHS_NUMBER__,
         __UHL_SYSTEM_NUMBER__,
     ]

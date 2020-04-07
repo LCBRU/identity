@@ -1,3 +1,4 @@
+from itertools import chain
 from dateutil.parser import parse
 from datetime import datetime
 from celery.schedules import crontab
@@ -6,14 +7,23 @@ from sqlalchemy.sql import text
 from sqlalchemy import func
 from identity.celery import celery
 from identity.database import redcap_engine, db
-from identity.redcap.model import RedcapInstance, RedcapProject, EcrfDetail
+from identity.redcap.model import (
+    RedcapInstance,
+    RedcapProject,
+    EcrfDetail,
+    BriccsParticipantImportStrategy,
+)
+from identity.model.id import (
+    ParticipantIdentifierType,
+    ParticipantIdentifier,
+)
 from identity.security import get_system_user
-from identity.redcap.model import BriccsParticipantImportStrategy
 from identity.utils import log_exception
 
 
 def init_redcap(app):
     pass
+
 
 @celery.on_after_configure.connect
 def setup_import_tasks(sender, **kwargs):
@@ -91,7 +101,10 @@ def import_new_participants():
     system_user = get_system_user()
 
     for p in RedcapProject.query.filter(RedcapProject.study_id != None, RedcapProject.participant_import_strategy_id != None).all():
-        _load_participants(p, system_user)
+        try:    
+            _load_participants(p, system_user)
+        except Exception as e:
+            log_exception(e)
 
     db.session.commit()
 
@@ -105,7 +118,9 @@ def _load_participants(project, system_user):
     current_app.logger.info(f'Project {project.name} previous timestamp: {max_timestamp}')
 
     with redcap_engine(project.redcap_instance.database_name) as conn:
-        imports = []
+        type_ids = {pt.name: pt.id for pt in ParticipantIdentifierType.query.all()}    
+        ecrfs = []
+        all_ids = {}
 
         for participant in conn.execute(
             text(project.participant_import_strategy.get_query()),
@@ -125,23 +140,33 @@ def _load_participants(project, system_user):
             ecrf.last_updated_by_user_id=system_user.id
             ecrf.last_updated_datetime=datetime.utcnow()
 
-            imports.append(ecrf)
-        
-        db.session.add_all(imports)
+            ecrf.identifiers.clear()
 
-        db.session.flush()
+            for id in project.participant_import_strategy.extract_identifiers(participant):
 
-        ids = []
+                idkey = frozenset(id.items())
 
-        for i in imports:
-            # Inline this function!
-            project.participant_import_strategy.fill_identifiers(participant, i, system_user)
-            ids.extend(ecrf.identifiers)
+                if idkey in all_ids:
+                    i = all_ids[idkey]
+                else:
+                    i = ParticipantIdentifier.query.filter_by(
+                        participant_identifier_type_id=type_ids[id['type']],
+                        identifier=id['identifier'],
+                    ).one_or_none()
 
-        db.session.add_all(ids)
-
-        db.session.flush()
-
-        db.session.add_all(imports)
+                    if i is None:
+                        i = ParticipantIdentifier(
+                            participant_identifier_type_id=type_ids[id['type']],
+                            identifier=id['identifier'],
+                            last_updated_by_user_id=system_user.id,
+                        )
+                    
+                    all_ids[idkey] = i
+                
+                ecrf.identifiers.add(i)
+            
+            ecrfs.append(ecrf)
+            
+        db.session.add_all(ecrfs)
 
     current_app.logger.info(f'_load_instance_participants: project="{project.name}" COMPLETED')

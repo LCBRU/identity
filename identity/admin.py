@@ -64,6 +64,15 @@ class RedcapInstanceView(CustomView):
 class RedcapProjectView(CustomView):
     form_columns = ["study", "redcap_instance", "project_id", "participant_import_strategy"]
 
+    form_args = {
+        'study': {
+            'query_factory': lambda: db.session.query(Study).order_by(Study.name),
+        },
+        'participant_import_strategy': {
+            'query_factory': lambda: db.session.query(ParticipantImportStrategy).order_by(ParticipantImportStrategy.type),
+        },
+    }
+
     def on_model_change(self, form, model, is_created):
         model.last_updated_datetime = datetime.datetime.utcnow()
         model.last_updated_by_user = current_user

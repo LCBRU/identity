@@ -41,6 +41,7 @@ from identity.redcap.model import ParticipantImportStrategy
 
 
 PSEUDORANDOM_ID_PROVIDERS = {}
+STUDIES = ['Pilot']
 
 
 def create_base_data():
@@ -314,7 +315,7 @@ def create_providers(user):
 def create_studies(user):
     current_app.logger.info(f'Creating Studies')
 
-    for study_name in set([x.__study_name__ for x in get_concrete_classes(LabelPack)]):
+    for study_name in set([x.__study_name__ for x in get_concrete_classes(LabelPack)] + STUDIES):
         study = Study.query.filter_by(name=study_name).first()
 
         if not study:
