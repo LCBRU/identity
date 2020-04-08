@@ -17,7 +17,7 @@
 {% endif %}
 
 <div class="row">
-    <div class="col-sm-6 col-md-7 col-xl-9">
+    <div class="col-md-7 col-lg-8 col-xl-9">
         <section>
             <h2>{{ study.name }}</h2>
 
@@ -33,7 +33,7 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-4">
+                                <div class="col-sm-12 col-lg-6">
                                     <h2>REDCap</h2>
                                     <ul>
                                         {% for rp in study.redcap_projects %}
@@ -41,7 +41,7 @@
                                         {% endfor %}
                                     </ul>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-sm-12 col-lg-6">
                                     <h2>Identifiers</h2>
                                     <ul>
                                     </ul>
@@ -53,12 +53,12 @@
         
             {% endif %}
         
-            {{ formhelper.render_pagination(participants, 'ui.study') }}
+            {{ formhelper.render_pagination(participants, 'ui.study', id=study.id) }}
       
 
         </section>                
     </div>
-    <div class="col-sm-6 col-md-5 col-xl-3">
+    <div class="col-md-5 col-lg-4 col-xl-3">
         {% if study.label_packs | length > 0 %}
 
             <div class="card study-card">

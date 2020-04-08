@@ -5,6 +5,7 @@ from celery.schedules import crontab
 from flask import current_app
 from sqlalchemy.sql import text
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 from identity.celery import celery
 from identity.database import redcap_engine, db
 from identity.redcap.model import (
@@ -100,11 +101,21 @@ def import_new_participants():
 
     system_user = get_system_user()
 
+    studies_changed = set()
+
     for p in RedcapProject.query.filter(RedcapProject.study_id != None, RedcapProject.participant_import_strategy_id != None).all():
         try:    
-            _load_participants(p, system_user)
+            # records_changed = _load_participants(p, system_user)
+            # if records_changed > 0:
+            #     studies_changed.add(p.study)
+
+            # Remove later
+            studies_changed.add(p.study)
         except Exception as e:
             log_exception(e)
+    
+    for s in studies_changed:
+        _define_study_participants(s, system_user)
 
     db.session.commit()
 
@@ -122,11 +133,15 @@ def _load_participants(project, system_user):
         ecrfs = []
         all_ids = {}
 
-        for participant in conn.execute(
+        participants = conn.execute(
             text(project.participant_import_strategy.get_query()),
             timestamp=max_timestamp or 0,
             project_id=project.project_id,
-        ):
+        )
+
+        rowcount = participants.rowcount
+
+        for participant in participants:
             ecrf = project.participant_import_strategy.fill_ecrf(
                 redcap_project=project,
                 participant_details=participant,
@@ -152,12 +167,14 @@ def _load_participants(project, system_user):
                     i = ParticipantIdentifier.query.filter_by(
                         participant_identifier_type_id=type_ids[id['type']],
                         identifier=id['identifier'],
+                        study_id=project.study_id,
                     ).one_or_none()
 
                     if i is None:
                         i = ParticipantIdentifier(
                             participant_identifier_type_id=type_ids[id['type']],
                             identifier=id['identifier'],
+                            study_id=project.study_id,
                             last_updated_by_user_id=system_user.id,
                         )
                     
@@ -169,4 +186,23 @@ def _load_participants(project, system_user):
             
         db.session.add_all(ecrfs)
 
-    current_app.logger.info(f'_load_instance_participants: project="{project.name}" COMPLETED')
+    current_app.logger.info(f'_load_instance_participants: project="{project.name}" imported {rowcount} records')
+
+    return rowcount
+
+
+def _define_study_participants(study, system_user):
+    # Need to check the SQL that's actually being run: n+1 hell I'm sure
+    current_app.logger.info(f'_define_study_participants: study="{study.name}"')
+    
+    for ecrf in EcrfDetail.query.join(EcrfDetail.redcap_project).options(
+        joinedload(EcrfDetail.identifiers).
+        joinedload(ParticipantIdentifier.ecrf_details)
+        ).filter_by(study_id=study.id).all():
+
+        linked_ecrfs = set(e for e in chain.from_iterable([i.ecrf_details for i in ecrf.identifiers]) if e != ecrf)
+
+        if len(linked_ecrfs) > 0:
+            current_app.logger.info(linked_ecrfs)
+
+

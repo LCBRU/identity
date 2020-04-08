@@ -249,7 +249,7 @@ class EcrfDetail(db.Model):
         "ParticipantIdentifier",
         secondary=ecrf_details__participant_identifiers,
         collection_class=set,
-        backref=db.backref("ecrf_details", lazy="dynamic")
+        backref=db.backref("ecrf_details")
     )
 
     def __str__(self):
