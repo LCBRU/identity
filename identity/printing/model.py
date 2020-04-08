@@ -6,7 +6,7 @@ from flask_login import current_user
 from ..database import db
 from identity.model.id import (
     Study,
-    LabelParticipantIdentifier,
+    ParticipantIdentifier,
     ParticipantIdentifierType,
 )
 from .printing_methods import (
@@ -88,16 +88,14 @@ class LabelPack(db.Model):
     def save_participant_id(self, participant_id):
         pit = ParticipantIdentifierType.get_study_participant_id()
 
-        lpi = LabelParticipantIdentifier.query.filter_by(
+        pi = ParticipantIdentifier.query.filter_by(
             participant_identifier_type_id=pit.id,
-            study_id=self.study_id,
             identifier=participant_id,
         ).one_or_none()
 
-        if lpi is None:
-            db.session.add(LabelParticipantIdentifier(
+        if pi is None:
+            db.session.add(ParticipantIdentifier(
                 participant_identifier_type_id=pit.id,
-                study_id=self.study_id,
                 identifier=participant_id,
                 last_updated_by_user_id=current_user.id,
             ))

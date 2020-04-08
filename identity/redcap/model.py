@@ -9,6 +9,7 @@ from identity.database import db
 from datetime import datetime
 from identity.database import db
 from identity.model import Study
+from identity.model.id import ParticipantIdentifierSource
 from identity.model.security import User
 
 
@@ -204,23 +205,6 @@ class RedcapProject(db.Model):
         ))
 
 
-ecrf_details__participant_identifiers = db.Table(
-    'ecrf_details__participant_identifiers',
-    db.Column(
-        'ecrf_detail_id',
-        db.Integer(),
-        db.ForeignKey('ecrf_detail.id'),
-        primary_key=True,
-    ),
-    db.Column(
-        'participant_identifier_id',
-        db.Integer(),
-        db.ForeignKey('participant_identifier.id'),
-        primary_key=True,
-    ),
-)
-
-
 class EcrfDetail(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     redcap_project_id = db.Column(db.Integer, db.ForeignKey(RedcapProject.id), nullable=False)
@@ -245,12 +229,17 @@ class EcrfDetail(db.Model):
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)
 
-    identifiers = db.relationship(
-        "ParticipantIdentifier",
-        secondary=ecrf_details__participant_identifiers,
-        collection_class=set,
-        backref=db.backref("ecrf_details")
-    )
-
     def __str__(self):
         return self.ecrf_participant_identifier
+
+
+class EcrfParticipantIdentifierSource(ParticipantIdentifierSource):
+    __tablename__ = 'ecrf_participant_identifier_source'
+
+    id = db.Column(db.Integer, db.ForeignKey('participant_identifier_source.id'), primary_key=True)
+    ecrf_detail_id = db.Column(db.Integer, db.ForeignKey(EcrfDetail.id), nullable=False)
+    ecrf_detail = db.relationship(EcrfDetail, backref=db.backref("ecrf_detail"))
+
+    __mapper_args__ = {
+        'polymorphic_identity':'ecrf_participant_identifier_source',
+    }

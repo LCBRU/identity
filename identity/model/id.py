@@ -375,6 +375,13 @@ class ParticipantIdentifierType(db.Model):
         return ParticipantIdentifierType.get_type(ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__)
 
 
+participant_identifiers__participant_identifier_sources = db.Table(
+    'participant_identifiers__participant_identifier_sources',
+    db.Column('participant_identifier_source_id', db.Integer(), db.ForeignKey('participant_identifier_source.id'), primary_key=True),
+    db.Column('participant_identifier_id', db.Integer(), db.ForeignKey('participant_identifier.id'), primary_key=True),
+)
+
+
 class ParticipantIdentifier(db.Model):
     __tablename__ = 'participant_identifier'
 
@@ -382,12 +389,25 @@ class ParticipantIdentifier(db.Model):
     identifier = db.Column(db.String(100), nullable=False)
     participant_identifier_type_id = db.Column(db.Integer, db.ForeignKey(ParticipantIdentifierType.id))
     participant_identifier_type = db.relationship(ParticipantIdentifierType)
+
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def __str__(self):
+        return f"{self.type.name}: {self.identifier}"
+
+
+class ParticipantIdentifierSource(db.Model):
+    __tablename__ = 'participant_identifier_source'
+
+    id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(100), nullable=False)
     study_id = db.Column(db.Integer, db.ForeignKey(Study.id), nullable=True)
-    study = db.relationship(Study, backref=db.backref("participant_identifiers"))
+    study = db.relationship(Study, backref=db.backref("participant_identifier_sources"))
 
     __mapper_args__ = {
-        'polymorphic_identity':'participant_identifier',
+        'polymorphic_identity':'participant_identifier_source',
         'polymorphic_on':type,
     }
 
@@ -399,9 +419,11 @@ class ParticipantIdentifier(db.Model):
         return f"{self.type.name}: {self.identifier}"
 
 
-class LabelParticipantIdentifier(ParticipantIdentifier):
-    id = db.Column(db.Integer, db.ForeignKey('participant_identifier.id'), primary_key=True)
+class LabelParticipantIdentifierSource(ParticipantIdentifierSource):
+    __tablename__ = 'label_participant_identifier_source'
+
+    id = db.Column(db.Integer, db.ForeignKey('participant_identifier_source.id'), primary_key=True)
 
     __mapper_args__ = {
-        'polymorphic_identity':'label_participant_identifier',
+        'polymorphic_identity':'label_participant_identifier_source',
     }

@@ -193,16 +193,25 @@ def _load_participants(project, system_user):
 
 def _define_study_participants(study, system_user):
     # Need to check the SQL that's actually being run: n+1 hell I'm sure
-    current_app.logger.info(f'_define_study_participants: study="{study.name}"')
+    current_app.logger.info(f'_define_study_participants: study="{study.id}"')
     
-    for ecrf in EcrfDetail.query.join(EcrfDetail.redcap_project).options(
-        joinedload(EcrfDetail.identifiers).
-        joinedload(ParticipantIdentifier.ecrf_details)
-        ).filter_by(study_id=study.id).all():
+    # for ecrf in EcrfDetail.query.join(EcrfDetail.redcap_project).options(
+    #     joinedload(EcrfDetail.identifiers).
+    #     joinedload(ParticipantIdentifier.ecrf_details)
+    #     ).filter_by(study_id=study.id).all():
 
-        linked_ecrfs = set(e for e in chain.from_iterable([i.ecrf_details for i in ecrf.identifiers]) if e != ecrf)
+    #     linked_ecrfs = set(e for e in chain.from_iterable([i.ecrf_details for i in ecrf.identifiers]) if e != ecrf)
+        
+    #     linked_study_participants = set(
+    #         e.study_participant for e in linked_ecrfs
+    #         if e.study_participant is not None and
+    #         e.study_participant != ecrf.study_participant
+    #     )
 
-        if len(linked_ecrfs) > 0:
-            current_app.logger.info(linked_ecrfs)
+    #     if len(linked_ecrfs) > 0:
+    #         current_app.logger.info(linked_ecrfs)
+    #         current_app.logger.info(linked_study_participants)
 
 
+    for i in ParticipantIdentifier.query.filter_by(study_id=study.id).all():
+        current_app.logger.info(i.identifier)

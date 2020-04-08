@@ -23,7 +23,7 @@ from identity.printing.predict import PredictPack
 from identity.printing.preeclampsia import PreeclampsiaPack
 from identity.printing.scad import ScadBloodOnlyPack, ScadFamilyPack, ScadPack, ScadRegistryPack
 from identity.printing.spiral import SpiralPack
-from identity.model.id import LabelParticipantIdentifier, ParticipantIdentifierType
+from identity.model.id import ParticipantIdentifier, ParticipantIdentifierType
 from tests import login
 
 
@@ -74,9 +74,8 @@ def assert_calls_data(test_name, calls):
 
 def assert_id_saved(pack, id, user):
     pit = ParticipantIdentifierType.get_study_participant_id()
-    assert LabelParticipantIdentifier.query.filter_by(
+    assert ParticipantIdentifier.query.filter_by(
         participant_identifier_type_id=pit.id,
-        study_id=pack.study_id,
         identifier=id,
         last_updated_by_user_id=user.id,
     ).one_or_none() is not None
@@ -124,9 +123,8 @@ def test__pack__print(client, faker, mock_print_label, mock_datetime, PackClass,
         # Only check if a record has been created because we can't know what the
         # participant ID will be in these cases
         pit = ParticipantIdentifierType.get_study_participant_id()
-        assert LabelParticipantIdentifier.query.filter_by(
+        assert ParticipantIdentifier.query.filter_by(
             participant_identifier_type_id=pit.id,
-            study_id=t.study_id,
             last_updated_by_user_id=u.id,
         ).one_or_none() is not None
 

@@ -12,8 +12,8 @@ from flask import (
 from flask_login import current_user
 from .. import blueprint, db
 from identity.blinding.model import BlindingSet, Blinding
-from identity.model import Study
-from identity.model.id import PseudoRandomId, ParticipantIdentifier
+from identity.model import Study, StudyParticipant
+from identity.model.id import PseudoRandomId
 from ..forms import BlindingForm, UnblindingForm
 from ..decorators import assert_study_user
 
@@ -92,9 +92,7 @@ def study(id, page=1):
         blinding_form.blinding_set_id.choices = [(s.id, s.name) for s in sorted(study.blinding_sets, key=lambda s: s.name)]
         unblinding_form = UnblindingForm()
 
-    participants = ParticipantIdentifier.query.filter_by(study_id=id).order_by(
-        ParticipantIdentifier.identifier,
-    ).paginate(
+    participants = StudyParticipant.query.filter_by(study_id=id).paginate(
         page=page,
         per_page=10,
         error_out=False,
