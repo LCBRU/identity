@@ -12,6 +12,7 @@ from identity.redcap.model import (
     RedcapInstance,
     RedcapProject,
     EcrfDetail,
+    EcrfParticipantIdentifierSource,
     BriccsParticipantImportStrategy,
 )
 from identity.model.id import (
@@ -35,13 +36,13 @@ def setup_import_tasks(sender, **kwargs):
         ),
         import_project_details.s(),
     )
-    sender.add_periodic_task(
-        crontab(
-            minute=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_MINUTE'],
-            hour=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_HOUR'],
-        ),
-        import_new_participants.s(),
-    )
+    # sender.add_periodic_task(
+    #     crontab(
+    #         minute=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_MINUTE'],
+    #         hour=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_HOUR'],
+    #     ),
+    #     import_new_participants.s(),
+    # )
 
 
 @celery.task
@@ -104,13 +105,15 @@ def import_new_participants():
     studies_changed = set()
 
     for p in RedcapProject.query.filter(RedcapProject.study_id != None, RedcapProject.participant_import_strategy_id != None).all():
-        try:    
-            # records_changed = _load_participants(p, system_user)
+        try:
+            records_changed = _load_participants(p, system_user)
             # if records_changed > 0:
             #     studies_changed.add(p.study)
 
             # Remove later
+            current_app.logger.info('Hello')
             studies_changed.add(p.study)
+            current_app.logger.info('Goodbye')
         except Exception as e:
             log_exception(e)
     
@@ -155,32 +158,7 @@ def _load_participants(project, system_user):
             ecrf.last_updated_by_user_id=system_user.id
             ecrf.last_updated_datetime=datetime.utcnow()
 
-            ecrf.identifiers.clear()
-
-            for id in project.participant_import_strategy.extract_identifiers(participant):
-
-                idkey = frozenset(id.items())
-
-                if idkey in all_ids:
-                    i = all_ids[idkey]
-                else:
-                    i = ParticipantIdentifier.query.filter_by(
-                        participant_identifier_type_id=type_ids[id['type']],
-                        identifier=id['identifier'],
-                        study_id=project.study_id,
-                    ).one_or_none()
-
-                    if i is None:
-                        i = ParticipantIdentifier(
-                            participant_identifier_type_id=type_ids[id['type']],
-                            identifier=id['identifier'],
-                            study_id=project.study_id,
-                            last_updated_by_user_id=system_user.id,
-                        )
-                    
-                    all_ids[idkey] = i
-                
-                ecrf.identifiers.add(i)
+            add_identifiers(ecrf, project, all_ids, participant, type_ids, system_user)
             
             ecrfs.append(ecrf)
             
@@ -190,6 +168,35 @@ def _load_participants(project, system_user):
 
     return rowcount
 
+
+def add_identifiers(ecrf, project, all_ids, participant, type_ids, system_user):
+
+    ecrf.identifiers.clear()
+
+    for id in project.participant_import_strategy.extract_identifiers(participant):
+
+        idkey = frozenset(id.items())
+
+        if idkey in all_ids:
+            i = all_ids[idkey]
+        else:
+            i = ParticipantIdentifier.query.filter_by(
+                participant_identifier_type_id=type_ids[id['type']],
+                identifier=id['identifier'],
+                study_id=project.study_id,
+            ).one_or_none()
+
+            if i is None:
+                i = ParticipantIdentifier(
+                    participant_identifier_type_id=type_ids[id['type']],
+                    identifier=id['identifier'],
+                    study_id=project.study_id,
+                    last_updated_by_user_id=system_user.id,
+                )
+            
+            all_ids[idkey] = i
+        
+        ecrf.identifiers.add(i)
 
 def _define_study_participants(study, system_user):
     # Need to check the SQL that's actually being run: n+1 hell I'm sure
@@ -213,5 +220,5 @@ def _define_study_participants(study, system_user):
     #         current_app.logger.info(linked_study_participants)
 
 
-    for i in ParticipantIdentifier.query.filter_by(study_id=study.id).all():
-        current_app.logger.info(i.identifier)
+    # for i in ParticipantIdentifier.query.filter_by(study_id=study.id).all():
+    #     current_app.logger.info(i.identifier)
