@@ -4,6 +4,7 @@ import logging
 from flask import Flask
 from .ui import blueprint as ui_blueprint
 from .security_ui import blueprint as security_ui_blueprint
+from .api import blueprint as api_blueprint
 from .database import db
 from .template_filters import init_template_filters
 from .standard_views import init_standard_views
@@ -17,11 +18,14 @@ from .celery import init_celery, celery
 from .config import BaseConfig
 from .redcap import init_redcap
 
+
 def create_app(config=BaseConfig):
     app = Flask(__name__)
     app.wsgi_app = ReverseProxied(app.wsgi_app)
     app.config.from_object(config)
     app.config.from_pyfile("application.cfg", silent=True)
+
+    app.logger.info('Flask app created')
 
     with app.app_context():
         app.logger.setLevel(logging.INFO)
@@ -37,6 +41,8 @@ def create_app(config=BaseConfig):
 
     app.register_blueprint(security_ui_blueprint)
     app.register_blueprint(ui_blueprint)
+    app.register_blueprint(api_blueprint, url_prefix='/api')
+
 
     @app.before_first_request
     def init_data():

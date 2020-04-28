@@ -12,6 +12,20 @@ def init_standard_views(app):
             mimetype="image/vnd.microsoft.icon",
         )
 
+    @app.errorhandler(400)
+    def missing_page(exception):
+        """Catch internal 404 errors, display
+            a nice error page and log the error.
+        """
+        return render_template("404.html"), 400
+
+    @app.errorhandler(401)
+    def missing_page(exception):
+        """Catch internal 404 errors, display
+            a nice error page and log the error.
+        """
+        return render_template("404.html"), 401
+
     @app.errorhandler(404)
     def missing_page(exception):
         """Catch internal 404 errors, display

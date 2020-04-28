@@ -21,3 +21,5 @@ Werkzeug==0.16.1
 xlrd
 xlwt
 xlutils
+flask-inputs
+jsonschema
