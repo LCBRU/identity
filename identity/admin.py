@@ -9,6 +9,7 @@ from identity.model.security import (
     Role,
 )
 from identity.model import Study
+from identity.api.model import ApiKey
 from identity.redcap.model import (
     RedcapInstance,
     RedcapProject,
@@ -78,8 +79,19 @@ class RedcapProjectView(CustomView):
         model.last_updated_by_user = current_user
 
 
+class ApiKeyView(CustomView):
+    form_columns = ["user"]
+
+    form_args = {
+        'user': {
+            'query_factory': lambda: db.session.query(User),
+        },
+    }
+
+
 def init_admin(app):
     flask_admin = admin.Admin(app, name="Leicester BRC Identity", url="/admin")
+    flask_admin.add_view(ApiKeyView(ApiKey, db.session))
     flask_admin.add_view(UserView(User, db.session))
     flask_admin.add_view(StudyView(Study, db.session))
     flask_admin.add_view(RedcapInstanceView(RedcapInstance, db.session))
