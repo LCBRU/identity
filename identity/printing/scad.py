@@ -1,3 +1,4 @@
+from flask import current_app
 from flask_login import current_user
 from identity.model.id import (
     PseudoRandomIdProvider,
@@ -59,6 +60,8 @@ class ScadPack(LabelPack):
         sample_id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first()
 
         self.save_participant_id(participant_id)
+
+        current_app.logger.error(f'Print for {participant_id}')
 
         bag_context = BagContext(
             printer=PRINTER_BRU_CRF_BAG,

@@ -252,30 +252,43 @@ class PseudoRandomIdProvider(db.Model):
         numerified = sum([ord(x) * i for i, x in enumerate(id)])
 
         return "ABCDEFGHJKLMNPQRSTVWXYZ"[numerified % 23]
+    
+    def _create_pseudo_id(self, ordinal, user):
+        unique_code = self._create_unique_id(ordinal)
+        formatted_code = "{}{:0>7d}".format(self.prefix, unique_code)
+        check_character = self._get_checkdigit(formatted_code)
+        full_code = formatted_code + check_character
+
+        return PseudoRandomId(
+            pseudo_random_id_provider_id=self.id,
+            ordinal=ordinal,
+            unique_code=unique_code,
+            check_character=check_character,
+            full_code=full_code,
+            last_updated_by_user_id=user.id,
+        )
+
 
     def allocate_id(self, user):
-        return self.allocate_ids(1, user)[0]
+        previous_ordinal = db.session.query(db.func.max(PseudoRandomId.ordinal)).scalar() or 0
+        result = self._create_pseudo_id(previous_ordinal + 1, user)
+        db.session.add(result)
+
+        return result
 
     def allocate_ids(self, count, user):
+        # Bulk inserts objects for speed that does not populate
+        # the object ID, so may cause problems if the object is
+        # used later on.
+
         result = []
         previous_ordinal = db.session.query(db.func.max(PseudoRandomId.ordinal)).scalar() or 0
 
         for ordinal in range(previous_ordinal + 1, previous_ordinal + count + 1):
-            unique_code = self._create_unique_id(ordinal)
-            formatted_code = "{}{:0>7d}".format(self.prefix, unique_code)
-            check_character = self._get_checkdigit(formatted_code)
-            full_code = formatted_code + check_character
-
-            result.append(PseudoRandomId(
-                pseudo_random_id_provider_id=self.id,
-                ordinal=ordinal,
-                unique_code=unique_code,
-                check_character=check_character,
-                full_code=full_code,
-                last_updated_by_user_id=user.id,
-            ))
+            result.append(self._create_pseudo_id(ordinal, user))
 
         db.session.bulk_save_objects(result)
+        db.session.commit()
         
         return result
 

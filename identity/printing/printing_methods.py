@@ -96,7 +96,8 @@ _CODE_END = '^XZ'
 
 def print_label(host, printer_code, port=9100):
     if current_app.config['TESTING']:
-        current_app.logger.info(f'Printing {printer_code} to host {host}')
+        #current_app.logger.info(f'Fake print of {printer_code} to host {host}')
+        current_app.logger.info(f'.')
     else:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((current_app.config[host], port))

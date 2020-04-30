@@ -40,6 +40,33 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
+    <!-- Lock Screen Dialog Simple-->
+    <div class="modal fade" id="uploadProgressModalSimple" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="uploadProgressModalSimple" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="uploadProgressModalLabel">Please wait...</h5>
+              </div>
+              <div class="modal-body">
+                  <div class="loader"></div>
+              </div>
+          </div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      $(function () {
+          $('.lock_screen').click(function(){
+            $('#uploadProgressModalSimple').modal('show');
+          });
+          $(function () {
+            $('form').not('.no_lock').submit(function(){
+              $('#uploadProgressModalSimple').modal('show');
+            });
+        });
+      });
+    </script>
+
     {% block js %}{% endblock %}
 
   </body>
