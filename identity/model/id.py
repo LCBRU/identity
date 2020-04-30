@@ -267,15 +267,15 @@ class PseudoRandomIdProvider(db.Model):
             full_code = formatted_code + check_character
 
             result.append(PseudoRandomId(
-                pseudo_random_id_provider=self,
+                pseudo_random_id_provider_id=self.id,
                 ordinal=ordinal,
                 unique_code=unique_code,
                 check_character=check_character,
                 full_code=full_code,
-                last_updated_by_user=user,
+                last_updated_by_user_id=user.id,
             ))
 
-        db.session.add_all(result)
+        db.session.bulk_save_objects(result)
         
         return result
 

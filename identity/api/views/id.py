@@ -24,6 +24,8 @@ def create_pseudorandom_ids():
 
     results = id_provider.allocate_ids(request.json.get('id_count'), api_key.user)
 
+    barcodes = [r.barcode for r in results]
+
     db.session.commit()
 
-    return jsonify({'ids': [r.barcode for r in results ]}), 201
+    return jsonify({'ids': barcodes}), 201
