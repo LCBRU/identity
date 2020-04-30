@@ -254,32 +254,29 @@ class PseudoRandomIdProvider(db.Model):
         return "ABCDEFGHJKLMNPQRSTVWXYZ"[numerified % 23]
 
     def allocate_id(self, user):
-        previous_ordinal = db.session.query(db.func.max(PseudoRandomId.ordinal)).scalar() or 0
-        this_ordinal = previous_ordinal + 1
-
-        unique_code = self._create_unique_id(this_ordinal)
-        formatted_code = "{}{:0>7d}".format(self.prefix, unique_code)
-        check_character = self._get_checkdigit(formatted_code)
-        full_code = formatted_code + check_character
-
-        new_id = PseudoRandomId(
-            pseudo_random_id_provider = self,
-            ordinal = this_ordinal,
-            unique_code = unique_code,
-            check_character = check_character,
-            full_code = full_code,
-            last_updated_by_user = user,
-        )
-
-        db.session.add(new_id)
-        
-        return new_id
+        return self.allocate_ids(1, user)[0]
 
     def allocate_ids(self, count, user):
         result = []
-        for _ in range(count):
-            result.append(self.allocate_id(user))
+        previous_ordinal = db.session.query(db.func.max(PseudoRandomId.ordinal)).scalar() or 0
 
+        for ordinal in range(previous_ordinal + 1, previous_ordinal + count + 1):
+            unique_code = self._create_unique_id(ordinal)
+            formatted_code = "{}{:0>7d}".format(self.prefix, unique_code)
+            check_character = self._get_checkdigit(formatted_code)
+            full_code = formatted_code + check_character
+
+            result.append(PseudoRandomId(
+                pseudo_random_id_provider=self,
+                ordinal=ordinal,
+                unique_code=unique_code,
+                check_character=check_character,
+                full_code=full_code,
+                last_updated_by_user=user,
+            ))
+
+        db.session.add_all(result)
+        
         return result
 
     
