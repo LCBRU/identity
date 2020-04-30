@@ -41,7 +41,7 @@ from identity.redcap.model import ParticipantImportStrategy
 
 
 PSEUDORANDOM_ID_PROVIDERS = {}
-STUDIES = ['Pilot']
+STUDIES = ['Pilot', 'HIC Covid 19']
 
 
 def create_base_data():

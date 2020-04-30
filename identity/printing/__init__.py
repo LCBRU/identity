@@ -11,6 +11,7 @@ from .discordance import *
 from .elastic_as import *
 from .fast import *
 from .go_dcm import *
+from .hic_covid import *
 from .indapamide import *
 from .lenten import *
 from .limb import *
