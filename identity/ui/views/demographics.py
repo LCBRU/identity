@@ -306,9 +306,6 @@ def demographics_download_result(id):
 def demographics_download_request(id):
     dr = DemographicsRequest.query.get_or_404(id)
 
-    if not dr.result_created:
-        abort(404)
-
     dr.result_downloaded_datetime = datetime.utcnow()
     db.session.add(dr)
     db.session.commit()
