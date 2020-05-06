@@ -85,6 +85,8 @@ def convert_dob(dob):
 
     if is_invalid_dob(parsed_dob):
         return 'Date out of range', ''
+    elif parsed_dob is None:
+        return None, ''
     else:
         return None, parsed_dob.strftime("%Y%m%d")
 
