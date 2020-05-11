@@ -47,10 +47,10 @@ class User(db.Model, UserMixin):
     created_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     studies = db.relationship(
-        "Study", secondary=users_studies, collection_class=set, backref=db.backref("users", lazy="dynamic")
+        "Study", secondary=users_studies, collection_class=set, backref=db.backref("users", lazy="joined")
     )
     roles = db.relationship(
-        "Role", secondary=roles_users, collection_class=set, backref=db.backref("users", lazy="dynamic")
+        "Role", secondary=roles_users, collection_class=set, backref=db.backref("users", lazy="joined")
     )
 
     @property
