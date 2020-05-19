@@ -15,6 +15,8 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from ..database import db
 from identity.model.security import User
+from identity.string_comparisons import similarity
+
 
 # Statuses:
 #
@@ -335,6 +337,7 @@ class DemographicsRequestXlsx(DemographicsRequest):
             'pmi_dob',
             'pmi_date_of_death',
             'pmi_postcode',
+            'confidence',
             'spine_message',
         ]
 
@@ -372,7 +375,8 @@ class DemographicsRequestXlsx(DemographicsRequest):
                     ws.cell(row=row, column=insert_col + 18).value = pmi_data.date_of_death
                     ws.cell(row=row, column=insert_col + 19).value = pmi_data.postcode
 
-            ws.cell(row=row, column=insert_col + 20).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages])
+            ws.cell(row=row, column=insert_col + 20).value = d.confidence
+            ws.cell(row=row, column=insert_col + 21).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages])
 
         wb.save(filename=self.result_filepath)
 
@@ -449,6 +453,7 @@ class DemographicsRequestExcel97(DemographicsRequest):
             'pmi_dob',
             'pmi_date_of_death',
             'pmi_postcode',
+            'confidence',
             'spine_message',
         ]
 
@@ -485,7 +490,8 @@ class DemographicsRequestExcel97(DemographicsRequest):
                     w_sheet.write(row, insert_col + 18, pmi_data.date_of_death, style)
                     w_sheet.write(row, insert_col + 19, pmi_data.postcode)
 
-            w_sheet.write(row, insert_col + 20, '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages]))
+            w_sheet.write(row, insert_col + 20, d.confidence)
+            w_sheet.write(row, insert_col + 21, '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages]))
 
         w_book.save(self.result_filepath)
 
@@ -546,6 +552,7 @@ class DemographicsRequestCsv(DemographicsRequest):
                 'pmi_dob',
                 'pmi_date_of_death',
                 'pmi_postcode',
+                'confidence',
                 'spine_message',
             ])
 
@@ -580,6 +587,7 @@ class DemographicsRequestCsv(DemographicsRequest):
                         row['spine_date_of_death'] = response.date_of_death.strftime('%d-%b-%Y')
                     row['spine_is_deceased'] = 'True' if response.is_deceased else 'False'
                     row['spine_current_gp_practice_code'] = response.current_gp_practice_code
+                    row['confidence'] = indexed_data[i].confidence
 
                 if pmi_data is not None:
                     row['pmi_nhs_number'] = pmi_data.nhs_number
@@ -689,10 +697,28 @@ class DemographicsRequestData(db.Model):
     def has_error(self):
         return any(m.is_error for m in self.messages)
 
-
     @property
     def has_error(self):
         return any(m.is_error for m in self.messages)
+
+    @property
+    def confidence(self):
+        if self.response is None:
+            return 0
+        
+        parts = []
+
+        if self.nhs_number:
+            parts.append(similarity(self.nhs_number, self.response.nhs_number))
+        if self.family_name:
+            parts.append(similarity(self.family_name, self.response.lastname))
+        if self.given_name:
+            parts.append(similarity(self.given_name, self.response.forename))
+        if self.postcode:
+            parts.append(similarity(self.postcode, self.response.postcode))
+
+        return round(sum(parts) / len(parts), 2)
+
     
     def __repr__(self):
         fields = '; '.join([f'{key}="{value}"' for key, value in self.__dict__.items() if key[0] != '_' ])
