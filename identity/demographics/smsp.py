@@ -212,11 +212,6 @@ def get_demographics_from_search(family_name, given_name, gender, dob, postcode)
 
     client = _get_demographics_client()
 
-    if gender:
-        genders = [gender]
-    else:
-        genders = [SMSP_SEX_FEMALE, SMSP_SEX_MALE]
-
     if postcode:
         postcodes = [postcode, '']
     else:
@@ -227,30 +222,25 @@ def get_demographics_from_search(family_name, given_name, gender, dob, postcode)
     else:
         given_names = ['']
 
+    response = None
+
     for gn in given_names:
         for p in postcodes:
 
-            responses = []
+            response = client.service.getPatientBySearch(
+                familyName=family_name,
+                givenName=gn,
+                gender=gender,
+                dob=dob,
+                postcode=p,
+            )
 
-            for gen in genders:
-                responses.append(client.service.getPatientBySearch(
-                    familyName=family_name,
-                    givenName=gn,
-                    gender=gen,
-                    dob=dob,
-                    postcode=p,
-                ))
-
-            ok_responses = [r for r in responses if r.responseCode == _SMSP_OK]
-            if len(ok_responses) > 1:
-                raise SmspMultipleMatchesException()
-
-            if len(ok_responses) == 1:
-                return SmspPatient(ok_responses[0].nhsNumber, ok_responses[0].subject._value_1[0])
+            if response.responseCode == _SMSP_OK:
+                return SmspPatient(response.nhsNumber, response.subject._value_1[0])
             
             time.sleep(1)
 
-    raise _SMSP_EXCEPTIONS[responses[0].responseCode]()
+    raise _SMSP_EXCEPTIONS[response.responseCode]()
 
 
 def get_demographics_from_nhs_number(nhs_number, dob):

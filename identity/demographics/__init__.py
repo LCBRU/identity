@@ -90,7 +90,7 @@ class SpineParameters:
 
     @property
     def valid_search_lookup_parameters(self):
-        return self.dob
+        return self.dob and self.gender
     
     def add_warning(self, scope, message, message_type='warning', source='validation'):
         self.warnings.append(SpineParameters.Warning(scope=scope, message=message, message_type=message_type, source=source))

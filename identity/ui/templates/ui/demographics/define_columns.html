@@ -1,5 +1,6 @@
 {% extends "_base.html" %}
 {% import "_formHelpers.html" as formhelper %}
+{% import "ui/demographics/help.html" as help %}
 
 {% block content %}
 
@@ -38,60 +39,6 @@
     </div>
 </div>
 
-<!-- Participant File Help dialog-->
-<div class="modal fade" id="help_modal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h3 class="modal-title">Column Definitions</h3>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            </div>
-            <div class="modal-body">
-                <h4>Demographics Matching Requirements</h4>
-                <p>
-                    There are two methods that can be used to match
-                    the demographics supplied to an individual patient.
-                    Each method for matching requires a different
-                    set of data.
-                </p>
-                
-                <h4>NHS Number Matching</h4>
-                <p>
-                    File should contain an NHS number and a date of birth.
-                    Participants without correct values for both of these
-                    fields will not be successfully matched.
-                </p>
-    
-                <h4>UHL System Number Matching</h4>
-                <p>
-                    File should contain a UHL System number.
-                    Participants without a correct value for this
-                    field will not be successfully matched.
-                </p>
-    
-                <h4>Demographics Matching</h4>
-                <p>
-                    File should contain as many of the following
-                    information as possible:
-                </p>
-                <ul>
-                    <li>First name</li>
-                    <li>Last name</li>
-                    <li>Date of Birth</li>
-                    <li>Sex</li>
-                    <li>Post Code</li>
-                </ul>
-                <p>
-                    Particpants without enough information, or
-                    whose details match multiple people, will
-                    not be successfully matched.
-                </p>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-          </div>
-        </div>
-    </div>
-      
-    {% endblock %}
+{{ help.columns() }}
+
+{% endblock %}

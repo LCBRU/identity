@@ -1,5 +1,6 @@
 {% extends "_base.html" %}
 {% import "_formHelpers.html" as formhelper %}
+{% import "ui/demographics/help.html" as help %}
 
 {% block content %}
 
@@ -75,60 +76,8 @@
     </div>
 </div>
 
-<!-- Participant File Help dialog-->
-<div class="modal fade" id="help_modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">Participant File Format</h3>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        </div>
-        <div class="modal-body">
-            <h4>File Type</h4>
-            <p>
-                The participant file must be in CSV or Excel ('.xslx' only) format with
-                unique column names in the first row.
-            </p>
+{{ help.columns() }}
 
-            <h4>NHS Number Matching</h4>
-            <p>
-                File should contain an NHS number and a date of birth.
-                Participants without correct values for both of these
-                fields will not be successfully matched.
-            </p>
-
-            <h4>UHL System Number Matching</h4>
-            <p>
-                File should contain a UHL System number.
-                Participants without a correct value for this
-                field will not be successfully matched.
-            </p>
-
-            <h4>Demographics Matching</h4>
-            <p>
-                File should contain as many of the following
-                information as possible:
-            </p>
-            <ul>
-                <li>First name</li>
-                <li>Last name</li>
-                <li>Date of Birth</li>
-                <li>Sex</li>
-                <li>Post Code</li>
-            </ul>
-            <p>
-                Particpants without enough information, or
-                whose details match multiple people, will
-                not be successfully matched.
-            </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-</div>
-  
 <!-- Upload Progress Dialog Simple-->
 <div class="modal fade" id="uploadProgressModalSimple" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="uploadProgressModalSimple" aria-hidden="true">
     <div class="modal-dialog" role="document">
