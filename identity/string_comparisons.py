@@ -1,7 +1,7 @@
 from flask import current_app
 from functools import lru_cache
 
-@lru_cache(maxsize=500, typed=False)
+@lru_cache(maxsize=100, typed=False)
 def levenshtein_distance(string_a, string_b):
     if string_a == "":
         return len(string_b)
