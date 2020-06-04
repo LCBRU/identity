@@ -715,20 +715,28 @@ class DemographicsRequestData(db.Model):
 
     @property
     def confidence(self):
+        current_app.logger.info('DemographicsRequestData.confidence: started')
         if self.response is None:
+            current_app.logger.info('DemographicsRequestData.confidence: no response')
             return 0
         
         parts = []
 
+        current_app.logger.info('DemographicsRequestData.confidence: finding simlarities')
         if self.nhs_number:
+            current_app.logger.info('DemographicsRequestData.confidence: calculating NHS Similarities')
             parts.append(similarity(self.nhs_number, self.response.nhs_number))
         if self.family_name:
+            current_app.logger.info('DemographicsRequestData.confidence: calculating family name simlarities')
             parts.append(similarity(self.family_name, self.response.lastname))
         if self.given_name:
+            current_app.logger.info('DemographicsRequestData.confidence: calculating given_name simlarities')
             parts.append(similarity(self.given_name, self.response.forename))
         if self.postcode:
+            current_app.logger.info('DemographicsRequestData.confidence: calculating postcode simlarities')
             parts.append(similarity(self.postcode, self.response.postcode))
 
+        current_app.logger.info('DemographicsRequestData.confidence: calculating average')
         return round(sum(parts) / len(parts), 2)
 
     
