@@ -340,14 +340,10 @@ def produce_demographics_result(demographics_request_id):
         current_app.logger.info(f'produce_demographics_result: Creating result')
         dr.create_result()
 
-        current_app.logger.info(f'produce_demographics_result: Setting date from: {dr.result_created_datetime}')
         dr.result_created_datetime = datetime.utcnow()
-        current_app.logger.info(f'produce_demographics_result: Set date to: {dr.result_created_datetime}')
 
-        current_app.logger.info('produce_demographics_result: Saving DR')
         db.session.add(dr)
 
-        current_app.logger.info('produce_demographics_result: Emailing')
         email(
             subject='Identity Demographics Request Complete',
             recipients=[dr.owner.email],
@@ -356,9 +352,7 @@ def produce_demographics_result(demographics_request_id):
             ),
             html=render_template('email/request_complete.html', request=dr),
         )
-        current_app.logger.info('produce_demographics_result: Committing')
         db.session.commit()
-        current_app.logger.info('produce_demographics_result: Committed')
     except Exception as e:
         current_app.logger.info('produce_demographics_result: Rolling Back')
         db.session.rollback()

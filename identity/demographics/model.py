@@ -342,19 +342,15 @@ class DemographicsRequestXlsx(DemographicsRequest):
         ]
 
         for i, fn in enumerate(fieldnames[::-1]):
-            current_app.logger.info('DemographicsRequestXslx.create_result: Inserting column')
             ws.insert_cols(insert_col)
             ws.cell(row=1, column=insert_col).value = fn
 
         for d in self.data:
-            current_app.logger.info('DemographicsRequestXslx.create_result: processing data')
             response = d.response
-            current_app.logger.info('DemographicsRequestXslx.create_result: got response')
 
             row = d.row_number + 2
 
             if response:
-                current_app.logger.info('DemographicsRequestXslx.create_result: setting data')
                 ws.cell(row=row, column=insert_col).value = response.nhs_number
                 ws.cell(row=row, column=insert_col + 1).value = response.title
                 ws.cell(row=row, column=insert_col + 2).value = response.forename
@@ -368,9 +364,7 @@ class DemographicsRequestXlsx(DemographicsRequest):
                 ws.cell(row=row, column=insert_col + 10).value = 'True' if response.is_deceased else 'False'
                 ws.cell(row=row, column=insert_col + 11).value = response.current_gp_practice_code
 
-                current_app.logger.info('DemographicsRequestXslx.create_result: getting PMI data')
                 pmi_data = d.pmi_data
-                current_app.logger.info('DemographicsRequestXslx.create_result: got PMI data')
                 if pmi_data is not None:
                     ws.cell(row=row, column=insert_col + 12).value = pmi_data.nhs_number
                     ws.cell(row=row, column=insert_col + 13).value = pmi_data.uhl_system_number
@@ -381,16 +375,11 @@ class DemographicsRequestXlsx(DemographicsRequest):
                     ws.cell(row=row, column=insert_col + 18).value = pmi_data.date_of_death
                     ws.cell(row=row, column=insert_col + 19).value = pmi_data.postcode
 
-                current_app.logger.info('DemographicsRequestXslx.create_result: set PMI data')
 
             ws.cell(row=row, column=insert_col + 20).value = d.confidence
-            current_app.logger.info('DemographicsRequestXslx.create_result: set confidence')
             ws.cell(row=row, column=insert_col + 21).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages])
-            current_app.logger.info('DemographicsRequestXslx.create_result: set messages')
 
-        current_app.logger.info('DemographicsRequestXslx.create_result: saving')
         wb.save(filename=self.result_filepath)
-        current_app.logger.info('DemographicsRequestXslx.create_result: saved')
 
 
 class DemographicsRequestExcel97(DemographicsRequest):
@@ -715,28 +704,20 @@ class DemographicsRequestData(db.Model):
 
     @property
     def confidence(self):
-        current_app.logger.info('DemographicsRequestData.confidence: started')
         if self.response is None:
-            current_app.logger.info('DemographicsRequestData.confidence: no response')
             return 0
         
         parts = []
 
-        current_app.logger.info('DemographicsRequestData.confidence: finding simlarities')
         if self.nhs_number:
-            current_app.logger.info('DemographicsRequestData.confidence: calculating NHS Similarities')
             parts.append(similarity(self.nhs_number, self.response.nhs_number))
         if self.family_name:
-            current_app.logger.info('DemographicsRequestData.confidence: calculating family name simlarities')
             parts.append(similarity(self.family_name, self.response.lastname))
         if self.given_name:
-            current_app.logger.info('DemographicsRequestData.confidence: calculating given_name simlarities')
             parts.append(similarity(self.given_name, self.response.forename))
         if self.postcode:
-            current_app.logger.info('DemographicsRequestData.confidence: calculating postcode simlarities')
             parts.append(similarity(self.postcode, self.response.postcode))
 
-        current_app.logger.info('DemographicsRequestData.confidence: calculating average')
         return round(sum(parts) / len(parts), 2)
 
     
