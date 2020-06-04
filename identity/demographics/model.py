@@ -342,10 +342,12 @@ class DemographicsRequestXlsx(DemographicsRequest):
         ]
 
         for i, fn in enumerate(fieldnames[::-1]):
+            current_app.logger.info('DemographicsRequestXslx.create_result: Inserting column')
             ws.insert_cols(insert_col)
             ws.cell(row=1, column=insert_col).value = fn
 
         for d in self.data:
+            current_app.logger.info('DemographicsRequestXslx.create_result: processing data')
             response = d.response
 
             row = d.row_number + 2
@@ -378,6 +380,7 @@ class DemographicsRequestXlsx(DemographicsRequest):
             ws.cell(row=row, column=insert_col + 20).value = d.confidence
             ws.cell(row=row, column=insert_col + 21).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages])
 
+        current_app.logger.info('DemographicsRequestXslx.create_result: saving')
         wb.save(filename=self.result_filepath)
 
 
