@@ -1,4 +1,7 @@
+from flask import current_app
+
 def levenshtein_distance(string_a, string_b):
+    current_app.logger.info(f'levenshtein_distance: a="{string_a}"; b="{string_b}"')
     if string_a == "":
         return len(string_b)
     if string_b == "":
