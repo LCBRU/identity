@@ -349,10 +349,12 @@ class DemographicsRequestXlsx(DemographicsRequest):
         for d in self.data:
             current_app.logger.info('DemographicsRequestXslx.create_result: processing data')
             response = d.response
+            current_app.logger.info('DemographicsRequestXslx.create_result: got response')
 
             row = d.row_number + 2
 
             if response:
+                current_app.logger.info('DemographicsRequestXslx.create_result: setting data')
                 ws.cell(row=row, column=insert_col).value = response.nhs_number
                 ws.cell(row=row, column=insert_col + 1).value = response.title
                 ws.cell(row=row, column=insert_col + 2).value = response.forename
@@ -366,7 +368,9 @@ class DemographicsRequestXlsx(DemographicsRequest):
                 ws.cell(row=row, column=insert_col + 10).value = 'True' if response.is_deceased else 'False'
                 ws.cell(row=row, column=insert_col + 11).value = response.current_gp_practice_code
 
+                current_app.logger.info('DemographicsRequestXslx.create_result: getting PMI data')
                 pmi_data = d.pmi_data
+                current_app.logger.info('DemographicsRequestXslx.create_result: got PMI data')
                 if pmi_data is not None:
                     ws.cell(row=row, column=insert_col + 12).value = pmi_data.nhs_number
                     ws.cell(row=row, column=insert_col + 13).value = pmi_data.uhl_system_number
@@ -377,11 +381,16 @@ class DemographicsRequestXlsx(DemographicsRequest):
                     ws.cell(row=row, column=insert_col + 18).value = pmi_data.date_of_death
                     ws.cell(row=row, column=insert_col + 19).value = pmi_data.postcode
 
+                current_app.logger.info('DemographicsRequestXslx.create_result: set PMI data')
+
             ws.cell(row=row, column=insert_col + 20).value = d.confidence
+            current_app.logger.info('DemographicsRequestXslx.create_result: set confidence')
             ws.cell(row=row, column=insert_col + 21).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages])
+            current_app.logger.info('DemographicsRequestXslx.create_result: set messages')
 
         current_app.logger.info('DemographicsRequestXslx.create_result: saving')
         wb.save(filename=self.result_filepath)
+        current_app.logger.info('DemographicsRequestXslx.create_result: saved')
 
 
 class DemographicsRequestExcel97(DemographicsRequest):
