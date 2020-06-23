@@ -22,4 +22,4 @@ def levenshtein_distance(string_a, string_b):
 
 
 def similarity(string_a, string_b):
-    return 1 - (levenshtein_distance(string_a, string_b)/ max(len(string_a), len(string_b)))
+    return 1 - (levenshtein_distance(string_a.lower(), string_b.lower())/ max(len(string_a), len(string_b)))
