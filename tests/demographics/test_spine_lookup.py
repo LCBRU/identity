@@ -184,35 +184,8 @@ def test__spine_lookup__search_no_gender(client, faker, mock_get_spine_parameter
 
     spine_lookup(drd)
 
-    mock_get_demographics_from_search.assert_called_once_with(
-        family_name=params.family_name,
-        given_name=params.given_name,
-        gender=params.gender,
-        dob=params.dob,
-        postcode=params.postcode,
-    )
+    mock_get_demographics_from_search.assert_not_called()
     mock_get_demographics_from_nhs_number.assert_not_called()
-
-    assert drd.response is not None
-    assert drd.response.nhs_number == spine_response_full.nhs_number
-    assert drd.response.title == spine_response_full.title
-    assert drd.response.forename == spine_response_full.forename
-    assert drd.response.middlenames == spine_response_full.middlenames
-    assert drd.response.lastname == spine_response_full.lastname
-    assert drd.response.sex == spine_response_full.sex
-    assert drd.response.postcode == spine_response_full.postcode
-    assert drd.response.address == spine_response_full.address
-    assert parse_date(drd.response.date_of_birth) == parse_date(spine_response_full.date_of_birth)
-    assert parse_date(drd.response.date_of_death) == parse_date(spine_response_full.date_of_death)
-    assert drd.response.is_deceased == spine_response_full.is_deceased
-    assert drd.response.current_gp_practice_code == spine_response_full.current_gp_practice_code
-
-    assert len(drd.messages) == 1
-
-    assert drd.messages[0].type == 'warning'
-    assert drd.messages[0].source == 'validation'
-    assert drd.messages[0].scope == 'gender'
-    assert drd.messages[0].message == 'Missing value'
 
 
 def test__spine_lookup__no_parameters(client, faker, mock_get_spine_parameters, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search):
