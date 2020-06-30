@@ -421,3 +421,124 @@ def test__load_participants__BriccsParticipantImportStrategy__creates_participan
 
     for i in actual.identifier_source.identifiers:
         assert identifiers[i.participant_identifier_type.name] == i.identifier
+
+
+def test__load_participants__BriccsParticipantImportStrategy__updates_participant(client, faker):
+    assert False
+    p = _get_project('fred', 1)
+
+    with patch('identity.redcap.redcap_engine') as mock__redcap_engine:
+
+        mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [record]
+
+        before = datetime.utcnow()
+        
+        _load_participants(p, get_system_user())
+
+        db.session.commit()
+
+        after = datetime.utcnow()        
+
+    actual = EcrfDetail.query.filter(EcrfDetail.last_updated_datetime.between(before, after)).one_or_none()
+    actual is not None
+    assert actual.redcap_project_id == 1
+    assert actual.ecrf_participant_identifier == expected['ecrf_participant_identifier']
+    assert parse_date(actual.recruitment_date) == expected['recruitment_date']
+    assert actual.first_name == expected['first_name']
+    assert actual.last_name == expected['last_name']
+    assert actual.sex == expected['sex']
+    assert actual.postcode == expected['postcode']
+    assert parse_date(actual.birth_date) == expected['birth_date']
+    assert actual.complete_or_expected == expected['complete_or_expected']
+    assert actual.non_completion_reason == expected['non_completion_reason']
+    assert actual.withdrawal_date == expected['withdrawal_date']
+    assert actual.post_withdrawal_keep_samples == expected['post_withdrawal_keep_samples']
+    assert actual.post_withdrawal_keep_data == expected['post_withdrawal_keep_data']
+    assert actual.brc_opt_out == expected['brc_opt_out']
+    assert actual.ecrf_timestamp == expected['ecrf_timestamp']
+
+    assert len(actual.identifier_source.identifiers) == len(identifiers)
+
+    for i in actual.identifier_source.identifiers:
+        assert identifiers[i.participant_identifier_type.name] == i.identifier
+
+
+def test__load_participants__BriccsParticipantImportStrategy__deletes_identifier(client, faker):
+    assert False
+    p = _get_project('fred', 1)
+
+    with patch('identity.redcap.redcap_engine') as mock__redcap_engine:
+
+        mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [record]
+
+        before = datetime.utcnow()
+        
+        _load_participants(p, get_system_user())
+
+        db.session.commit()
+
+        after = datetime.utcnow()        
+
+    actual = EcrfDetail.query.filter(EcrfDetail.last_updated_datetime.between(before, after)).one_or_none()
+    actual is not None
+    assert actual.redcap_project_id == 1
+    assert actual.ecrf_participant_identifier == expected['ecrf_participant_identifier']
+    assert parse_date(actual.recruitment_date) == expected['recruitment_date']
+    assert actual.first_name == expected['first_name']
+    assert actual.last_name == expected['last_name']
+    assert actual.sex == expected['sex']
+    assert actual.postcode == expected['postcode']
+    assert parse_date(actual.birth_date) == expected['birth_date']
+    assert actual.complete_or_expected == expected['complete_or_expected']
+    assert actual.non_completion_reason == expected['non_completion_reason']
+    assert actual.withdrawal_date == expected['withdrawal_date']
+    assert actual.post_withdrawal_keep_samples == expected['post_withdrawal_keep_samples']
+    assert actual.post_withdrawal_keep_data == expected['post_withdrawal_keep_data']
+    assert actual.brc_opt_out == expected['brc_opt_out']
+    assert actual.ecrf_timestamp == expected['ecrf_timestamp']
+
+    assert len(actual.identifier_source.identifiers) == len(identifiers)
+
+    for i in actual.identifier_source.identifiers:
+        assert identifiers[i.participant_identifier_type.name] == i.identifier
+
+
+def test__load_participants__BriccsParticipantImportStrategy__links_by_identifier(client, faker):
+    assert False
+    p = _get_project('fred', 1)
+
+    with patch('identity.redcap.redcap_engine') as mock__redcap_engine:
+
+        mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [record]
+
+        before = datetime.utcnow()
+        
+        _load_participants(p, get_system_user())
+
+        db.session.commit()
+
+        after = datetime.utcnow()        
+
+    actual = EcrfDetail.query.filter(EcrfDetail.last_updated_datetime.between(before, after)).one_or_none()
+    actual is not None
+    assert actual.redcap_project_id == 1
+    assert actual.ecrf_participant_identifier == expected['ecrf_participant_identifier']
+    assert parse_date(actual.recruitment_date) == expected['recruitment_date']
+    assert actual.first_name == expected['first_name']
+    assert actual.last_name == expected['last_name']
+    assert actual.sex == expected['sex']
+    assert actual.postcode == expected['postcode']
+    assert parse_date(actual.birth_date) == expected['birth_date']
+    assert actual.complete_or_expected == expected['complete_or_expected']
+    assert actual.non_completion_reason == expected['non_completion_reason']
+    assert actual.withdrawal_date == expected['withdrawal_date']
+    assert actual.post_withdrawal_keep_samples == expected['post_withdrawal_keep_samples']
+    assert actual.post_withdrawal_keep_data == expected['post_withdrawal_keep_data']
+    assert actual.brc_opt_out == expected['brc_opt_out']
+    assert actual.ecrf_timestamp == expected['ecrf_timestamp']
+
+    assert len(actual.identifier_source.identifiers) == len(identifiers)
+
+    for i in actual.identifier_source.identifiers:
+        assert identifiers[i.participant_identifier_type.name] == i.identifier
+
