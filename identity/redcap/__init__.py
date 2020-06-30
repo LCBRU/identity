@@ -41,7 +41,7 @@ def setup_import_tasks(sender, **kwargs):
             minute=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_MINUTE'],
             hour=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_HOUR'],
         ),
-        import_new_participants.s(),
+        import_participants.s(),
     )
 
 
@@ -96,17 +96,15 @@ def _load_instance_projects(instance):
 
 
 @celery.task
-def import_new_participants():
+def import_participants():
 
     current_app.logger.info('Importing REDCap particiapnts')
 
     system_user = get_system_user()
 
-    studies_changed = set()
-
     for p in RedcapProject.query.filter(RedcapProject.study_id != None, RedcapProject.participant_import_strategy_id != None).all():
         try:
-            records_changed = _load_participants(p, system_user)
+            _load_participants(p, system_user)
         except Exception as e:
             log_exception(e)
     
@@ -132,9 +130,11 @@ def _load_participants(project, system_user):
             project_id=project.project_id,
         )
 
-        rowcount = participants.rowcount
+        rows = 0
 
         for participant in participants:
+            rows += 0
+
             ecrf = project.participant_import_strategy.fill_ecrf(
                 redcap_project=project,
                 participant_details=participant,
@@ -157,9 +157,7 @@ def _load_participants(project, system_user):
             
         db.session.add_all(ecrfs)
 
-    current_app.logger.info(f'_load_instance_participants: project="{project.name}" imported {rowcount} records')
-
-    return rowcount
+    current_app.logger.info(f'_load_instance_participants: project="{project.name}" imported {rows} records')
 
 
 def add_identifiers(ecrf, project, all_ids, participant, type_ids, system_user):
