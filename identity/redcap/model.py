@@ -9,7 +9,7 @@ from identity.database import db
 from datetime import datetime
 from identity.database import db
 from identity.model import Study
-from identity.model.id import ParticipantIdentifierSource
+from identity.model.id import ParticipantIdentifierSource, ParticipantIdentifier
 from identity.model.security import User
 
 
@@ -63,6 +63,7 @@ class ParticipantImportStrategy(db.Model):
                 redcap_project_id=redcap_project.id,
                 ecrf_participant_identifier=participant_details['record'],
             )
+            result.identifier_source = EcrfParticipantIdentifierSource(study_id=redcap_project.study_id)
         else:
             current_app.logger.info(f'Updating ecrf for participant: {participant_details["record"]}')
             result = existing_ecrf
@@ -229,6 +230,8 @@ class EcrfDetail(db.Model):
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)
 
+    identifier_source = db.relationship("EcrfParticipantIdentifierSource", back_populates="ecrf_detail", uselist=False)
+
     def __str__(self):
         return self.ecrf_participant_identifier
 
@@ -236,9 +239,9 @@ class EcrfDetail(db.Model):
 class EcrfParticipantIdentifierSource(ParticipantIdentifierSource):
     __tablename__ = 'ecrf_participant_identifier_source'
 
-    id = db.Column(db.Integer, db.ForeignKey('participant_identifier_source.id'), primary_key=True)
+    participant_identifier_source_id = db.Column(db.Integer, db.ForeignKey('participant_identifier_source.id'), primary_key=True)
     ecrf_detail_id = db.Column(db.Integer, db.ForeignKey(EcrfDetail.id), nullable=False)
-    ecrf_detail = db.relationship(EcrfDetail, backref=db.backref("ecrf_detail"))
+    ecrf_detail = db.relationship("EcrfDetail", back_populates="identifier_source")
 
     __mapper_args__ = {
         'polymorphic_identity':'ecrf_participant_identifier_source',

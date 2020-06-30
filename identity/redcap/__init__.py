@@ -36,13 +36,13 @@ def setup_import_tasks(sender, **kwargs):
         ),
         import_project_details.s(),
     )
-    # sender.add_periodic_task(
-    #     crontab(
-    #         minute=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_MINUTE'],
-    #         hour=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_HOUR'],
-    #     ),
-    #     import_new_participants.s(),
-    # )
+    sender.add_periodic_task(
+        crontab(
+            minute=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_MINUTE'],
+            hour=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_HOUR'],
+        ),
+        import_new_participants.s(),
+    )
 
 
 @celery.task
@@ -107,19 +107,9 @@ def import_new_participants():
     for p in RedcapProject.query.filter(RedcapProject.study_id != None, RedcapProject.participant_import_strategy_id != None).all():
         try:
             records_changed = _load_participants(p, system_user)
-            # if records_changed > 0:
-            #     studies_changed.add(p.study)
-
-            # Remove later
-            current_app.logger.info('Hello')
-            studies_changed.add(p.study)
-            current_app.logger.info('Goodbye')
         except Exception as e:
             log_exception(e)
     
-    for s in studies_changed:
-        _define_study_participants(s, system_user)
-
     db.session.commit()
 
     current_app.logger.info('Importing REDCap particiapnts - Done')
@@ -158,6 +148,9 @@ def _load_participants(project, system_user):
             ecrf.last_updated_by_user_id=system_user.id
             ecrf.last_updated_datetime=datetime.utcnow()
 
+            ecrf.identifier_source.last_updated_by_user_id=system_user.id
+            ecrf.identifier_source.last_updated_datetime=datetime.utcnow()
+
             add_identifiers(ecrf, project, all_ids, participant, type_ids, system_user)
             
             ecrfs.append(ecrf)
@@ -171,7 +164,7 @@ def _load_participants(project, system_user):
 
 def add_identifiers(ecrf, project, all_ids, participant, type_ids, system_user):
 
-    ecrf.identifiers.clear()
+    ecrf.identifier_source.identifiers.clear()
 
     for id in project.participant_import_strategy.extract_identifiers(participant):
 
@@ -183,42 +176,15 @@ def add_identifiers(ecrf, project, all_ids, participant, type_ids, system_user):
             i = ParticipantIdentifier.query.filter_by(
                 participant_identifier_type_id=type_ids[id['type']],
                 identifier=id['identifier'],
-                study_id=project.study_id,
             ).one_or_none()
 
             if i is None:
                 i = ParticipantIdentifier(
                     participant_identifier_type_id=type_ids[id['type']],
                     identifier=id['identifier'],
-                    study_id=project.study_id,
                     last_updated_by_user_id=system_user.id,
                 )
             
             all_ids[idkey] = i
         
-        ecrf.identifiers.add(i)
-
-def _define_study_participants(study, system_user):
-    # Need to check the SQL that's actually being run: n+1 hell I'm sure
-    current_app.logger.info(f'_define_study_participants: study="{study.id}"')
-    
-    # for ecrf in EcrfDetail.query.join(EcrfDetail.redcap_project).options(
-    #     joinedload(EcrfDetail.identifiers).
-    #     joinedload(ParticipantIdentifier.ecrf_details)
-    #     ).filter_by(study_id=study.id).all():
-
-    #     linked_ecrfs = set(e for e in chain.from_iterable([i.ecrf_details for i in ecrf.identifiers]) if e != ecrf)
-        
-    #     linked_study_participants = set(
-    #         e.study_participant for e in linked_ecrfs
-    #         if e.study_participant is not None and
-    #         e.study_participant != ecrf.study_participant
-    #     )
-
-    #     if len(linked_ecrfs) > 0:
-    #         current_app.logger.info(linked_ecrfs)
-    #         current_app.logger.info(linked_study_participants)
-
-
-    # for i in ParticipantIdentifier.query.filter_by(study_id=study.id).all():
-    #     current_app.logger.info(i.identifier)
+        ecrf.identifier_source.identifiers.add(i)

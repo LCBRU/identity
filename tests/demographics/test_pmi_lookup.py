@@ -2,7 +2,6 @@
 
 import pytest
 import datetime
-from unittest.mock import patch
 from dateutil.parser import parse
 from identity.demographics.model import (
     DemographicsRequest,

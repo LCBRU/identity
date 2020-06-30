@@ -404,6 +404,8 @@ class ParticipantIdentifier(db.Model):
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)
 
+    sources = db.relationship("ParticipantIdentifierSource", secondary=participant_identifiers__participant_identifier_sources, back_populates="identifiers", collection_class=set)
+
     def __str__(self):
         return f"{self.type.name}: {self.identifier}"
 
@@ -424,6 +426,8 @@ class ParticipantIdentifierSource(db.Model):
     last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)
+
+    identifiers = db.relationship("ParticipantIdentifier", secondary=participant_identifiers__participant_identifier_sources, back_populates="sources", collection_class=set)
 
     def __str__(self):
         return f"{self.type.name}: {self.identifier}"
