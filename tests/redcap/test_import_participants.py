@@ -400,7 +400,7 @@ def test__load_participants__BriccsParticipantImportStrategy__creates_participan
         after = datetime.utcnow()        
 
     actual = EcrfDetail.query.filter(EcrfDetail.last_updated_datetime.between(before, after)).one_or_none()
-    actual is not None
+    assert actual is not None
     assert actual.redcap_project_id == 1
     assert actual.ecrf_participant_identifier == expected['ecrf_participant_identifier']
     assert parse_date(actual.recruitment_date) == expected['recruitment_date']
@@ -423,13 +423,80 @@ def test__load_participants__BriccsParticipantImportStrategy__creates_participan
         assert identifiers[i.participant_identifier_type.name] == i.identifier
 
 
-def test__load_participants__BriccsParticipantImportStrategy__updates_participant(client, faker):
-    assert False
+@pytest.mark.parametrize(
+    "existing, record, expected, identifiers",
+    [
+        (
+            {
+                'record': 'abc1',
+                'nhs_number': '2222222222',
+                's_number': 'S7654321',
+                'int_date': '19-Feb-2010',
+                'first_name': 'Chuck',
+                'last_name': 'Smit',
+                'gender': 'F',
+                'address_postcode': 'LE2 0YG',
+                'dob': '01-Oct-2000',
+                'study_status_comp_yn': '1',
+                'non_complete_rsn': '4',
+                'wthdrw_date': '10-Dec-2020',
+                'wthdrwl_optn_chsn': '4',
+                'last_update_timestamp': 1
+            },
+            {
+                'record': 'abc1',
+                'nhs_number': '3333333333',
+                's_number': 'S1234567',
+                'int_date': '09-jan-2010',
+                'first_name': 'Charles',
+                'last_name': 'Smith',
+                'gender': 'M',
+                'address_postcode': 'LE7 9YG',
+                'dob': '02-mar-2000',
+                'study_status_comp_yn': '0',
+                'non_complete_rsn': '0',
+                'wthdrw_date': '',
+                'wthdrwl_optn_chsn': '0',
+                'last_update_timestamp': 2
+            },
+            {
+                'ecrf_participant_identifier': 'abc1',
+                'recruitment_date': parse_date('09-jan-2010'),
+                'first_name': 'Charles',
+                'last_name': 'Smith',
+                'sex': 'M',
+                'postcode': 'LE7 9YG',
+                'birth_date': parse_date('02-mar-2000'),
+                'complete_or_expected': False,
+                'non_completion_reason': '0',
+                'withdrawal_date': None,
+                'post_withdrawal_keep_samples': True,
+                'post_withdrawal_keep_data': True,
+                'brc_opt_out': False,
+                'ecrf_timestamp': 2,
+            },
+            {
+                'study_participant_id': 'abc1',
+                'briccs_id': 'abc1',
+                'nhs_number': '3333333333',
+                'uhl_system_number': 'S1234567',
+            }
+        ),
+    ],
+)
+def test__load_participants__BriccsParticipantImportStrategy__updates_participant(client, faker, existing, record, expected, identifiers):
     p = _get_project('fred', 1)
 
     with patch('identity.redcap.redcap_engine') as mock__redcap_engine:
 
-        mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [record]
+        mock__redcap_engine.return_value.__enter__.return_value.execute.side_effect = [[existing], [record]]
+
+        # Setup
+
+        _load_participants(p, get_system_user())
+        db.session.commit()
+
+        # Do
 
         before = datetime.utcnow()
         
@@ -439,8 +506,9 @@ def test__load_participants__BriccsParticipantImportStrategy__updates_participan
 
         after = datetime.utcnow()        
 
+    assert EcrfDetail.query.count() == 1
     actual = EcrfDetail.query.filter(EcrfDetail.last_updated_datetime.between(before, after)).one_or_none()
-    actual is not None
+    assert actual is not None
     assert actual.redcap_project_id == 1
     assert actual.ecrf_participant_identifier == expected['ecrf_participant_identifier']
     assert parse_date(actual.recruitment_date) == expected['recruitment_date']
@@ -463,82 +531,62 @@ def test__load_participants__BriccsParticipantImportStrategy__updates_participan
         assert identifiers[i.participant_identifier_type.name] == i.identifier
 
 
-def test__load_participants__BriccsParticipantImportStrategy__deletes_identifier(client, faker):
-    assert False
+@pytest.mark.parametrize(
+    "participant_a, participant_b",
+    [
+        (
+            {
+                'record': 'abc1',
+                'nhs_number': '2222222222',
+                's_number': 'S1234567',
+                'int_date': '19-Feb-2010',
+                'first_name': 'Chuck',
+                'last_name': 'Smit',
+                'gender': 'F',
+                'address_postcode': 'LE2 0YG',
+                'dob': '01-Oct-2000',
+                'study_status_comp_yn': '1',
+                'non_complete_rsn': '4',
+                'wthdrw_date': '10-Dec-2020',
+                'wthdrwl_optn_chsn': '4',
+                'last_update_timestamp': 1
+            },
+            {
+                'record': 'abc2',
+                'nhs_number': '2222222222',
+                's_number': 'S1234567',
+                'int_date': '09-jan-2010',
+                'first_name': 'Charles',
+                'last_name': 'Smith',
+                'gender': 'M',
+                'address_postcode': 'LE7 9YG',
+                'dob': '02-mar-2000',
+                'study_status_comp_yn': '0',
+                'non_complete_rsn': '0',
+                'wthdrw_date': '',
+                'wthdrwl_optn_chsn': '0',
+                'last_update_timestamp': 2
+            },
+        ),
+    ],
+)
+def test__load_participants__BriccsParticipantImportStrategy__links_by_identifier(client, faker, participant_a, participant_b):
     p = _get_project('fred', 1)
 
     with patch('identity.redcap.redcap_engine') as mock__redcap_engine:
 
-        mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [record]
+        mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [participant_a, participant_b]
 
-        before = datetime.utcnow()
-        
         _load_participants(p, get_system_user())
 
         db.session.commit()
 
-        after = datetime.utcnow()        
+    a, b = EcrfDetail.query.all()
 
-    actual = EcrfDetail.query.filter(EcrfDetail.last_updated_datetime.between(before, after)).one_or_none()
-    actual is not None
-    assert actual.redcap_project_id == 1
-    assert actual.ecrf_participant_identifier == expected['ecrf_participant_identifier']
-    assert parse_date(actual.recruitment_date) == expected['recruitment_date']
-    assert actual.first_name == expected['first_name']
-    assert actual.last_name == expected['last_name']
-    assert actual.sex == expected['sex']
-    assert actual.postcode == expected['postcode']
-    assert parse_date(actual.birth_date) == expected['birth_date']
-    assert actual.complete_or_expected == expected['complete_or_expected']
-    assert actual.non_completion_reason == expected['non_completion_reason']
-    assert actual.withdrawal_date == expected['withdrawal_date']
-    assert actual.post_withdrawal_keep_samples == expected['post_withdrawal_keep_samples']
-    assert actual.post_withdrawal_keep_data == expected['post_withdrawal_keep_data']
-    assert actual.brc_opt_out == expected['brc_opt_out']
-    assert actual.ecrf_timestamp == expected['ecrf_timestamp']
+    a_nhs = [i for i in a.identifier_source.identifiers if i.participant_identifier_type.name == 'nhs_number']
+    b_nhs = [i for i in b.identifier_source.identifiers if i.participant_identifier_type.name == 'nhs_number']
+    a_uhl = [i for i in a.identifier_source.identifiers if i.participant_identifier_type.name == 'uhl_system_number']
+    b_uhl = [i for i in b.identifier_source.identifiers if i.participant_identifier_type.name == 'uhl_system_number']
 
-    assert len(actual.identifier_source.identifiers) == len(identifiers)
-
-    for i in actual.identifier_source.identifiers:
-        assert identifiers[i.participant_identifier_type.name] == i.identifier
-
-
-def test__load_participants__BriccsParticipantImportStrategy__links_by_identifier(client, faker):
-    assert False
-    p = _get_project('fred', 1)
-
-    with patch('identity.redcap.redcap_engine') as mock__redcap_engine:
-
-        mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [record]
-
-        before = datetime.utcnow()
-        
-        _load_participants(p, get_system_user())
-
-        db.session.commit()
-
-        after = datetime.utcnow()        
-
-    actual = EcrfDetail.query.filter(EcrfDetail.last_updated_datetime.between(before, after)).one_or_none()
-    actual is not None
-    assert actual.redcap_project_id == 1
-    assert actual.ecrf_participant_identifier == expected['ecrf_participant_identifier']
-    assert parse_date(actual.recruitment_date) == expected['recruitment_date']
-    assert actual.first_name == expected['first_name']
-    assert actual.last_name == expected['last_name']
-    assert actual.sex == expected['sex']
-    assert actual.postcode == expected['postcode']
-    assert parse_date(actual.birth_date) == expected['birth_date']
-    assert actual.complete_or_expected == expected['complete_or_expected']
-    assert actual.non_completion_reason == expected['non_completion_reason']
-    assert actual.withdrawal_date == expected['withdrawal_date']
-    assert actual.post_withdrawal_keep_samples == expected['post_withdrawal_keep_samples']
-    assert actual.post_withdrawal_keep_data == expected['post_withdrawal_keep_data']
-    assert actual.brc_opt_out == expected['brc_opt_out']
-    assert actual.ecrf_timestamp == expected['ecrf_timestamp']
-
-    assert len(actual.identifier_source.identifiers) == len(identifiers)
-
-    for i in actual.identifier_source.identifiers:
-        assert identifiers[i.participant_identifier_type.name] == i.identifier
-
+    assert a_nhs == b_nhs
+    assert a_uhl == b_uhl
