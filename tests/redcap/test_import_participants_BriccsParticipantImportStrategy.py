@@ -4,14 +4,14 @@ from unittest.mock import patch, MagicMock, call
 from identity.services.validators import parse_date
 from identity.redcap.model import RedcapInstance, EcrfDetail
 from identity.redcap import import_participants, _load_participants
-from identity.redcap import RedcapProject, BriccsParticipantImportStrategy
+from identity.redcap.model import RedcapProject, BriccsParticipantImportStrategy
 from identity.model.id import Study
 from identity.security import get_system_user
 from identity.database import db
 from identity.model.id import ParticipantIdentifierType
 
 
-BRICCS_RECORD_1 = {
+RECORD_1 = {
     'record': 'abc1',
     'nhs_number': '3333333333',
     's_number': 'S1234567',
@@ -28,7 +28,7 @@ BRICCS_RECORD_1 = {
     'last_update_timestamp': 1
 }
 
-BRICCS_RECORD_2 = {
+RECORD_2 = {
     'record': 'abc2',
     'nhs_number': '2222222222',
     's_number': 'S7654321',
@@ -45,7 +45,7 @@ BRICCS_RECORD_2 = {
     'last_update_timestamp': 2
 }
 
-BRICCS_RESULT_1 = {
+RESULT_1 = {
     'ecrf_participant_identifier': 'abc1',
     'recruitment_date': parse_date('09-jan-2010'),
     'first_name': 'Charles',
@@ -62,7 +62,7 @@ BRICCS_RESULT_1 = {
     'ecrf_timestamp': 1,
 }
 
-BRICCS_IDENTIFIERS_1 = {
+IDENTIFIERS_1 = {
     ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'abc1',
     ParticipantIdentifierType.__BRICCS_ID__: 'abc1',
     ParticipantIdentifierType.__NHS_NUMBER__: '3333333333',
@@ -130,61 +130,61 @@ def _test_load_participants(record, expected, expected_identifiers):
 
 
 def test__load_participants__create_participant(client, faker):
-    _test_load_participants(BRICCS_RECORD_1, BRICCS_RESULT_1, BRICCS_IDENTIFIERS_1)
+    _test_load_participants(RECORD_1, RESULT_1, IDENTIFIERS_1)
 
 
 def test__load_participants__null_status(client, faker):
-    record = BRICCS_RECORD_1.copy()
+    record = RECORD_1.copy()
     record['study_status_comp_yn'] = None
-    expected = BRICCS_RESULT_1.copy()
+    expected = RESULT_1.copy()
     expected['complete_or_expected'] = True
-    _test_load_participants(record, expected, BRICCS_IDENTIFIERS_1)
+    _test_load_participants(record, expected, IDENTIFIERS_1)
 
 
 def test__load_participants__expected_to_complete(client, faker):
-    record = BRICCS_RECORD_1.copy()
+    record = RECORD_1.copy()
     record['study_status_comp_yn'] = '1'
-    expected = BRICCS_RESULT_1.copy()
+    expected = RESULT_1.copy()
     expected['complete_or_expected'] = True
-    _test_load_participants(record, expected, BRICCS_IDENTIFIERS_1)
+    _test_load_participants(record, expected, IDENTIFIERS_1)
 
 
 def test__load_participants__with_withdrawal_date(client, faker):
-    record = BRICCS_RECORD_1.copy()
+    record = RECORD_1.copy()
     record['wthdrw_date'] = '02-mar-2000'
-    expected = BRICCS_RESULT_1.copy()
+    expected = RESULT_1.copy()
     expected['withdrawal_date'] = parse_date('02-mar-2000')
-    _test_load_participants(record, expected, BRICCS_IDENTIFIERS_1)
+    _test_load_participants(record, expected, IDENTIFIERS_1)
 
 
 def test__load_participants__sample_no_data(client, faker):
-    record = BRICCS_RECORD_1.copy()
+    record = RECORD_1.copy()
     record['wthdrwl_optn_chsn'] = '1'
-    expected = BRICCS_RESULT_1.copy()
+    expected = RESULT_1.copy()
     expected['post_withdrawal_keep_samples'] = True
     expected['post_withdrawal_keep_data'] = False
     expected['brc_opt_out'] = False
-    _test_load_participants(record, expected, BRICCS_IDENTIFIERS_1)
+    _test_load_participants(record, expected, IDENTIFIERS_1)
 
 
 def test__load_participants__data_no_sample(client, faker):
-    record = BRICCS_RECORD_1.copy()
+    record = RECORD_1.copy()
     record['wthdrwl_optn_chsn'] = '2'
-    expected = BRICCS_RESULT_1.copy()
+    expected = RESULT_1.copy()
     expected['post_withdrawal_keep_samples'] = False
     expected['post_withdrawal_keep_data'] = True
     expected['brc_opt_out'] = False
-    _test_load_participants(record, expected, BRICCS_IDENTIFIERS_1)
+    _test_load_participants(record, expected, IDENTIFIERS_1)
 
 
 def test__load_participants__brc_opt_out(client, faker):
-    record = BRICCS_RECORD_1.copy()
+    record = RECORD_1.copy()
     record['wthdrwl_optn_chsn'] = '4'
-    expected = BRICCS_RESULT_1.copy()
+    expected = RESULT_1.copy()
     expected['post_withdrawal_keep_samples'] = False
     expected['post_withdrawal_keep_data'] = False
     expected['brc_opt_out'] = True
-    _test_load_participants(record, expected, BRICCS_IDENTIFIERS_1)
+    _test_load_participants(record, expected, IDENTIFIERS_1)
 
 
 @pytest.mark.parametrize(
@@ -201,11 +201,11 @@ def test__load_participants__brc_opt_out(client, faker):
     ]
 )
 def test__load_participants__null_fields(client, faker, record_field, expected_field):
-    record = BRICCS_RECORD_1.copy()
+    record = RECORD_1.copy()
     record[record_field] = None
-    expected = BRICCS_RESULT_1.copy()
+    expected = RESULT_1.copy()
     expected[expected_field] = None
-    _test_load_participants(record, expected, BRICCS_IDENTIFIERS_1)
+    _test_load_participants(record, expected, IDENTIFIERS_1)
 
 
 @pytest.mark.parametrize(
@@ -217,11 +217,11 @@ def test__load_participants__null_fields(client, faker, record_field, expected_f
     ]
 )
 def test__load_participants__empty_fields__none(client, faker, record_field, expected_field):
-    record = BRICCS_RECORD_1.copy()
+    record = RECORD_1.copy()
     record[record_field] = ''
-    expected = BRICCS_RESULT_1.copy()
+    expected = RESULT_1.copy()
     expected[expected_field] = None
-    _test_load_participants(record, expected, BRICCS_IDENTIFIERS_1)
+    _test_load_participants(record, expected, IDENTIFIERS_1)
 
 
 @pytest.mark.parametrize(
@@ -235,11 +235,11 @@ def test__load_participants__empty_fields__none(client, faker, record_field, exp
     ]
 )
 def test__load_participants__empty_fields__empty(client, faker, record_field, expected_field):
-    record = BRICCS_RECORD_1.copy()
+    record = RECORD_1.copy()
     record[record_field] = ''
-    expected = BRICCS_RESULT_1.copy()
+    expected = RESULT_1.copy()
     expected[expected_field] = ''
-    _test_load_participants(record, expected, BRICCS_IDENTIFIERS_1)
+    _test_load_participants(record, expected, IDENTIFIERS_1)
 
 
 def _assert_actual_equals_expected(actual, expected, expected_identifiers):
@@ -294,11 +294,11 @@ def _test_participant_update(existing, new_data, expected, identifiers):
 
 
 def test__load_participants__updates_participant(client, faker):
-    existing = BRICCS_RECORD_2.copy()
-    new_data = BRICCS_RECORD_1
+    existing = RECORD_2.copy()
+    new_data = RECORD_1
     existing['record'] = new_data['record']
 
-    _test_participant_update(existing, new_data, BRICCS_RESULT_1, BRICCS_IDENTIFIERS_1)
+    _test_participant_update(existing, new_data, RESULT_1, IDENTIFIERS_1)
 
 
 @pytest.mark.parametrize(
@@ -310,13 +310,13 @@ def test__load_participants__updates_participant(client, faker):
 
 )
 def test__load_participants__remove_none_identity(client, faker, field, removed_id):
-    existing = BRICCS_RECORD_1.copy()
-    new_data = BRICCS_RECORD_1.copy()
+    existing = RECORD_1.copy()
+    new_data = RECORD_1.copy()
     new_data[field] = None
-    identifiers = BRICCS_IDENTIFIERS_1.copy()
+    identifiers = IDENTIFIERS_1.copy()
     del identifiers[removed_id]
 
-    _test_participant_update(existing, new_data, BRICCS_RESULT_1, identifiers)
+    _test_participant_update(existing, new_data, RESULT_1, identifiers)
 
 
 @pytest.mark.parametrize(
@@ -328,20 +328,20 @@ def test__load_participants__remove_none_identity(client, faker, field, removed_
 
 )
 def test__load_participants__remove_empty_identity(client, faker, field, removed_id):
-    existing = BRICCS_RECORD_1.copy()
-    new_data = BRICCS_RECORD_1.copy()
+    existing = RECORD_1.copy()
+    new_data = RECORD_1.copy()
     new_data[field] = ''
-    identifiers = BRICCS_IDENTIFIERS_1.copy()
+    identifiers = IDENTIFIERS_1.copy()
     del identifiers[removed_id]
 
-    _test_participant_update(existing, new_data, BRICCS_RESULT_1, identifiers)
+    _test_participant_update(existing, new_data, RESULT_1, identifiers)
 
 
 def test__load_participants__links_by_identifier(client, faker):
     p = _get_project('fred', 1)
 
-    participant_a = BRICCS_RECORD_1
-    participant_b = BRICCS_RECORD_2
+    participant_a = RECORD_1
+    participant_b = RECORD_2
 
     participant_b['nhs_number'] = participant_a['nhs_number']
     participant_b['s_number'] = participant_a['s_number']

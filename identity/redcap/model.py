@@ -319,19 +319,16 @@ class PilotParticipantImportStrategy(ParticipantImportStrategy):
         "polymorphic_identity": 'Pilot Participant Import Strategy',
     }
 
-    def _get_fields(self):
-        return [
-            'date_time_of_admission',
-            'sex',
-        ]
+    @property
+    def recruitment_date_column_name(self):
+        return 'date_time_of_admission'
     
-    def _fill_ecrf_details(self, record, ecrf):
-        ecrf.recruitment_date=parse(record['date_time_of_admission']) if record['date_time_of_admission'] else None
-        ecrf.sex=record['sex']
-
-        return ecrf
-
-    def _get_identifier_type_fields(self):
+    @property
+    def sex_column_name(self):
+        return 'sex'
+    
+    @property
+    def identity_map(self):
         return {
             ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
             ParticipantIdentifierType.__PILOT_ID__: 'record',
