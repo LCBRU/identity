@@ -22,6 +22,23 @@ class ParticipantImportStrategy(db.Model):
         "polymorphic_on": type,
     }
 
+    def _get_fields(self):
+        return filter(None, set([
+            self.recruitment_date_column_name,
+            self.first_name_column_name,
+            self.last_name_column_name,
+            self.sex_column_name,
+            self.post_code_column_name,
+            self.birth_date_column_name,
+            self.complete_or_expected_column_name,
+            self.non_completion_reason_column_name,
+            self.withdrawal_date_column_name,
+            self.post_withdrawal_keep_samples_column_name,
+            self.post_withdrawal_keep_data_column_name,
+            self.brc_opt_out_column_name,
+            *self.identity_map.values(),
+        ]))
+
     def get_query(self):
         group_concats = ", ".join(f"GROUP_CONCAT(DISTINCT CASE WHEN field_name = '{f}' THEN VALUE ELSE NULL END) AS {f}" for f in self._get_fields())
         ins = ", ".join((f"'{f}'" for f in self._get_fields()))
@@ -76,20 +93,143 @@ class ParticipantImportStrategy(db.Model):
                 'type': type,
                 'identifier': participant_details[field].strip(),
             }
-            for type, field in self._get_identifier_type_fields().items()
+            for type, field in self.identity_map.items()
             if (participant_details[field] or '').strip()
         ]
     
+    def _fill_ecrf_details(self, record, ecrf):
+
+        if self.recruitment_date_column_name is not None and record[self.recruitment_date_column_name]:
+            ecrf.recruitment_date=parse(record[self.recruitment_date_column_name])
+        else:
+            ecrf.recruitment_date = None
+
+        if self.first_name_column_name is not None:
+            ecrf.first_name=record[self.first_name_column_name]
+        else:
+            ecrf.first_name = None
+
+        if self.last_name_column_name is not None:
+            ecrf.last_name=record[self.last_name_column_name]
+        else:
+            ecrf.last_name = None
+
+        if self.sex_column_name is not None:
+            ecrf.sex=record[self.sex_column_name]
+        else:
+            ecrf.sex = None
+
+        if self.post_code_column_name is not None:
+            ecrf.postcode=record[self.post_code_column_name]
+        else:
+            ecrf.postcode = None
+        
+        if self.birth_date_column_name is not None and record[self.birth_date_column_name]:
+            ecrf.birth_date=parse(record[self.birth_date_column_name])
+        else:
+            ecrf.birth_date = None
+
+        if self.complete_or_expected_column_name is not None:
+            ecrf.complete_or_expected = (record[self.complete_or_expected_column_name] in self.complete_or_expected_values)
+        else:
+            ecrf.complete_or_expected = None
+
+        if self.non_completion_reason_column_name is not None:
+            ecrf.non_completion_reason = record[self.non_completion_reason_column_name]
+        else:
+            ecrf.non_completion_reason = None
+
+        if self.withdrawal_date_column_name is not None and record[self.withdrawal_date_column_name]:
+            ecrf.withdrawal_date=parse(record[self.withdrawal_date_column_name])
+        else:
+            ecrf.withdrawal_date = None
+
+        if self.post_withdrawal_keep_samples_column_name is not None:
+            ecrf.post_withdrawal_keep_samples=(record[self.post_withdrawal_keep_samples_column_name] in self.post_withdrawal_keep_samples_values)
+        else:
+            ecrf.post_withdrawal_keep_samples = None
+
+        if self.post_withdrawal_keep_data_column_name is not None:
+            ecrf.post_withdrawal_keep_data=(record[self.post_withdrawal_keep_data_column_name] in self.post_withdrawal_keep_data_values)
+        else:
+            ecrf.post_withdrawal_keep_data = None
+
+        if self.brc_opt_out_column_name is not None:
+            ecrf.brc_opt_out=(record[self.brc_opt_out_column_name] in self.brc_opt_out_values)
+        else:
+            ecrf.brc_opt_out = None
+
+        return ecrf
+
     # Abstract Methods
 
-    def _fill_ecrf_details(self, record, ecrf):
-        pass
+    @property
+    def recruitment_date_column_name(self):
+        return None
+    
+    @property
+    def first_name_column_name(self):
+        return None
+    
+    @property
+    def last_name_column_name(self):
+        return None
+    
+    @property
+    def sex_column_name(self):
+        return None
+    
+    @property
+    def post_code_column_name(self):
+        return None
+    
+    @property
+    def birth_date_column_name(self):
+        return None
 
-    def _get_identifier_type_fields(self):
-        return {}
-
-    def _get_fields(self):
+    @property
+    def complete_or_expected_column_name(self):
+        return None
+    
+    @property
+    def complete_or_expected_values(self):
         return []
+    
+    @property
+    def non_completion_reason_column_name(self):
+        return None
+
+    @property
+    def withdrawal_date_column_name(self):
+        return None
+    
+    @property
+    def post_withdrawal_keep_samples_column_name(self):
+        return None
+    
+    @property
+    def post_withdrawal_keep_samples_values(self):
+        return []
+
+    @property
+    def post_withdrawal_keep_data_column_name(self):
+        return None
+    
+    @property
+    def post_withdrawal_keep_data_values(self):
+        return []
+    
+    @property
+    def brc_opt_out_column_name(self):
+        return None
+    
+    @property
+    def brc_opt_out_values(self):
+        return []
+    
+    @property
+    def identity_map(self):
+        return {}
 
     def __str__(self):
         return self.type
@@ -100,39 +240,72 @@ class BriccsParticipantImportStrategy(ParticipantImportStrategy):
         "polymorphic_identity": 'Briccs Participant Import Strategy',
     }
 
-    def _get_fields(self):
-        return [
-            'int_date',
-            'nhs_number',
-            's_number',
-            'first_name',
-            'last_name',
-            'gender',
-            'address_postcode',
-            'dob',
-            'study_status_comp_yn',
-            'non_complete_rsn',
-            'wthdrw_date',
-            'wthdrwl_optn_chsn',
-        ]
+    @property
+    def recruitment_date_column_name(self):
+        return 'int_date'
     
-    def _fill_ecrf_details(self, record, ecrf):
-        ecrf.recruitment_date=parse(record['int_date']) if record['int_date'] else None
-        ecrf.first_name=record['first_name']
-        ecrf.last_name=record['last_name']
-        ecrf.sex=record['gender']
-        ecrf.postcode=record['address_postcode']
-        ecrf.birth_date=parse(record['dob']) if record['dob'] else None
-        ecrf.complete_or_expected=(record['study_status_comp_yn'] != '0')
-        ecrf.non_completion_reason=record['non_complete_rsn']
-        ecrf.withdrawal_date=parse(record['wthdrw_date']) if record['wthdrw_date'] else None
-        ecrf.post_withdrawal_keep_samples=(record['wthdrwl_optn_chsn'] in ['0', '1'])
-        ecrf.post_withdrawal_keep_data=(record['wthdrwl_optn_chsn'] in ['0', '2'])
-        ecrf.brc_opt_out=(record['wthdrwl_optn_chsn'] == '4')
+    @property
+    def first_name_column_name(self):
+        return 'first_name'
+    
+    @property
+    def last_name_column_name(self):
+        return 'last_name'
+    
+    @property
+    def sex_column_name(self):
+        return 'gender'
+    
+    @property
+    def post_code_column_name(self):
+        return 'address_postcode'
+    
+    @property
+    def birth_date_column_name(self):
+        return 'dob'
 
-        return ecrf
+    @property
+    def complete_or_expected_column_name(self):
+        return 'study_status_comp_yn'
+    
+    @property
+    def complete_or_expected_values(self):
+        return [None, '1']
+    
+    @property
+    def non_completion_reason_column_name(self):
+        return 'non_complete_rsn'
 
-    def _get_identifier_type_fields(self):
+    @property
+    def withdrawal_date_column_name(self):
+        return 'wthdrw_date'
+    
+    @property
+    def post_withdrawal_keep_samples_column_name(self):
+        return 'wthdrwl_optn_chsn'
+    
+    @property
+    def post_withdrawal_keep_samples_values(self):
+        return ['0', '1']
+
+    @property
+    def post_withdrawal_keep_data_column_name(self):
+        return 'wthdrwl_optn_chsn'
+    
+    @property
+    def post_withdrawal_keep_data_values(self):
+        return ['0', '2']
+    
+    @property
+    def brc_opt_out_column_name(self):
+        return 'wthdrwl_optn_chsn'
+    
+    @property
+    def brc_opt_out_values(self):
+        return ['4']
+    
+    @property
+    def identity_map(self):
         return {
             ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
             ParticipantIdentifierType.__BRICCS_ID__: 'record',
