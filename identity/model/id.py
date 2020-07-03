@@ -126,6 +126,7 @@ class BioresourceIdProvider(db.Model):
 
 
     def allocate_id(self, user):
+        prospective_id = 0
         found = 1
         tries = 0
 
@@ -350,6 +351,7 @@ class StudyIdSpecification():
 
 class ParticipantIdentifierType(db.Model):
 
+    __REDCAP_RECORD__ = 'redcap_record'
     __STUDY_PARTICIPANT_ID__ = 'study_participant_id'
     __BRICCS_ID__ = 'briccs_id'
     __PILOT_ID__ = 'pilot_id'
@@ -360,6 +362,7 @@ class ParticipantIdentifierType(db.Model):
     __UHL_SYSTEM_NUMBER__ = 'uhl_system_number'
 
     __TYPE_NAMES__ = [
+        __REDCAP_RECORD__,
         __STUDY_PARTICIPANT_ID__,
         __BRICCS_ID__,
         __PILOT_ID__,
