@@ -60,6 +60,7 @@ class LegacyIdProvider(db.Model):
     def allocate_id(self, user):
         found = 1
         tries = 0
+        prospective_id = 0
 
         while found > 0:
             prospective_id = random.randint(1, 900000)
@@ -354,6 +355,8 @@ class ParticipantIdentifierType(db.Model):
     __REDCAP_RECORD__ = 'redcap_record'
     __STUDY_PARTICIPANT_ID__ = 'study_participant_id'
     __BRICCS_ID__ = 'briccs_id'
+    __CVLPRIT_ID__ = 'cvlprit_id'
+    __CVLPRIT_LOCAL_ID__ = 'cvlprit_local_id'
     __PILOT_ID__ = 'pilot_id'
     __DREAM_ID__ = 'dream_id'
     __BIORESOURCE_ID__ = 'bioresource_id'
@@ -365,6 +368,8 @@ class ParticipantIdentifierType(db.Model):
         __REDCAP_RECORD__,
         __STUDY_PARTICIPANT_ID__,
         __BRICCS_ID__,
+        __CVLPRIT_ID__,
+        __CVLPRIT_LOCAL_ID__,
         __PILOT_ID__,
         __DREAM_ID__,
         __BIORESOURCE_ID__,

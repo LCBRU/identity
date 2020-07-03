@@ -384,88 +384,23 @@ class CvlpritParticipantImportStrategy(ParticipantImportStrategy):
     }
 
     @property
-    def recruitment_date_column_name(self):
-        return 'int_date'
-    
-    @property
-    def first_name_column_name(self):
-        return 'first_name'
-    
-    @property
-    def last_name_column_name(self):
-        return 'last_name'
-    
-    @property
     def sex_column_name(self):
-        return 'gender'
+        return 'sex'
     
     @property
     def sex_column_map(self):
         return {
-            '0': 'F',
             '1': 'M',
+            '2': 'F',
         }
-    
-    @property
-    def post_code_column_name(self):
-        return 'address_postcode'
-    
-    @property
-    def birth_date_column_name(self):
-        return 'dob'
-
-    @property
-    def complete_or_expected_column_name(self):
-        return 'study_status_comp_yn'
-    
-    @property
-    def complete_or_expected_values(self):
-        return [None, '1']
-    
-    @property
-    def non_completion_reason_column_name(self):
-        return 'non_complete_rsn'
-
-    @property
-    def withdrawal_date_column_name(self):
-        return 'wthdrw_date'
-    
-    @property
-    def withdrawn_from_study_if_not_empty_column_name(self):
-        return 'wthdrw_date'
-    
-    @property
-    def post_withdrawal_keep_samples_column_name(self):
-        return 'wthdrwl_optn_chsn'
-    
-    @property
-    def post_withdrawal_keep_samples_values(self):
-        return ['0', '1']
-
-    @property
-    def post_withdrawal_keep_data_column_name(self):
-        return 'wthdrwl_optn_chsn'
-    
-    @property
-    def post_withdrawal_keep_data_values(self):
-        return ['0', '2']
-    
-    @property
-    def brc_opt_out_column_name(self):
-        return 'wthdrwl_optn_chsn'
-    
-    @property
-    def brc_opt_out_values(self):
-        return ['4']
     
     @property
     def identity_map(self):
         return {
             ParticipantIdentifierType.__REDCAP_RECORD__: 'record',
-            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
-            ParticipantIdentifierType.__BRICCS_ID__: 'record',
-            ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_number',
-            ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_number',
+            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'patient_id',
+            ParticipantIdentifierType.__CVLPRIT_ID__: 'patient_id',
+            ParticipantIdentifierType.__CVLPRIT_LOCAL_ID__: 'local_id',
         }
 
 
