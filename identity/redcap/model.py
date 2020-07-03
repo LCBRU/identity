@@ -114,8 +114,8 @@ class ParticipantImportStrategy(db.Model):
         else:
             ecrf.last_name = None
 
-        if self.sex_column_name is not None:
-            ecrf.sex=record[self.sex_column_name]
+        if self.sex_column_name is not None and self.sex_column_map is not None and record[self.sex_column_name] in self.sex_column_map:
+            ecrf.sex=self.sex_column_map[record[self.sex_column_name]]
         else:
             ecrf.sex = None
 
@@ -197,6 +197,10 @@ class ParticipantImportStrategy(db.Model):
     
     @property
     def sex_column_name(self):
+        return None
+    
+    @property
+    def sex_column_map(self):
         return None
     
     @property
@@ -305,6 +309,13 @@ class BriccsParticipantImportStrategy(ParticipantImportStrategy):
         return 'gender'
     
     @property
+    def sex_column_map(self):
+        return {
+            '0': 'F',
+            '1': 'M',
+        }
+    
+    @property
     def post_code_column_name(self):
         return 'address_postcode'
     
@@ -380,6 +391,13 @@ class PilotParticipantImportStrategy(ParticipantImportStrategy):
         return 'sex'
     
     @property
+    def sex_column_map(self):
+        return {
+            '0': 'M',
+            '1': 'F',
+        }
+    
+    @property
     def identity_map(self):
         return {
             ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
@@ -400,6 +418,15 @@ class DreamParticipantImportStrategy(ParticipantImportStrategy):
     def sex_column_name(self):
         return 'sex'
 
+    @property
+    def sex_column_map(self):
+        return {
+            '1': 'M',
+            '2': 'F',
+            '3': 'T',
+            '4': 'O',
+        }
+    
     @property
     def withdrawn_from_study_column_name(self):
         return 'reason_for_participant_rem'
@@ -436,6 +463,14 @@ class BioresourceLegacyParticipantImportStrategy(ParticipantImportStrategy):
     @property
     def sex_column_name(self):
         return 'gender'
+    
+    @property
+    def sex_column_map(self):
+        return {
+            '1': 'M',
+            '2': 'F',
+            '0': 'N',
+        }
     
     @property
     def birth_date_column_name(self):
@@ -505,6 +540,13 @@ class Graphic2ParticipantImportStrategy(ParticipantImportStrategy):
     @property
     def sex_column_name(self):
         return 'gender'
+    
+    @property
+    def sex_column_map(self):
+        return {
+            '0': 'F',
+            '1': 'M',
+        }
     
     @property
     def birth_date_column_name(self):

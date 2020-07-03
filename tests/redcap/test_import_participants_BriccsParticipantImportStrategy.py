@@ -1,4 +1,4 @@
-from tests.redcap import _get_project, _test__load_participants__links_by_identifier, _test_load_participants, _test_participant_update
+from tests.redcap import DEFAULT_RESULT, _get_project, _test__load_participants__links_by_identifier, _test_load_participants, _test_participant_update
 import pytest
 from identity.services.validators import parse_date
 from identity.redcap.model import BriccsParticipantImportStrategy
@@ -12,7 +12,7 @@ RECORD_1 = {
     'int_date': '09-jan-2010',
     'first_name': 'Charles',
     'last_name': 'Smith',
-    'gender': 'M',
+    'gender': '1',
     'address_postcode': 'LE7 9YG',
     'dob': '02-mar-2000',
     'study_status_comp_yn': '0',
@@ -29,7 +29,7 @@ RECORD_2 = {
     'int_date': '17-feb-2011',
     'first_name': 'Maragaret',
     'last_name': 'Jones',
-    'gender': 'F',
+    'gender': '0',
     'address_postcode': 'LE2 0HY',
     'dob': '11-june-1970',
     'study_status_comp_yn': '1',
@@ -39,7 +39,8 @@ RECORD_2 = {
     'last_update_timestamp': 2
 }
 
-RESULT_1 = {
+RESULT_1 = DEFAULT_RESULT.copy()
+RESULT_1.update({
     'ecrf_participant_identifier': 'abc1',
     'recruitment_date': parse_date('09-jan-2010'),
     'first_name': 'Charles',
@@ -49,15 +50,12 @@ RESULT_1 = {
     'birth_date': parse_date('02-mar-2000'),
     'complete_or_expected': False,
     'non_completion_reason': '0',
-    'withdrawal_date': None,
     'withdrawn_from_study': False,
     'post_withdrawal_keep_samples': True,
     'post_withdrawal_keep_data': True,
     'brc_opt_out': False,
-    'excluded_from_analysis': None,
-    'excluded_from_study': None,
     'ecrf_timestamp': 1,
-}
+})
 
 IDENTIFIERS_1 = {
     ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'abc1',
@@ -75,6 +73,22 @@ def test__load_participants__null_status(client, faker):
     record['study_status_comp_yn'] = None
     expected = RESULT_1.copy()
     expected['complete_or_expected'] = True
+    _test_load_participants(record, expected, IDENTIFIERS_1, BriccsParticipantImportStrategy)
+
+
+def test__load_participants__gender_female(client, faker):
+    record = RECORD_1.copy()
+    record['gender'] = '0'
+    expected = RESULT_1.copy()
+    expected['sex'] = 'F'
+    _test_load_participants(record, expected, IDENTIFIERS_1, BriccsParticipantImportStrategy)
+
+
+def test__load_participants__gender_male(client, faker):
+    record = RECORD_1.copy()
+    record['gender'] = '1'
+    expected = RESULT_1.copy()
+    expected['sex'] = 'M'
     _test_load_participants(record, expected, IDENTIFIERS_1, BriccsParticipantImportStrategy)
 
 
@@ -152,6 +166,7 @@ def test__load_participants__null_fields(client, faker, record_field, expected_f
         ('int_date', 'recruitment_date'),
         ('dob', 'birth_date'),
         ('wthdrw_date', 'withdrawal_date'),
+        ('gender', 'sex'),
     ]
 )
 def test__load_participants__empty_fields__none(client, faker, record_field, expected_field):
@@ -167,7 +182,6 @@ def test__load_participants__empty_fields__none(client, faker, record_field, exp
     [
         ('first_name', 'first_name'),
         ('last_name', 'last_name'),
-        ('gender', 'sex'),
         ('address_postcode', 'postcode'),
         ('non_complete_rsn', 'non_completion_reason'),
     ]

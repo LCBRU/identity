@@ -9,6 +9,27 @@ from identity.model import Study
 from identity.redcap.model import EcrfDetail, RedcapInstance, RedcapProject
 
 
+DEFAULT_RESULT = {
+    'ecrf_participant_identifier': None,
+    'recruitment_date': None,
+    'first_name': None,
+    'last_name': None,
+    'sex': None,
+    'postcode': None,
+    'birth_date': None,
+    'complete_or_expected': None,
+    'non_completion_reason': None,
+    'withdrawal_date': None,
+    'withdrawn_from_study': None,
+    'post_withdrawal_keep_samples': None,
+    'post_withdrawal_keep_data': None,
+    'brc_opt_out': None,
+    'excluded_from_analysis': None,
+    'excluded_from_study': None,
+    'ecrf_timestamp': None,
+}
+
+
 def _get_project(name, id, strategy_class):
     r = RedcapInstance.query.first()
     s = Study.query.first()

@@ -1,4 +1,4 @@
-from tests.redcap import _get_project, _test__load_participants__links_by_identifier, _test_load_participants, _test_participant_update
+from tests.redcap import DEFAULT_RESULT, _get_project, _test__load_participants__links_by_identifier, _test_load_participants, _test_participant_update
 import pytest
 from identity.services.validators import parse_date
 from identity.redcap.model import BioresourceLegacyParticipantImportStrategy
@@ -8,7 +8,7 @@ from identity.model.id import ParticipantIdentifierType
 RECORD_1 = {
     'record': 'abc1',
     'date_of_sig': '09-jan-2010',
-    'gender': 'M',
+    'gender': '1',
     'date_of_birth': '02-mar-2000',
     'study_status_comp_yn': '0',
     'non_complete_rsn': '0',
@@ -20,7 +20,7 @@ RECORD_1 = {
 RECORD_2 = {
     'record': 'abc2',
     'date_of_sig': '17-feb-2011',
-    'gender': 'F',
+    'gender': '2',
     'date_of_birth': '11-june-1970',
     'study_status_comp_yn': '1',
     'non_complete_rsn': '1',
@@ -29,25 +29,20 @@ RECORD_2 = {
     'last_update_timestamp': 2
 }
 
-RESULT_1 = {
+RESULT_1 = DEFAULT_RESULT.copy()
+RESULT_1.update({
     'ecrf_participant_identifier': 'abc1',
     'recruitment_date': parse_date('09-jan-2010'),
-    'first_name': None,
-    'last_name': None,
     'sex': 'M',
-    'postcode': None,
     'birth_date': parse_date('02-mar-2000'),
     'complete_or_expected': False,
     'non_completion_reason': '0',
-    'withdrawal_date': None,
     'withdrawn_from_study': False,
     'post_withdrawal_keep_samples': True,
     'post_withdrawal_keep_data': True,
     'brc_opt_out': False,
-    'excluded_from_analysis': None,
-    'excluded_from_study': None,
     'ecrf_timestamp': 1,
-}
+})
 
 IDENTIFIERS_1 = {
     ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'abc1',
@@ -71,6 +66,30 @@ def test__load_participants__expected_to_complete(client, faker):
     record['study_status_comp_yn'] = '1'
     expected = RESULT_1.copy()
     expected['complete_or_expected'] = True
+    _test_load_participants(record, expected, IDENTIFIERS_1, BioresourceLegacyParticipantImportStrategy)
+
+
+def test__load_participants__sex__male(client, faker):
+    record = RECORD_1.copy()
+    record['gender'] = '1'
+    expected = RESULT_1.copy()
+    expected['sex'] = 'M'
+    _test_load_participants(record, expected, IDENTIFIERS_1, BioresourceLegacyParticipantImportStrategy)
+
+
+def test__load_participants__sex__female(client, faker):
+    record = RECORD_1.copy()
+    record['gender'] = '2'
+    expected = RESULT_1.copy()
+    expected['sex'] = 'F'
+    _test_load_participants(record, expected, IDENTIFIERS_1, BioresourceLegacyParticipantImportStrategy)
+
+
+def test__load_participants__sex__not_answered(client, faker):
+    record = RECORD_1.copy()
+    record['gender'] = '0'
+    expected = RESULT_1.copy()
+    expected['sex'] = 'N'
     _test_load_participants(record, expected, IDENTIFIERS_1, BioresourceLegacyParticipantImportStrategy)
 
 
@@ -134,6 +153,7 @@ def test__load_participants__null_fields(client, faker, record_field, expected_f
 @pytest.mark.parametrize(
     "record_field, expected_field",
     [
+        ('gender', 'sex'),
         ('date_of_sig', 'recruitment_date'),
         ('date_of_birth', 'birth_date'),
         ('wthdrw_date', 'withdrawal_date'),
@@ -150,7 +170,6 @@ def test__load_participants__empty_fields__none(client, faker, record_field, exp
 @pytest.mark.parametrize(
     "record_field, expected_field",
     [
-        ('gender', 'sex'),
         ('non_complete_rsn', 'non_completion_reason'),
     ]
 )
