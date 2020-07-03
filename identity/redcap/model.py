@@ -335,6 +335,27 @@ class PilotParticipantImportStrategy(ParticipantImportStrategy):
         }
 
 
+class DreamParticipantImportStrategy(ParticipantImportStrategy):
+    __mapper_args__ = {
+        "polymorphic_identity": 'Dream Participant Import Strategy',
+    }
+
+    @property
+    def recruitment_date_column_name(self):
+        return 'date_enrolled'
+
+    @property
+    def sex_column_name(self):
+        return 'sex'
+
+    @property
+    def identity_map(self):
+        return {
+            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
+            ParticipantIdentifierType.__DREAM_ID__: 'record',
+        }
+
+
 class RedcapInstance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
