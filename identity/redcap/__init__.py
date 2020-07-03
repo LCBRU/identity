@@ -12,8 +12,6 @@ from identity.redcap.model import (
     RedcapInstance,
     RedcapProject,
     EcrfDetail,
-    EcrfParticipantIdentifierSource,
-    BriccsParticipantImportStrategy,
 )
 from identity.model.id import (
     ParticipantIdentifierType,

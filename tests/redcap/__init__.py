@@ -34,9 +34,12 @@ def _assert_actual_equals_expected(actual, expected, expected_identifiers):
     assert actual.complete_or_expected == expected['complete_or_expected']
     assert actual.non_completion_reason == expected['non_completion_reason']
     assert actual.withdrawal_date == expected['withdrawal_date']
+    assert actual.withdrawn_from_study == expected['withdrawn_from_study']
     assert actual.post_withdrawal_keep_samples == expected['post_withdrawal_keep_samples']
     assert actual.post_withdrawal_keep_data == expected['post_withdrawal_keep_data']
     assert actual.brc_opt_out == expected['brc_opt_out']
+    assert actual.excluded_from_analysis == expected['excluded_from_analysis']
+    assert actual.excluded_from_study == expected['excluded_from_study']
     assert actual.ecrf_timestamp == expected['ecrf_timestamp']
 
     assert len(actual.identifier_source.identifiers) == len(expected_identifiers)

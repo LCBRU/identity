@@ -144,6 +144,16 @@ class ParticipantImportStrategy(db.Model):
         else:
             ecrf.withdrawal_date = None
 
+        if self.withdrawn_from_study_if_not_empty_column_name is not None:
+            if record[self.withdrawal_date_column_name]:
+                ecrf.withdrawn_from_study = True
+            else:
+                ecrf.withdrawn_from_study = False
+        elif self.withdrawn_from_study_column_name is not None:
+            ecrf.withdrawn_from_study=(record[self.withdrawn_from_study_column_name] in self.withdrawn_from_study_values)
+        else:
+            ecrf.withdrawn_from_study = None
+
         if self.post_withdrawal_keep_samples_column_name is not None:
             ecrf.post_withdrawal_keep_samples=(record[self.post_withdrawal_keep_samples_column_name] in self.post_withdrawal_keep_samples_values)
         else:
@@ -211,6 +221,18 @@ class ParticipantImportStrategy(db.Model):
 
     @property
     def withdrawal_date_column_name(self):
+        return None
+    
+    @property
+    def withdrawn_from_study_column_name(self):
+        return None
+    
+    @property
+    def withdrawn_from_study_values(self):
+        return []
+    
+    @property
+    def withdrawn_from_study_if_not_empty_column_name(self):
         return None
     
     @property
@@ -307,6 +329,10 @@ class BriccsParticipantImportStrategy(ParticipantImportStrategy):
         return 'wthdrw_date'
     
     @property
+    def withdrawn_from_study_if_not_empty_column_name(self):
+        return 'wthdrw_date'
+    
+    @property
     def post_withdrawal_keep_samples_column_name(self):
         return 'wthdrwl_optn_chsn'
     
@@ -375,6 +401,22 @@ class DreamParticipantImportStrategy(ParticipantImportStrategy):
         return 'sex'
 
     @property
+    def withdrawn_from_study_column_name(self):
+        return 'reason_for_participant_rem'
+
+    @property
+    def withdrawn_from_study_values(self):
+        return ['6']
+
+    @property
+    def excluded_from_analysis_column_name(self):
+        return 'inc_in_eos_analysis'
+
+    @property
+    def excluded_from_analysis_values(self):
+        return [None, '0']
+
+    @property
     def identity_map(self):
         return {
             ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
@@ -413,6 +455,10 @@ class BioresourceLegacyParticipantImportStrategy(ParticipantImportStrategy):
 
     @property
     def withdrawal_date_column_name(self):
+        return 'wthdrw_date'
+    
+    @property
+    def withdrawn_from_study_if_not_empty_column_name(self):
         return 'wthdrw_date'
     
     @property
@@ -465,7 +511,7 @@ class Graphic2ParticipantImportStrategy(ParticipantImportStrategy):
         return 'dob'
 
     @property
-    def excluded_from_analysis(self):
+    def excluded_from_analysis_column_name(self):
         return 'exclude_from_analysis'
     
     @property
@@ -536,6 +582,7 @@ class EcrfDetail(db.Model):
     complete_or_expected = db.Column(db.Boolean)
     non_completion_reason = db.Column(db.String(10))
     withdrawal_date = db.Column(db.Date)
+    withdrawn_from_study = db.Column(db.Boolean)
     post_withdrawal_keep_samples = db.Column(db.Boolean)
     post_withdrawal_keep_data = db.Column(db.Boolean)
     brc_opt_out = db.Column(db.Boolean)

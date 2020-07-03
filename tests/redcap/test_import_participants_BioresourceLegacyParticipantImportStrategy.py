@@ -40,6 +40,7 @@ RESULT_1 = {
     'complete_or_expected': False,
     'non_completion_reason': '0',
     'withdrawal_date': None,
+    'withdrawn_from_study': False,
     'post_withdrawal_keep_samples': True,
     'post_withdrawal_keep_data': True,
     'brc_opt_out': False,
@@ -78,6 +79,7 @@ def test__load_participants__with_withdrawal_date(client, faker):
     record['wthdrw_date'] = '02-mar-2000'
     expected = RESULT_1.copy()
     expected['withdrawal_date'] = parse_date('02-mar-2000')
+    expected['withdrawn_from_study'] = True
     _test_load_participants(record, expected, IDENTIFIERS_1, BioresourceLegacyParticipantImportStrategy)
 
 

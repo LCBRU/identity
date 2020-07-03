@@ -30,6 +30,7 @@ RESULT_1 = {
     'complete_or_expected': None,
     'non_completion_reason': None,
     'withdrawal_date': None,
+    'withdrawn_from_study': None,
     'post_withdrawal_keep_samples': None,
     'post_withdrawal_keep_data': None,
     'brc_opt_out': None,

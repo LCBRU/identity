@@ -34,6 +34,7 @@ RESULT_1 = {
     'complete_or_expected': None,
     'non_completion_reason': None,
     'withdrawal_date': None,
+    'withdrawn_from_study': None,
     'post_withdrawal_keep_samples': None,
     'post_withdrawal_keep_data': None,
     'brc_opt_out': None,
@@ -51,11 +52,11 @@ def test__load_participants__create_participant(client, faker):
     _test_load_participants(RECORD_1, RESULT_1, IDENTIFIERS_1, Graphic2ParticipantImportStrategy)
 
 
-def test__load_participants__null_status(client, faker):
+def test__load_participants__excluded_for_analysis__null(client, faker):
     record = RECORD_1.copy()
     record['exclude_from_analysis'] = None
     expected = RESULT_1.copy()
-    expected['excluded_from_analysis'] = True
+    expected['excluded_from_analysis'] = False
     _test_load_participants(record, expected, IDENTIFIERS_1, Graphic2ParticipantImportStrategy)
 
 
@@ -73,7 +74,6 @@ def test__load_participants__expected_to_complete(client, faker):
         ('date_interview', 'recruitment_date'),
         ('gender', 'sex'),
         ('dob', 'birth_date'),
-        ('exclude_from_analysis', 'excluded_from_analysis'),
     ]
 )
 def test__load_participants__null_fields(client, faker, record_field, expected_field):
@@ -103,7 +103,6 @@ def test__load_participants__empty_fields__none(client, faker, record_field, exp
     "record_field, expected_field",
     [
         ('gender', 'sex'),
-        ('exclude_from_analysis', 'excluded_from_analysis'),
     ]
 )
 def test__load_participants__empty_fields__empty(client, faker, record_field, expected_field):

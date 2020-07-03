@@ -9,14 +9,20 @@ RECORD_1 = {
     'record': 'abc1',
     'date_enrolled': '09-jan-2010',
     'sex': 'M',
-    'last_update_timestamp': 1
+    'inc_in_eos_analysis': '1',
+    'reason_for_participant_rem': None,
+    'inc_in_eos_analysis': '1',
+    'last_update_timestamp': 1,
 }
 
 RECORD_2 = {
     'record': 'abc2',
     'date_enrolled': '12-mar-2011',
     'sex': 'F',
-    'last_update_timestamp': 1
+    'inc_in_eos_analysis': '0',
+    'reason_for_participant_rem': '1',
+    'inc_in_eos_analysis': '0',
+    'last_update_timestamp': 1,
 }
 
 RESULT_1 = {
@@ -30,10 +36,11 @@ RESULT_1 = {
     'complete_or_expected': None,
     'non_completion_reason': None,
     'withdrawal_date': None,
+    'withdrawn_from_study': False,
     'post_withdrawal_keep_samples': None,
     'post_withdrawal_keep_data': None,
     'brc_opt_out': None,
-    'excluded_from_analysis': None,
+    'excluded_from_analysis': False,
     'excluded_from_study': None,
     'ecrf_timestamp': 1,
 }
@@ -45,6 +52,30 @@ IDENTIFIERS_1 = {
 
 def test__load_participants__create_participant(client, faker):
     _test_load_participants(RECORD_1, RESULT_1, IDENTIFIERS_1, DreamParticipantImportStrategy)
+
+
+def test__load_participants__withdrawn_from_study(client, faker):
+    record = RECORD_1.copy()
+    record['reason_for_participant_rem'] = '6'
+    expected = RESULT_1.copy()
+    expected['withdrawn_from_study'] = True
+    _test_load_participants(record, expected, IDENTIFIERS_1, DreamParticipantImportStrategy)
+
+
+def test__load_participants__excluded_from_analysis__zero(client, faker):
+    record = RECORD_1.copy()
+    record['inc_in_eos_analysis'] = '0'
+    expected = RESULT_1.copy()
+    expected['excluded_from_analysis'] = True
+    _test_load_participants(record, expected, IDENTIFIERS_1, DreamParticipantImportStrategy)
+
+
+def test__load_participants__excluded_from_analysis__None(client, faker):
+    record = RECORD_1.copy()
+    record['inc_in_eos_analysis'] = None
+    expected = RESULT_1.copy()
+    expected['excluded_from_analysis'] = True
+    _test_load_participants(record, expected, IDENTIFIERS_1, DreamParticipantImportStrategy)
 
 
 @pytest.mark.parametrize(
