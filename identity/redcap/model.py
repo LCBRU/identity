@@ -159,6 +159,16 @@ class ParticipantImportStrategy(db.Model):
         else:
             ecrf.brc_opt_out = None
 
+        if self.excluded_from_analysis_column_name is not None:
+            ecrf.excluded_from_analysis=(record[self.excluded_from_analysis_column_name] in self.excluded_from_analysis_values)
+        else:
+            ecrf.excluded_from_analysis = None
+
+        if self.excluded_from_study_column_name is not None:
+            ecrf.excluded_from_study=(record[self.excluded_from_study_column_name] in self.excluded_from_study_values)
+        else:
+            ecrf.excluded_from_study = None
+
         return ecrf
 
     # Abstract Methods
@@ -225,6 +235,22 @@ class ParticipantImportStrategy(db.Model):
     
     @property
     def brc_opt_out_values(self):
+        return []
+    
+    @property
+    def excluded_from_analysis_column_name(self):
+        return None
+    
+    @property
+    def excluded_from_analysis_values(self):
+        return []
+    
+    @property
+    def excluded_from_study_column_name(self):
+        return None
+    
+    @property
+    def excluded_from_study_values(self):
         return []
     
     @property
@@ -356,6 +382,104 @@ class DreamParticipantImportStrategy(ParticipantImportStrategy):
         }
 
 
+class BioresourceLegacyParticipantImportStrategy(ParticipantImportStrategy):
+    __mapper_args__ = {
+        "polymorphic_identity": 'Bioresource Legacy Participant Import Strategy',
+    }
+
+    @property
+    def recruitment_date_column_name(self):
+        return 'date_of_sig'
+    
+    @property
+    def sex_column_name(self):
+        return 'gender'
+    
+    @property
+    def birth_date_column_name(self):
+        return 'date_of_birth'
+
+    @property
+    def complete_or_expected_column_name(self):
+        return 'study_status_comp_yn'
+    
+    @property
+    def complete_or_expected_values(self):
+        return [None, '1']
+    
+    @property
+    def non_completion_reason_column_name(self):
+        return 'non_complete_rsn'
+
+    @property
+    def withdrawal_date_column_name(self):
+        return 'wthdrw_date'
+    
+    @property
+    def post_withdrawal_keep_samples_column_name(self):
+        return 'wthdrwl_optn_chsn'
+    
+    @property
+    def post_withdrawal_keep_samples_values(self):
+        return ['0', '1']
+
+    @property
+    def post_withdrawal_keep_data_column_name(self):
+        return 'wthdrwl_optn_chsn'
+    
+    @property
+    def post_withdrawal_keep_data_values(self):
+        return ['0', '2']
+    
+    @property
+    def brc_opt_out_column_name(self):
+        return 'wthdrwl_optn_chsn'
+    
+    @property
+    def brc_opt_out_values(self):
+        return ['4']
+    
+    @property
+    def identity_map(self):
+        return {
+            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
+            ParticipantIdentifierType.__BIORESOURCE_ID__: 'record',
+        }
+
+
+class Graphic2ParticipantImportStrategy(ParticipantImportStrategy):
+    __mapper_args__ = {
+        "polymorphic_identity": 'Graphic2 Participant Import Strategy',
+    }
+
+    @property
+    def recruitment_date_column_name(self):
+        return 'date_interview'
+    
+    @property
+    def sex_column_name(self):
+        return 'gender'
+    
+    @property
+    def birth_date_column_name(self):
+        return 'dob'
+
+    @property
+    def excluded_from_analysis(self):
+        return 'exclude_from_analysis'
+    
+    @property
+    def excluded_from_analysis_values(self):
+        return ['1']
+    
+    @property
+    def identity_map(self):
+        return {
+            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
+            ParticipantIdentifierType.__GRAPHICS2_ID__: 'record',
+        }
+
+
 class RedcapInstance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -415,6 +539,8 @@ class EcrfDetail(db.Model):
     post_withdrawal_keep_samples = db.Column(db.Boolean)
     post_withdrawal_keep_data = db.Column(db.Boolean)
     brc_opt_out = db.Column(db.Boolean)
+    excluded_from_analysis = db.Column(db.Boolean)
+    excluded_from_study = db.Column(db.Boolean)
     ecrf_timestamp = db.Column(db.BigInteger)
 
     last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)

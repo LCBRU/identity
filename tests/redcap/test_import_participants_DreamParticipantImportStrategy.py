@@ -33,6 +33,8 @@ RESULT_1 = {
     'post_withdrawal_keep_samples': None,
     'post_withdrawal_keep_data': None,
     'brc_opt_out': None,
+    'excluded_from_analysis': None,
+    'excluded_from_study': None,
     'ecrf_timestamp': 1,
 }
 

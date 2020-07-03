@@ -354,6 +354,8 @@ class ParticipantIdentifierType(db.Model):
     __BRICCS_ID__ = 'briccs_id'
     __PILOT_ID__ = 'pilot_id'
     __DREAM_ID__ = 'dream_id'
+    __BIORESOURCE_ID__ = 'bioresource_id'
+    __GRAPHICS2_ID__ = 'graphic2_id'
     __NHS_NUMBER__ = 'nhs_number'
     __UHL_SYSTEM_NUMBER__ = 'uhl_system_number'
 
@@ -362,6 +364,8 @@ class ParticipantIdentifierType(db.Model):
         __BRICCS_ID__,
         __PILOT_ID__,
         __DREAM_ID__,
+        __BIORESOURCE_ID__,
+        __GRAPHICS2_ID__,
         __NHS_NUMBER__,
         __UHL_SYSTEM_NUMBER__,
     ]
