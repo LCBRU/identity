@@ -352,7 +352,6 @@ class StudyIdSpecification():
 
 class ParticipantIdentifierType(db.Model):
 
-    __REDCAP_RECORD__ = 'redcap_record'
     __STUDY_PARTICIPANT_ID__ = 'study_participant_id'
     __BRICCS_ID__ = 'briccs_id'
     __CVLPRIT_ID__ = 'cvlprit_id'
@@ -365,7 +364,6 @@ class ParticipantIdentifierType(db.Model):
     __UHL_SYSTEM_NUMBER__ = 'uhl_system_number'
 
     __TYPE_NAMES__ = [
-        __REDCAP_RECORD__,
         __STUDY_PARTICIPANT_ID__,
         __BRICCS_ID__,
         __CVLPRIT_ID__,

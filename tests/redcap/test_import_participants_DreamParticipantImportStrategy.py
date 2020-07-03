@@ -36,7 +36,6 @@ RESULT_1.update({
 })
 
 IDENTIFIERS_1 = {
-    ParticipantIdentifierType.__REDCAP_RECORD__: 'abc1',
     ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'abc1',
     ParticipantIdentifierType.__DREAM_ID__: 'abc1',
 }

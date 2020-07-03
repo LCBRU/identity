@@ -370,7 +370,6 @@ class BriccsParticipantImportStrategy(ParticipantImportStrategy):
     @property
     def identity_map(self):
         return {
-            ParticipantIdentifierType.__REDCAP_RECORD__: 'record',
             ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
             ParticipantIdentifierType.__BRICCS_ID__: 'record',
             ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_number',
@@ -397,7 +396,6 @@ class CvlpritParticipantImportStrategy(ParticipantImportStrategy):
     @property
     def identity_map(self):
         return {
-            ParticipantIdentifierType.__REDCAP_RECORD__: 'record',
             ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'patient_id',
             ParticipantIdentifierType.__CVLPRIT_ID__: 'patient_id',
             ParticipantIdentifierType.__CVLPRIT_LOCAL_ID__: 'local_id',
@@ -427,7 +425,6 @@ class PilotParticipantImportStrategy(ParticipantImportStrategy):
     @property
     def identity_map(self):
         return {
-            ParticipantIdentifierType.__REDCAP_RECORD__: 'record',
             ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
             ParticipantIdentifierType.__PILOT_ID__: 'record',
         }
@@ -474,7 +471,6 @@ class DreamParticipantImportStrategy(ParticipantImportStrategy):
     @property
     def identity_map(self):
         return {
-            ParticipantIdentifierType.__REDCAP_RECORD__: 'record',
             ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
             ParticipantIdentifierType.__DREAM_ID__: 'record',
         }
@@ -552,7 +548,6 @@ class BioresourceLegacyParticipantImportStrategy(ParticipantImportStrategy):
     @property
     def identity_map(self):
         return {
-            ParticipantIdentifierType.__REDCAP_RECORD__: 'record',
             ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
             ParticipantIdentifierType.__BIORESOURCE_ID__: 'record',
         }
@@ -593,7 +588,6 @@ class Graphic2ParticipantImportStrategy(ParticipantImportStrategy):
     @property
     def identity_map(self):
         return {
-            ParticipantIdentifierType.__REDCAP_RECORD__: 'record',
             ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
             ParticipantIdentifierType.__GRAPHICS2_ID__: 'record',
         }
