@@ -69,6 +69,13 @@ def parse_date(value):
     return parsed_date.date()
 
 
+def parse_date_or_none(value):
+    try:
+        return parse(value)
+    except:
+        return None
+
+
 def is_invalid_dob(dob):
     if not dob:
         return False

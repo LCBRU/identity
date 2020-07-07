@@ -6,7 +6,7 @@ from unittest.mock import patch
 from identity.services.validators import parse_date
 from identity.database import db
 from identity.model import Study
-from identity.redcap.model import EcrfDetail, RedcapInstance, RedcapProject
+from identity.redcap.model import EcrfDetail, RedcapInstance, RedcapProject, ParticipantImportDefinition
 
 
 DEFAULT_RESULT = {
@@ -30,11 +30,13 @@ DEFAULT_RESULT = {
 }
 
 
-def _get_project(name, id, strategy_class):
+def _get_project(name, id):
+    d = ParticipantImportDefinition()
+    d.name = 'fred_def'
+
     r = RedcapInstance.query.first()
     s = Study.query.first()
-    pis = strategy_class.query.first()
-    p = RedcapProject(name=name, project_id=id, redcap_instance_id=r.id, study_id=s.id,participant_import_strategy_id=pis.id)
+    p = RedcapProject(name=name, project_id=id, redcap_instance_id=r.id, study_id=s.id,participant_import_definition=d)
 
     db.session.add(p)
     db.session.commit()

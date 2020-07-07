@@ -1,53 +1,137 @@
-import urllib.parse
-from dateutil.parser import parse
+from identity.services.validators import parse_date_or_none
 from flask import current_app
-from identity.model.id import (
-    ParticipantIdentifier,
-    ParticipantIdentifierType,
-)
+from identity.model.id import ParticipantIdentifierSource
 from identity.database import db
 from datetime import datetime
 from identity.database import db
 from identity.model import Study
-from identity.model.id import ParticipantIdentifierSource, ParticipantIdentifier
 from identity.model.security import User
 
 
-class ParticipantImportStrategy(db.Model):
+class ParticipantImportDefinition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(100), nullable=False)
 
-    __mapper_args__ = {
-        "polymorphic_identity": "ParticipantImportStrategy",
-        "polymorphic_on": type,
-    }
+    name = db.Column(db.String(100), nullable=False)
+
+    recruitment_date_column_name = db.Column(db.String(100))
+    first_name_column_name = db.Column(db.String(100))
+    last_name_column_name = db.Column(db.String(100))
+    postcode_column_name = db.Column(db.String(100))
+    birth_date_column_name = db.Column(db.String(100))
+    non_completion_reason_column_name = db.Column(db.String(100))
+    withdrawal_date_column_name = db.Column(db.String(100))
+
+    withdrawn_from_study_column_name = db.Column(db.String(100))
+    withdrawn_from_study_values = db.Column(db.String(500))
+
+    sex_column_name = db.Column(db.String(100))
+    sex_column_map = db.Column(db.String(500))
+
+    complete_or_expected_column_name = db.Column(db.String(100))
+    complete_or_expected_values = db.Column(db.String(500))
+
+    post_withdrawal_keep_samples_column_name = db.Column(db.String(100))
+    post_withdrawal_keep_samples_values = db.Column(db.String(500))
+
+    post_withdrawal_keep_data_column_name = db.Column(db.String(100))
+    post_withdrawal_keep_data_values = db.Column(db.String(500))
+
+    brc_opt_out_column_name = db.Column(db.String(100))
+    brc_opt_out_values = db.Column(db.String(500))
+
+    excluded_from_analysis_column_name = db.Column(db.String(100))
+    excluded_from_analysis_values = db.Column(db.String(500))
+
+    excluded_from_study_column_name = db.Column(db.String(100))
+    excluded_from_study_values = db.Column(db.String(500))
+
+    identities_map = db.Column(db.String(500))
+
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def _parse_list_string(self, value):
+        if value is None or len(value.strip()) == 0:
+            return []
+        else:
+            return [i.strip() for i in value.split(',')]
+
+    def _parse_dictionary_string(self, value):
+        return {k: v for k, v in [i.split(':') for i in self._parse_list_string(value)]}
+
+    @property
+    def withdrawn_from_study_value_array(self):
+        return self._parse_list_string(self.withdrawn_from_study_values)
+
+    @property
+    def complete_or_expected_value_array(self):
+        return self._parse_list_string(self.complete_or_expected_values)
+
+    @property
+    def post_withdrawal_keep_samples_value_array(self):
+        return self._parse_list_string(self.post_withdrawal_keep_samples_values)
+
+    @property
+    def post_withdrawal_keep_data_value_array(self):
+        return self._parse_list_string(self.post_withdrawal_keep_data_values)
+
+    @property
+    def brc_opt_out_value_array(self):
+        return self._parse_list_string(self.brc_opt_out_values)
+
+    @property
+    def excluded_from_analysis_value_array(self):
+        return self._parse_list_string(self.excluded_from_analysis_values)
+
+    @property
+    def excluded_from_study_value_array(self):
+        return self._parse_list_string(self.excluded_from_study_values)
+
+    @property
+    def sex_column_map_dictionary(self):
+        return self._parse_dictionary_string(self.sex_column_map)
+
+    @property
+    def identities_map_dictionary(self):
+        return self._parse_dictionary_string(self.identities_map)
 
     def _get_fields(self):
         return filter(None, set([
             self.recruitment_date_column_name,
             self.first_name_column_name,
             self.last_name_column_name,
-            self.sex_column_name,
-            self.post_code_column_name,
+            self.postcode_column_name,
             self.birth_date_column_name,
-            self.complete_or_expected_column_name,
             self.non_completion_reason_column_name,
             self.withdrawal_date_column_name,
+            self.withdrawn_from_study_column_name,
+            self.sex_column_name,
+            self.complete_or_expected_column_name,
             self.post_withdrawal_keep_samples_column_name,
             self.post_withdrawal_keep_data_column_name,
             self.brc_opt_out_column_name,
-            *self.identity_map.values(),
+            self.excluded_from_analysis_column_name,
+            self.excluded_from_study_column_name,
+            *self.identities_map_dictionary.values(),
         ]))
 
     def get_query(self):
-        group_concats = ", ".join(f"GROUP_CONCAT(DISTINCT CASE WHEN field_name = '{f}' THEN VALUE ELSE NULL END) AS {f}" for f in self._get_fields())
+        group_concat_cols = ", ".join(f"GROUP_CONCAT(DISTINCT CASE WHEN field_name = '{f}' THEN VALUE ELSE NULL END) AS {f}" for f in self._get_fields())
+
+        if len(group_concat_cols) > 0:
+            group_concat_cols + ','
+
         ins = ", ".join((f"'{f}'" for f in self._get_fields()))
+
+        if len(ins) > 0:
+            ins = f'AND rd.field_name IN ({ins})'
 
         return f"""
             SELECT
                 rd.project_id,
                 rd.record,
-                {group_concats},
+                {group_concat_cols}
                 rl.last_update_timestamp AS last_update_timestamp
             FROM redcap_data rd
             JOIN (
@@ -68,7 +152,7 @@ class ParticipantImportStrategy(db.Model):
                 AND rl.pk = rd.record
             WHERE rd.project_id = :project_id
                 AND LENGTH(RTRIM(LTRIM(COALESCE(rd.record, '')))) > 0
-                AND rd.field_name IN ({ins})
+                {ins}
             GROUP BY rd.record, rd.project_id
         """
 
@@ -93,504 +177,47 @@ class ParticipantImportStrategy(db.Model):
                 'type': type,
                 'identifier': participant_details[field].strip(),
             }
-            for type, field in self.identity_map.items()
+            for type, field in self.identities_map_dictionary.items()
             if (participant_details[field] or '').strip()
         ]
+
+    def _get_record_value_in_value_array(self, record, column_name, value_array):
+        if column_name is None or len(column_name.strip()) == 0 or column_name not in record:
+            return None
+        elif value_array is None or len(value_array) == 0:
+            return None
+        elif record[column_name] is None and '<isnull>' in value_array:
+            return True
+        elif record[column_name] is not None and '<isnotnull>' in value_array:
+            return True
+        else:
+            return record[column_name] in value_array
+    
+    def _get_record_value_cleansed(self, record, column_name):
+        if column_name is None or len(column_name.strip()) == 0 or column_name not in record:
+            return None
+        else:
+            return record[column_name].strip()
     
     def _fill_ecrf_details(self, record, ecrf):
 
-        if self.recruitment_date_column_name is not None and record[self.recruitment_date_column_name]:
-            ecrf.recruitment_date=parse(record[self.recruitment_date_column_name])
-        else:
-            ecrf.recruitment_date = None
-
-        if self.first_name_column_name is not None:
-            ecrf.first_name=record[self.first_name_column_name]
-        else:
-            ecrf.first_name = None
-
-        if self.last_name_column_name is not None:
-            ecrf.last_name=record[self.last_name_column_name]
-        else:
-            ecrf.last_name = None
-
-        if self.sex_column_name is not None and self.sex_column_map is not None and record[self.sex_column_name] in self.sex_column_map:
-            ecrf.sex=self.sex_column_map[record[self.sex_column_name]]
-        else:
-            ecrf.sex = None
-
-        if self.post_code_column_name is not None:
-            ecrf.postcode=record[self.post_code_column_name]
-        else:
-            ecrf.postcode = None
-        
-        if self.birth_date_column_name is not None and record[self.birth_date_column_name]:
-            ecrf.birth_date=parse(record[self.birth_date_column_name])
-        else:
-            ecrf.birth_date = None
-
-        if self.complete_or_expected_column_name is not None:
-            ecrf.complete_or_expected = (record[self.complete_or_expected_column_name] in self.complete_or_expected_values)
-        else:
-            ecrf.complete_or_expected = None
-
-        if self.non_completion_reason_column_name is not None:
-            ecrf.non_completion_reason = record[self.non_completion_reason_column_name]
-        else:
-            ecrf.non_completion_reason = None
-
-        if self.withdrawal_date_column_name is not None and record[self.withdrawal_date_column_name]:
-            ecrf.withdrawal_date=parse(record[self.withdrawal_date_column_name])
-        else:
-            ecrf.withdrawal_date = None
-
-        if self.withdrawn_from_study_if_not_empty_column_name is not None:
-            if record[self.withdrawal_date_column_name]:
-                ecrf.withdrawn_from_study = True
-            else:
-                ecrf.withdrawn_from_study = False
-        elif self.withdrawn_from_study_column_name is not None:
-            ecrf.withdrawn_from_study=(record[self.withdrawn_from_study_column_name] in self.withdrawn_from_study_values)
-        else:
-            ecrf.withdrawn_from_study = None
-
-        if self.post_withdrawal_keep_samples_column_name is not None:
-            ecrf.post_withdrawal_keep_samples=(record[self.post_withdrawal_keep_samples_column_name] in self.post_withdrawal_keep_samples_values)
-        else:
-            ecrf.post_withdrawal_keep_samples = None
-
-        if self.post_withdrawal_keep_data_column_name is not None:
-            ecrf.post_withdrawal_keep_data=(record[self.post_withdrawal_keep_data_column_name] in self.post_withdrawal_keep_data_values)
-        else:
-            ecrf.post_withdrawal_keep_data = None
-
-        if self.brc_opt_out_column_name is not None:
-            ecrf.brc_opt_out=(record[self.brc_opt_out_column_name] in self.brc_opt_out_values)
-        else:
-            ecrf.brc_opt_out = None
-
-        if self.excluded_from_analysis_column_name is not None:
-            ecrf.excluded_from_analysis=(record[self.excluded_from_analysis_column_name] in self.excluded_from_analysis_values)
-        else:
-            ecrf.excluded_from_analysis = None
-
-        if self.excluded_from_study_column_name is not None:
-            ecrf.excluded_from_study=(record[self.excluded_from_study_column_name] in self.excluded_from_study_values)
-        else:
-            ecrf.excluded_from_study = None
+        ecrf.recruitment_date = parse_date_or_none(record.get(self.recruitment_date_column_name))
+        ecrf.first_name = self._get_record_value_cleansed(record, self.first_name_column_name)
+        ecrf.last_name = self._get_record_value_cleansed(record, self.last_name_column_name)
+        ecrf.postcode = self._get_record_value_cleansed(record, self.postcode_column_name)
+        ecrf.birth_date = parse_date_or_none(record.get(self.birth_date_column_name))
+        ecrf.sex = self.sex_column_map_dictionary.get(record.get(self.sex_column_name))
+        ecrf.complete_or_expected = self._get_record_value_in_value_array(record, self.complete_or_expected_column_name, self.complete_or_expected_value_array)
+        ecrf.non_completion_reason = self._get_record_value_cleansed(record, self.non_completion_reason_column_name)
+        ecrf.withdrawal_date = parse_date_or_none(record.get(self.withdrawal_date_column_name))
+        ecrf.withdrawn_from_study = self._get_record_value_in_value_array(record, self.withdrawn_from_study_column_name, self.withdrawn_from_study_value_array)
+        ecrf.post_withdrawal_keep_samples = self._get_record_value_in_value_array(record, self.post_withdrawal_keep_samples_column_name, self.post_withdrawal_keep_samples_value_array)
+        ecrf.post_withdrawal_keep_data = self._get_record_value_in_value_array(record, self.post_withdrawal_keep_data_column_name, self.post_withdrawal_keep_data_value_array)
+        ecrf.brc_opt_out = self._get_record_value_in_value_array(record, self.brc_opt_out_column_name, self.brc_opt_out_value_array)
+        ecrf.excluded_from_analysis = self._get_record_value_in_value_array(record, self.excluded_from_analysis_column_name, self.excluded_from_analysis_value_array)
+        ecrf.excluded_from_study = self._get_record_value_in_value_array(record, self.excluded_from_study_column_name, self.excluded_from_study_value_array)
 
         return ecrf
-
-    # Abstract Methods
-
-    @property
-    def recruitment_date_column_name(self):
-        return None
-    
-    @property
-    def first_name_column_name(self):
-        return None
-    
-    @property
-    def last_name_column_name(self):
-        return None
-    
-    @property
-    def sex_column_name(self):
-        return None
-    
-    @property
-    def sex_column_map(self):
-        return None
-    
-    @property
-    def post_code_column_name(self):
-        return None
-    
-    @property
-    def birth_date_column_name(self):
-        return None
-
-    @property
-    def complete_or_expected_column_name(self):
-        return None
-    
-    @property
-    def complete_or_expected_values(self):
-        return []
-    
-    @property
-    def non_completion_reason_column_name(self):
-        return None
-
-    @property
-    def withdrawal_date_column_name(self):
-        return None
-    
-    @property
-    def withdrawn_from_study_column_name(self):
-        return None
-    
-    @property
-    def withdrawn_from_study_values(self):
-        return []
-    
-    @property
-    def withdrawn_from_study_if_not_empty_column_name(self):
-        return None
-    
-    @property
-    def post_withdrawal_keep_samples_column_name(self):
-        return None
-    
-    @property
-    def post_withdrawal_keep_samples_values(self):
-        return []
-
-    @property
-    def post_withdrawal_keep_data_column_name(self):
-        return None
-    
-    @property
-    def post_withdrawal_keep_data_values(self):
-        return []
-    
-    @property
-    def brc_opt_out_column_name(self):
-        return None
-    
-    @property
-    def brc_opt_out_values(self):
-        return []
-    
-    @property
-    def excluded_from_analysis_column_name(self):
-        return None
-    
-    @property
-    def excluded_from_analysis_values(self):
-        return []
-    
-    @property
-    def excluded_from_study_column_name(self):
-        return None
-    
-    @property
-    def excluded_from_study_values(self):
-        return []
-    
-    @property
-    def identity_map(self):
-        return {}
-
-    def __str__(self):
-        return self.type
-
-
-class BriccsParticipantImportStrategy(ParticipantImportStrategy):
-    __mapper_args__ = {
-        "polymorphic_identity": 'Briccs Participant Import Strategy',
-    }
-
-    @property
-    def recruitment_date_column_name(self):
-        return 'int_date'
-    
-    @property
-    def first_name_column_name(self):
-        return 'first_name'
-    
-    @property
-    def last_name_column_name(self):
-        return 'last_name'
-    
-    @property
-    def sex_column_name(self):
-        return 'gender'
-    
-    @property
-    def sex_column_map(self):
-        return {
-            '0': 'F',
-            '1': 'M',
-        }
-    
-    @property
-    def post_code_column_name(self):
-        return 'address_postcode'
-    
-    @property
-    def birth_date_column_name(self):
-        return 'dob'
-
-    @property
-    def complete_or_expected_column_name(self):
-        return 'study_status_comp_yn'
-    
-    @property
-    def complete_or_expected_values(self):
-        return [None, '1']
-    
-    @property
-    def non_completion_reason_column_name(self):
-        return 'non_complete_rsn'
-
-    @property
-    def withdrawal_date_column_name(self):
-        return 'wthdrw_date'
-    
-    @property
-    def withdrawn_from_study_if_not_empty_column_name(self):
-        return 'wthdrw_date'
-    
-    @property
-    def post_withdrawal_keep_samples_column_name(self):
-        return 'wthdrwl_optn_chsn'
-    
-    @property
-    def post_withdrawal_keep_samples_values(self):
-        return ['0', '1']
-
-    @property
-    def post_withdrawal_keep_data_column_name(self):
-        return 'wthdrwl_optn_chsn'
-    
-    @property
-    def post_withdrawal_keep_data_values(self):
-        return ['0', '2']
-    
-    @property
-    def brc_opt_out_column_name(self):
-        return 'wthdrwl_optn_chsn'
-    
-    @property
-    def brc_opt_out_values(self):
-        return ['4']
-    
-    @property
-    def identity_map(self):
-        return {
-            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
-            ParticipantIdentifierType.__BRICCS_ID__: 'record',
-            ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_number',
-            ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_number',
-        }
-
-
-class CvlpritParticipantImportStrategy(ParticipantImportStrategy):
-    __mapper_args__ = {
-        "polymorphic_identity": 'Cvlprit Participant Import Strategy',
-    }
-
-    @property
-    def sex_column_name(self):
-        return 'sex'
-    
-    @property
-    def sex_column_map(self):
-        return {
-            '1': 'M',
-            '2': 'F',
-        }
-    
-    @property
-    def identity_map(self):
-        return {
-            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'patient_id',
-            ParticipantIdentifierType.__CVLPRIT_ID__: 'patient_id',
-            ParticipantIdentifierType.__CVLPRIT_LOCAL_ID__: 'local_id',
-        }
-
-
-class PilotParticipantImportStrategy(ParticipantImportStrategy):
-    __mapper_args__ = {
-        "polymorphic_identity": 'Pilot Participant Import Strategy',
-    }
-
-    @property
-    def recruitment_date_column_name(self):
-        return 'date_time_of_admission'
-    
-    @property
-    def sex_column_name(self):
-        return 'sex'
-    
-    @property
-    def sex_column_map(self):
-        return {
-            '0': 'M',
-            '1': 'F',
-        }
-    
-    @property
-    def identity_map(self):
-        return {
-            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
-            ParticipantIdentifierType.__PILOT_ID__: 'record',
-        }
-
-
-class DreamParticipantImportStrategy(ParticipantImportStrategy):
-    __mapper_args__ = {
-        "polymorphic_identity": 'Dream Participant Import Strategy',
-    }
-
-    @property
-    def recruitment_date_column_name(self):
-        return 'date_enrolled'
-
-    @property
-    def sex_column_name(self):
-        return 'sex'
-
-    @property
-    def sex_column_map(self):
-        return {
-            '1': 'M',
-            '2': 'F',
-            '3': 'T',
-            '4': 'O',
-        }
-    
-    @property
-    def withdrawn_from_study_column_name(self):
-        return 'reason_for_participant_rem'
-
-    @property
-    def withdrawn_from_study_values(self):
-        return ['6']
-
-    @property
-    def excluded_from_analysis_column_name(self):
-        return 'inc_in_eos_analysis'
-
-    @property
-    def excluded_from_analysis_values(self):
-        return [None, '0']
-
-    @property
-    def identity_map(self):
-        return {
-            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
-            ParticipantIdentifierType.__DREAM_ID__: 'record',
-        }
-
-
-class BioresourceLegacyParticipantImportStrategy(ParticipantImportStrategy):
-    __mapper_args__ = {
-        "polymorphic_identity": 'Bioresource Legacy Participant Import Strategy',
-    }
-
-    @property
-    def recruitment_date_column_name(self):
-        return 'date_of_sig'
-    
-    @property
-    def sex_column_name(self):
-        return 'gender'
-    
-    @property
-    def sex_column_map(self):
-        return {
-            '1': 'M',
-            '2': 'F',
-            '0': 'N',
-        }
-    
-    @property
-    def birth_date_column_name(self):
-        return 'date_of_birth'
-
-    @property
-    def complete_or_expected_column_name(self):
-        return 'study_status_comp_yn'
-    
-    @property
-    def complete_or_expected_values(self):
-        return [None, '1']
-    
-    @property
-    def non_completion_reason_column_name(self):
-        return 'non_complete_rsn'
-
-    @property
-    def withdrawal_date_column_name(self):
-        return 'wthdrw_date'
-    
-    @property
-    def withdrawn_from_study_if_not_empty_column_name(self):
-        return 'wthdrw_date'
-    
-    @property
-    def post_withdrawal_keep_samples_column_name(self):
-        return 'wthdrwl_optn_chsn'
-    
-    @property
-    def post_withdrawal_keep_samples_values(self):
-        return ['0', '1']
-
-    @property
-    def post_withdrawal_keep_data_column_name(self):
-        return 'wthdrwl_optn_chsn'
-    
-    @property
-    def post_withdrawal_keep_data_values(self):
-        return ['0', '2']
-    
-    @property
-    def brc_opt_out_column_name(self):
-        return 'wthdrwl_optn_chsn'
-    
-    @property
-    def brc_opt_out_values(self):
-        return ['4']
-    
-    @property
-    def identity_map(self):
-        return {
-            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
-            ParticipantIdentifierType.__BIORESOURCE_ID__: 'record',
-        }
-
-
-class Graphic2ParticipantImportStrategy(ParticipantImportStrategy):
-    __mapper_args__ = {
-        "polymorphic_identity": 'Graphic2 Participant Import Strategy',
-    }
-
-    @property
-    def recruitment_date_column_name(self):
-        return 'date_interview'
-    
-    @property
-    def sex_column_name(self):
-        return 'gender'
-    
-    @property
-    def sex_column_map(self):
-        return {
-            '0': 'F',
-            '1': 'M',
-        }
-    
-    @property
-    def birth_date_column_name(self):
-        return 'dob'
-
-    @property
-    def excluded_from_analysis_column_name(self):
-        return 'exclude_from_analysis'
-    
-    @property
-    def excluded_from_analysis_values(self):
-        return ['1']
-    
-    @property
-    def identity_map(self):
-        return {
-            ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__: 'record',
-            ParticipantIdentifierType.__GRAPHICS2_ID__: 'record',
-        }
 
 
 class RedcapInstance(db.Model):
@@ -615,8 +242,8 @@ class RedcapProject(db.Model):
     redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
     study_id = db.Column(db.Integer, db.ForeignKey(Study.id))
     study = db.relationship(Study, backref=db.backref("redcap_projects"))
-    participant_import_strategy_id =  db.Column(db.Integer, db.ForeignKey(ParticipantImportStrategy.id), nullable=True)
-    participant_import_strategy = db.relationship(ParticipantImportStrategy, backref=db.backref("redcap_projects"))
+    participant_import_definition_id =  db.Column(db.Integer, db.ForeignKey(ParticipantImportDefinition.id), nullable=True)
+    participant_import_definition = db.relationship(ParticipantImportDefinition, backref=db.backref("redcap_projects"))
     last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)

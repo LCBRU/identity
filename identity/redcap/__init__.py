@@ -100,7 +100,7 @@ def import_participants():
 
     system_user = get_system_user()
 
-    for p in RedcapProject.query.filter(RedcapProject.study_id != None, RedcapProject.participant_import_strategy_id != None).all():
+    for p in RedcapProject.query.filter(RedcapProject.study_id != None, RedcapProject.participant_import_definition_id != None).all():
         try:
             _load_participants(p, system_user)
         except Exception as e:
@@ -123,7 +123,7 @@ def _load_participants(project, system_user):
         all_ids = {}
 
         participants = conn.execute(
-            text(project.participant_import_strategy.get_query()),
+            text(project.participant_import_definition.get_query()),
             timestamp=max_timestamp or 0,
             project_id=project.project_id,
         )
@@ -133,7 +133,7 @@ def _load_participants(project, system_user):
         for participant in participants:
             rows += 0
 
-            ecrf = project.participant_import_strategy.fill_ecrf(
+            ecrf = project.participant_import_definition.fill_ecrf(
                 redcap_project=project,
                 participant_details=participant,
                 existing_ecrf=EcrfDetail.query.filter_by(
@@ -162,7 +162,7 @@ def add_identifiers(ecrf, project, all_ids, participant, type_ids, system_user):
 
     ecrf.identifier_source.identifiers.clear()
 
-    for id in project.participant_import_strategy.extract_identifiers(participant):
+    for id in project.participant_import_definition.extract_identifiers(participant):
 
         idkey = frozenset(id.items())
 

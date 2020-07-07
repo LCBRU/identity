@@ -26,10 +26,6 @@ from identity.printing.briccs import (
     ID_NAME_BRICCS_SAMPLE,
     ID_NAME_BRICCS_ALIQUOT,
 )
-from identity.printing.scad import (
-    ID_NAME_SCAD_REG,
-    PREFIX_SCAD_REG,
-)
 from identity.printing.model import LabelPack
 from identity.blinding import BLINDING_SETS
 from identity.blinding.model import (
@@ -37,7 +33,6 @@ from identity.blinding.model import (
     BlindingType,
     Blinding,
 )
-from identity.redcap.model import ParticipantImportStrategy
 
 
 PSEUDORANDOM_ID_PROVIDERS = {}
@@ -54,7 +49,6 @@ def create_base_data():
     create_label_packs(system)
     create_blinding_sets(system)
     create_participant_id_types(system)
-    create_participant_import_strategies(system)
     create_redcap_instances(system)
 
 
@@ -251,19 +245,6 @@ def create_label_packs(user):
             current_app.logger.info(f'Creating {x.name}')
 
             x.study = Study.query.filter_by(name=x.__study_name__).first()
-
-            db.session.add(x)
-
-    db.session.commit()
-
-
-def create_participant_import_strategies(user):
-    current_app.logger.info(f'Creating Redcap Participant Import Stragtegies')
-
-    for x in get_concrete_classes(ParticipantImportStrategy):
-
-        if ParticipantImportStrategy.query.filter_by(type=x.type).count() == 0:
-            current_app.logger.info(f'Creating {x.type}')
 
             db.session.add(x)
 

@@ -1,4 +1,5 @@
 import datetime
+import re
 import flask_admin as admin
 from flask_admin.form import SecureForm
 from flask_admin.contrib.sqla import ModelView, fields
@@ -8,14 +9,16 @@ from identity.model.security import (
     User,
     Role,
 )
+from wtforms.validators import Required, ValidationError
 from identity.model import Study
 from identity.api.model import ApiKey
 from identity.redcap.model import (
     RedcapInstance,
     RedcapProject,
-    ParticipantImportStrategy,
+    ParticipantImportDefinition,
 )
 from identity.security import get_admin_role
+from flask_admin.form import rules
 
 class QuerySelectMultipleFieldSet(fields.QuerySelectMultipleField):
     def populate_obj(self, obj, name):
@@ -63,16 +66,113 @@ class RedcapInstanceView(CustomView):
 
 
 class RedcapProjectView(CustomView):
-    form_columns = ["study", "redcap_instance", "project_id", "participant_import_strategy"]
+    form_columns = ["study", "redcap_instance", "project_id", "participant_import_definition"]
 
     form_args = {
         'study': {
             'query_factory': lambda: db.session.query(Study).order_by(Study.name),
         },
-        'participant_import_strategy': {
-            'query_factory': lambda: db.session.query(ParticipantImportStrategy).order_by(ParticipantImportStrategy.type),
+        'participant_import_definition': {
+            'query_factory': lambda: db.session.query(ParticipantImportDefinition).order_by(ParticipantImportDefinition.name),
         },
     }
+
+    def on_model_change(self, form, model, is_created):
+        model.last_updated_datetime = datetime.datetime.utcnow()
+        model.last_updated_by_user = current_user
+
+
+class ParticipantImportDefinitionView(CustomView):
+    def valid_list_of_values(form, field):
+        if field.data is None:
+            return
+
+        values = [i.strip() for i in field.data.split(',')]
+
+        if any(len(i) == 0 for i in values):
+            raise ValidationError('contains empty list item')
+
+    def valid_map(form, field):
+        if field.data is None:
+            return
+
+        regex = re.compile("^([^:,]+:[^:,]+(,|$))*$")
+        print(field.data)
+        if not regex.match(field.data):
+            raise ValidationError('invalid key-value pairs')
+
+
+    form_rules = [
+        'csrf_token',
+        "name",
+        "recruitment_date_column_name",
+        "first_name_column_name",
+        "last_name_column_name",
+        "post_code_column_name",
+        "birth_date_column_name",
+        "non_completion_reason_column_name",
+        "withdrawal_date_column_name",
+        rules.Header("Withdrawn from Study"),
+        "withdrawn_from_study_column_name",
+        "withdrawn_from_study_values",
+        rules.Header("Sex"),
+        "sex_column_name",
+        "sex_column_map",
+        rules.Header("Complete or Expected to Complete Study"),
+        "complete_or_expected_column_name",
+        "complete_or_expected_values",
+        rules.Header("Post Withdrawal Keep Samples?"),
+        "post_withdrawal_keep_samples_column_name",
+        "post_withdrawal_keep_samples_values",
+        rules.Header("Post Withdrawal Keep Data?"),
+        "post_withdrawal_keep_data_column_name",
+        "post_withdrawal_keep_data_values",
+        rules.Header("Opt Out of BRC"),
+        "brc_opt_out_column_name",
+        "brc_opt_out_values",
+        rules.Header("Excluded from Analysis"),
+        "excluded_from_analysis_column_name",
+        "excluded_from_analysis_values",
+        rules.Header("Excluded from Study"),
+        "excluded_from_study_column_name",
+        "excluded_from_study_values",
+        "identities_map",
+    ]
+
+    list_desc = 'Comma separated list of values'
+    map_desc = 'Comma separated list of key-value pairs, separated by a colon'
+
+    column_descriptions = dict(
+        withdrawn_from_study_values=list_desc,
+        complete_or_expected_values=list_desc,
+        post_withdrawal_keep_samples_values=list_desc,
+        post_withdrawal_keep_data_values=list_desc,
+        brc_opt_out_values=list_desc,
+        excluded_from_analysis_values=list_desc,
+        excluded_from_study_values=list_desc,
+        identities_map=map_desc,
+        sex_column_map=map_desc,
+    )
+
+    form_args = dict(
+        withdrawn_from_study_column_name=dict(label='Column Name'),
+        withdrawn_from_study_values=dict(label='Values', validators=[valid_list_of_values]),
+        sex_column_name=dict(label='Column Name'),
+        sex_column_map=dict(label='Value Maps', validators=[valid_map]),
+        complete_or_expected_column_name=dict(label='Column Name'),
+        complete_or_expected_values=dict(label='Values', validators=[valid_list_of_values]),
+        post_withdrawal_keep_samples_column_name=dict(label='Column Name'),
+        post_withdrawal_keep_samples_values=dict(label='Values', validators=[valid_list_of_values]),
+        post_withdrawal_keep_data_column_name=dict(label='Column Name'),
+        post_withdrawal_keep_data_values=dict(label='Values', validators=[valid_list_of_values]),
+        brc_opt_out_column_name=dict(label='Column Name'),
+        brc_opt_out_values=dict(label='Values', validators=[valid_list_of_values]),
+        excluded_from_analysis_column_name=dict(label='Column Name'),
+        excluded_from_analysis_values=dict(label='Values', validators=[valid_list_of_values]),
+        excluded_from_study_column_name=dict(label='Column Name'),
+        excluded_from_study_values=dict(label='Values', validators=[valid_list_of_values]),
+        identities_map=dict(validators=[valid_map]),
+    )
 
     def on_model_change(self, form, model, is_created):
         model.last_updated_datetime = datetime.datetime.utcnow()
@@ -96,3 +196,4 @@ def init_admin(app):
     flask_admin.add_view(StudyView(Study, db.session))
     flask_admin.add_view(RedcapInstanceView(RedcapInstance, db.session))
     flask_admin.add_view(RedcapProjectView(RedcapProject, db.session))
+    flask_admin.add_view(ParticipantImportDefinitionView(ParticipantImportDefinition, db.session))
