@@ -3,7 +3,6 @@
 import io
 import csv
 import pytest
-import datetime
 from faker import Faker
 from faker.providers import BaseProvider
 from identity.model.security import User
