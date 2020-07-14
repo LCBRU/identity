@@ -1,0 +1,58 @@
+from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.model.id import ParticipantIdentifierType
+
+
+FOAMI = {
+    'crfs': [
+        {
+            'instance': 'UoL CRF',
+            'study': 'FOAMI',
+            'projects': [17],
+        },
+    ],
+
+    'recruitment_date_column_name': 'date_1st_visit',
+    'birth_date_column_name': 'dob',
+
+    'withdrawal_date_column_name': 'early_wthdrawal_date',
+    'withdrawn_from_study_column_name': 'early_wthdrawal_date',
+    'withdrawn_from_study_values': '<isnotnull>',
+
+    'sex_column_name': 'gender',
+    **STANDARD_SEX_MAP,
+
+    'complete_or_expected_column_name': 'part_completed_trial_yn',
+    'complete_or_expected_values': ['<isnull>', '1'],
+
+    'excluded_from_analysis_column_name': 'inc_in_eos_analysis',
+    'excluded_from_analysis_values': ['2'],
+
+    'identity_map': {
+        ParticipantIdentifierType.__FOAMI_ID__: 'record',
+    }
+}
+
+
+FOAMI_DEMOGRAPHICS = {
+    'crfs': [
+        {
+            'instance': 'UoL CRF',
+            'study': 'FOAMI',
+            'projects': [25],
+        },
+    ],
+
+    'first_name_column_name': 'first_name',
+    'last_name_column_name': 'last_name',
+    'postcode_column_name': 'postcode',
+    'birth_date_column_name': 'dob',
+
+    'sex_column_name': 'gender',
+    **STANDARD_SEX_MAP,
+
+    'identity_map': {
+        ParticipantIdentifierType.__FOAMI_ID__: 'record',
+        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_no',
+        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_no',
+    }
+}

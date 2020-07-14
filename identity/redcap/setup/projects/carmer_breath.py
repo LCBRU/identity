@@ -1,0 +1,26 @@
+from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.model.id import ParticipantIdentifierType
+
+
+CARMER_BREATH = {
+    'crfs': [
+        {
+            'instance': 'UoL CRF',
+            'study': 'CARMER BREATH',
+            'projects': [40],
+        },
+    ],
+
+    'recruitment_date_column_name': 'date_of_consent',
+    'birth_date_column_name': 'date_of_birth',
+
+    'sex_column_name': 'gender',
+    'sex_column_map': {
+        '1': 'M', # Male
+        '2': 'F', # Male
+    },
+
+    'identity_map': {
+        ParticipantIdentifierType.__PILOT_ID__: 'record',
+    }
+}

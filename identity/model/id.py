@@ -360,6 +360,9 @@ class ParticipantIdentifierType(db.Model):
     __DREAM_ID__ = 'dream_id'
     __BIORESOURCE_ID__ = 'bioresource_id'
     __GRAPHICS2_ID__ = 'graphic2_id'
+    __TMAO_ID__ = 'tmao_id'
+    __BRAVE_ID__ = 'brave_id'
+
     __NHS_NUMBER__ = 'nhs_number'
     __UHL_SYSTEM_NUMBER__ = 'uhl_system_number'
 
@@ -372,6 +375,9 @@ class ParticipantIdentifierType(db.Model):
         __DREAM_ID__,
         __BIORESOURCE_ID__,
         __GRAPHICS2_ID__,
+        __TMAO_ID__,
+        __BRAVE_ID__,
+
         __NHS_NUMBER__,
         __UHL_SYSTEM_NUMBER__,
     ]

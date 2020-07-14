@@ -1,0 +1,36 @@
+from identity.redcap.setup.standard import REVERSE_SEX_MAP
+from identity.model.id import ParticipantIdentifierType
+
+
+MARI = {
+    'crfs': [
+        {
+            'instance': 'UHL Live',
+            'study': 'MARI',
+            'projects': [28],
+        },
+        {
+            'instance': 'UoL CRF',
+            'study': 'MARI',
+            'projects': [16],
+        },
+        {
+            'instance': 'UHL HSCN',
+            'study': 'MARI',
+            'projects': [30, 31, 32, 33, 34, 35, 36, 55, 57, 58],
+        },
+    ],
+
+    'recruitment_date_column_name': 'operation_date',
+    'birth_date_column_name': 'dob',
+
+    'sex_column_name': 'gender',
+    **REVERSE_SEX_MAP,
+
+    'excluded_from_analysis_column_name': 'inc_in_eos_analysis',
+    'excluded_from_analysis_values': ['0'],
+
+    'identity_map': {
+        ParticipantIdentifierType.__MARI_ID__: 'record',
+    }
+}

@@ -1,0 +1,22 @@
+from identity.redcap.setup.standard import STANDARD_SEX_MAP
+from identity.model.id import ParticipantIdentifierType
+
+
+PILOT = {
+    'crfs': [
+        {
+            'instance': 'UHL Live',
+            'study': 'PILOT',
+            'projects': [5],
+        },
+    ],
+
+    'recruitment_date_column_name': 'date_time_of_admission',
+
+    'sex_column_name': 'sex',
+    **STANDARD_SEX_MAP,
+
+    'identity_map': {
+        ParticipantIdentifierType.__PILOT_ID__: 'record',
+    }
+}

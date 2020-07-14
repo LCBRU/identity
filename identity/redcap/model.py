@@ -11,14 +11,11 @@ from identity.model.security import User
 class ParticipantImportDefinition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    name = db.Column(db.String(100), nullable=False)
-
     recruitment_date_column_name = db.Column(db.String(100))
     first_name_column_name = db.Column(db.String(100))
     last_name_column_name = db.Column(db.String(100))
     postcode_column_name = db.Column(db.String(100))
     birth_date_column_name = db.Column(db.String(100))
-    non_completion_reason_column_name = db.Column(db.String(100))
     withdrawal_date_column_name = db.Column(db.String(100))
 
     withdrawn_from_study_column_name = db.Column(db.String(100))

@@ -1,11 +1,11 @@
-import pytest
 from datetime import datetime
-from unittest.mock import patch, MagicMock, call
-from identity.redcap.model import RedcapInstance
-from identity.redcap import import_project_details, _load_instance_projects
-from identity.redcap import RedcapProject
-from identity.security import get_system_user
+from unittest.mock import call, patch
+
 from identity.database import db
+from identity.redcap import (RedcapProject, _load_instance_projects,
+                             import_project_details)
+from identity.redcap.model import RedcapInstance
+from identity.security import get_system_user
 
 
 def test__import_project_details__calls_all_instances(client, faker):

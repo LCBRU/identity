@@ -103,13 +103,11 @@ class ParticipantImportDefinitionView(CustomView):
 
 
     form_columns = [
-        "name",
         "recruitment_date_column_name",
         "first_name_column_name",
         "last_name_column_name",
         "postcode_column_name",
         "birth_date_column_name",
-        "non_completion_reason_column_name",
         "withdrawal_date_column_name",
         "withdrawn_from_study_column_name",
         "withdrawn_from_study_values",
@@ -132,13 +130,11 @@ class ParticipantImportDefinitionView(CustomView):
 
     form_rules = [
         'csrf_token',
-        "name",
         "recruitment_date_column_name",
         "first_name_column_name",
         "last_name_column_name",
         "postcode_column_name",
         "birth_date_column_name",
-        "non_completion_reason_column_name",
         "withdrawal_date_column_name",
         rules.Header("Withdrawn from Study"),
         "withdrawn_from_study_column_name",

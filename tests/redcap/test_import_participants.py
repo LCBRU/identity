@@ -1,16 +1,16 @@
 from datetime import datetime
-from identity.model.id import ParticipantIdentifierType
+from unittest.mock import call, patch
 
 import pytest
-from identity.model import Study
+
 from identity.database import db
-from identity.redcap.model import EcrfDetail, ParticipantImportDefinition, RedcapInstance, RedcapProject
-from unittest.mock import patch, call
+from identity.model import Study
+from identity.model.id import ParticipantIdentifierType
 from identity.redcap import _load_participants, import_participants
+from identity.redcap.model import (EcrfDetail, ParticipantImportDefinition,
+                                   RedcapInstance, RedcapProject)
 from identity.security import get_system_user
 from identity.services.validators import parse_date
-from tests.redcap import DEFAULT_RESULT
-
 
 DEFAULT_RECORD = {
     'record': 'abc1',

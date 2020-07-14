@@ -5,7 +5,7 @@ from sqlalchemy.sql import text
 from flask import current_app
 from itertools import groupby, chain
 from collections import ChainMap
-from .database import db
+from identity.database import db
 from identity.model.id import (
     SequentialIdProvider,
     LegacyIdProvider,
@@ -24,7 +24,6 @@ from identity.security import get_system_user, get_admin_user
 from identity.printing.briccs import (
     ID_NAME_BRICCS_PARTICIPANT,
     ID_NAME_BRICCS_SAMPLE,
-    ID_NAME_BRICCS_ALIQUOT,
 )
 from identity.printing.model import LabelPack
 from identity.blinding import BLINDING_SETS
