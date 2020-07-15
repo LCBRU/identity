@@ -1,3 +1,4 @@
+from identity.setup.redcap_instances import REDCapInstance
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
@@ -36,12 +37,12 @@ SCAD_CLINICAL_VISIT = {
 SCAD_CLINICAL_VISIT_V2 = {
     'crfs': [
         {
-            'instance': 'UHL Live',
+            'instance': REDCapInstance.UHL_LIVE,
             'study': StudyName.SCAD,
             'projects': [77],
         },
         {
-            'instance': 'UHL HSCN',
+            'instance': REDCapInstance.UHL_HSCN,
             'study': StudyName.SCAD,
             'projects': [68],
         },
@@ -68,7 +69,7 @@ SCAD_CLINICAL_VISIT_V2 = {
 SCAD_REGISTRY = {
     'crfs': [
         {
-            'instance': 'UHL Live',
+            'instance': REDCapInstance.UHL_LIVE,
             'study': StudyName.SCAD,
             'projects': [31],
         },
@@ -92,7 +93,7 @@ SCAD_REGISTRY = {
 SCAD_SURVEY = {
     'crfs': [
         {
-            'instance': 'UoL Survey',
+            'instance': REDCapInstance.UOL_INTERNET,
             'study': StudyName.SCAD,
             'projects': [12],
         },
@@ -115,7 +116,7 @@ SCAD_SURVEY = {
 SCAD_SURVEY_2016 = {
     'crfs': [
         {
-            'instance': 'UoL Survey',
+            'instance': REDCapInstance.UOL_INTERNET,
             'study': StudyName.SCAD,
             'projects': [13],
         },

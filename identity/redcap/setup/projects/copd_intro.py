@@ -1,3 +1,4 @@
+from identity.setup.redcap_instances import REDCapInstance
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
@@ -6,7 +7,7 @@ from identity.model.id import ParticipantIdentifierType
 COPD_INTRO = {
     'crfs': [
         {
-            'instance': 'UoL CRF',
+            'instance': REDCapInstance.UOL_CRF,
             'study': StudyName.COPD_INTROL,
             'projects': [41],
         },

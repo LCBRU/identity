@@ -1,3 +1,4 @@
+from identity.setup.redcap_instances import REDCapInstance
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
@@ -32,7 +33,7 @@ DISCORDANCE_DEMOGRAPHICS = {
 DISCORDANCE = {
     'crfs': [
         {
-            'instance': 'UHL Live',
+            'instance': REDCapInstance.UHL_LIVE,
             'study': StudyName.DISCORDANCE,
             'projects': [28],
         },

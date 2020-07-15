@@ -1,3 +1,4 @@
+from identity.setup.redcap_instances import REDCapInstance
 from identity.setup.studies import StudyName
 from identity.model.id import ParticipantIdentifierType
 
@@ -5,12 +6,12 @@ from identity.model.id import ParticipantIdentifierType
 DREAM = {
     'crfs': [
         {
-            'instance': 'UHL Live',
+            'instance': REDCapInstance.UHL_LIVE,
             'study': StudyName.DREAM,
             'projects': [8, 22],
         },
         {
-            'instance': 'UHL HSCN',
+            'instance': REDCapInstance.UHL_HSCN,
             'study': StudyName.DREAM,
             'projects': [20, 21, 24],
         },

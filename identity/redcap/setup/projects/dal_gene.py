@@ -1,3 +1,4 @@
+from identity.setup.redcap_instances import REDCapInstance
 from identity.setup.studies import StudyName
 from identity.model.id import ParticipantIdentifierType
 
@@ -5,7 +6,7 @@ from identity.model.id import ParticipantIdentifierType
 DAL_GENE = {
     'crfs': [
         {
-            'instance': 'UHL Live',
+            'instance': REDCapInstance.UHL_LIVE,
             'study': StudyName.Dal_Gene,
             'projects': [47],
         },

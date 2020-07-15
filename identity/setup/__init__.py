@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from identity.setup.redcap_instances import REDCapInstance
 from identity.setup.studies import StudyName
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
@@ -371,40 +372,7 @@ def create_participant_id_types(user):
 def create_redcap_instances(user):
     current_app.logger.info(f'Creating REDCap Instances')
 
-    instances = [
-        {
-            'name': 'UHL Live',
-            'database_name': 'redcap6170_briccs',
-            'base_url': 'https://briccs.xuhl-tr.nhs.uk/redcap',
-            'version': '7.2.2',
-        },
-        {
-            'name': 'UHL HSCN',
-            'database_name': 'redcap6170_briccsext',
-            'base_url': 'https://uhlbriccsext01.xuhl-tr.nhs.uk/redcap',
-            'version': '7.2.2',
-        },
-        {
-            'name': 'GENVASC',
-            'database_name': 'redcap_genvasc',
-            'base_url': 'https://genvasc.uhl-tr.nhs.uk/redcap',
-            'version': '9.1.15',
-        },
-        {
-            'name': 'UoL CRF',
-            'database_name': 'uol_crf_redcap',
-            'base_url': 'https://crf.lcbru.le.ac.uk',
-            'version': '7.2.2',
-        },
-        {
-            'name': 'UoL Internet',
-            'database_name': 'uol_survey_redcap',
-            'base_url': 'https://redcap.lcbru.le.ac.uk',
-            'version': '7.2.2',
-        },
-    ]
-
-    for i in instances:
+    for i in REDCapInstance().all_instances():
         if RedcapInstance.query.filter_by(name=i['name']).count() == 0:
             db.session.add(RedcapInstance(**i, last_updated_by_user=user))
 

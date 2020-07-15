@@ -1,3 +1,4 @@
+from identity.setup.redcap_instances import REDCapInstance
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
@@ -7,7 +8,7 @@ from identity.model.id import ParticipantIdentifierType
 EDEN_STP = {
     'crfs': [
         {
-            'instance': 'UHL Live',
+            'instance': REDCapInstance.UHL_LIVE,
             'study': StudyName.EDEN,
             'projects': [74],
         },
@@ -27,7 +28,7 @@ EDEN_STP = {
 EDEN_STP = {
     'crfs': [
         {
-            'instance': 'UHL HSCN',
+            'instance': REDCapInstance.UHL_HSCN,
             'study': StudyName.EDEN,
             'projects': [63, 66],
         },

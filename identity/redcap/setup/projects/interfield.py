@@ -1,3 +1,4 @@
+from identity.setup.redcap_instances import REDCapInstance
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
@@ -6,7 +7,7 @@ from identity.model.id import ParticipantIdentifierType
 INTERFIELD = {
     'crfs': [
         {
-            'instance': 'UHL Live',
+            'instance': REDCapInstance.UHL_LIVE,
             'study': StudyName.INTERFIELD,
             'projects': [104],
         },
@@ -26,7 +27,7 @@ INTERFIELD = {
 INTERFIELD_DEMOGRAPHICS = {
     'crfs': [
         {
-            'instance': 'UHL Live',
+            'instance': REDCapInstance.UHL_LIVE,
             'study': StudyName.INTERFIELD,
             'projects': [105],
         },
