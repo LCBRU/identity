@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
@@ -19,7 +20,7 @@ ID_TYPE_SAMPLE = "LMbSa"
 class LimbIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='LIMb',
+            study_name=StudyName.LIMb,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'LIMb Participants'},
                 {ID_TYPE_SAMPLE: 'LIMb Samples'},
@@ -32,7 +33,7 @@ class LimbPack(LabelPack):
         "polymorphic_identity": 'LimbPack',
     }
 
-    __study_name__ = 'LIMb'
+    __study_name__ = StudyName.LIMb
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()

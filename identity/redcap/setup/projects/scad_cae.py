@@ -6,7 +6,7 @@ SCAD_CAE_DEMOGRAPHICS = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'SCAD CAE',
+            'study': 'CAE',
             'projects': [71],
         },
     ],

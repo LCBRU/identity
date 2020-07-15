@@ -27,7 +27,6 @@ DEFAULT_RESULT = {
     'postcode': None,
     'birth_date': None,
     'complete_or_expected': None,
-    'non_completion_reason': None,
     'withdrawal_date': None,
     'withdrawn_from_study': None,
     'post_withdrawal_keep_samples': None,
@@ -101,7 +100,6 @@ def _assert_actual_equals_expected(actual, expected, expected_identifiers):
     assert actual.postcode == expected['postcode']
     assert parse_date(actual.birth_date) == expected['birth_date']
     assert actual.complete_or_expected == expected['complete_or_expected']
-    assert actual.non_completion_reason == expected['non_completion_reason']
     assert actual.withdrawal_date == expected['withdrawal_date']
     assert actual.withdrawn_from_study == expected['withdrawn_from_study']
     assert actual.post_withdrawal_keep_samples == expected['post_withdrawal_keep_samples']
@@ -126,7 +124,7 @@ def test__import_participants__no_projects(client, faker):
 
 
 def test__import_participants__one_project(client, faker):
-    p = _get_project('fred', 1, ParticipantImportDefinition(name='fred'))
+    p = _get_project('fred', 1, ParticipantImportDefinition())
 
     with patch('identity.redcap._load_participants') as mock__load_participants:
 
@@ -142,8 +140,8 @@ def test__import_participants__one_project(client, faker):
 
 
 def test__import_participants__two_project(client, faker):
-    p1 = _get_project('fred', 1, ParticipantImportDefinition(name='fred'))
-    p2 = _get_project('mary', 1, ParticipantImportDefinition(name='mary'))
+    p1 = _get_project('fred', 1, ParticipantImportDefinition())
+    p2 = _get_project('mary', 1, ParticipantImportDefinition())
 
     with patch('identity.redcap._load_participants') as mock__load_participants:
 
@@ -153,19 +151,17 @@ def test__import_participants__two_project(client, faker):
 
 
 def test__import_participants__all_mappings_null(client, faker):
-    p = _get_project('fred', 1, ParticipantImportDefinition(name='fred'))
+    p = _get_project('fred', 1, ParticipantImportDefinition())
     _run_import_test(p, DEFAULT_RECORD, DEFAULT_RESULT, DEFAULT_IDENTIFIERS)
 
 
 def test__import_participants__all_mappings_empty(client, faker):
     d = ParticipantImportDefinition(
-        name='fred',
         recruitment_date_column_name='',
         first_name_column_name='',
         last_name_column_name='',
         postcode_column_name='',
         birth_date_column_name='',
-        non_completion_reason_column_name='',
         withdrawal_date_column_name='',
         withdrawn_from_study_column_name='',
         sex_column_name='',
@@ -182,13 +178,11 @@ def test__import_participants__all_mappings_empty(client, faker):
 
 def test__import_participants__column_names_not_found(client, faker):
     d = ParticipantImportDefinition(
-        name='fred',
         recruitment_date_column_name='bernard',
         first_name_column_name='bernard',
         last_name_column_name='bernard',
         postcode_column_name='bernard',
         birth_date_column_name='bernard',
-        non_completion_reason_column_name='bernard',
         withdrawal_date_column_name='bernard',
         withdrawn_from_study_column_name='bernard',
         sex_column_name='bernard',
@@ -207,7 +201,6 @@ def test__import_participants__column_names_not_found(client, faker):
 @pytest.mark.parametrize("column_name, field_name", DATE_FIELDS)
 def test__import_participants__date_field__invalid_date(client, faker, column_name, field_name):
     d = ParticipantImportDefinition(
-        name='fred',
         **{f'{field_name}_column_name': column_name},
     )
     p = _get_project('fred', 1, d)
@@ -220,7 +213,6 @@ def test__import_participants__date_field__invalid_date(client, faker, column_na
 @pytest.mark.parametrize("column_name, field_name", DATE_FIELDS)
 def test__import_participants__date_field__valid_date(client, faker, column_name, field_name):
     d = ParticipantImportDefinition(
-        name='fred',
         **{f'{field_name}_column_name': column_name},
     )
     p = _get_project('fred', 1, d)
@@ -234,7 +226,6 @@ def test__import_participants__date_field__valid_date(client, faker, column_name
 @pytest.mark.parametrize("column_name, field_name", TEXT_FIELDS)
 def test__import_participants___text_field__stripped(client, faker, column_name, field_name):
     d = ParticipantImportDefinition(
-        name='fred',
         **{f'{field_name}_column_name': column_name},
     )
     p = _get_project('fred', 1, d)
@@ -247,7 +238,6 @@ def test__import_participants___text_field__stripped(client, faker, column_name,
 
 def test__import_participants___sex__not_in_map(client, faker):
     d = ParticipantImportDefinition(
-        name='fred',
         sex_column_name='sex',
         sex_column_map='0:F,1:M',
     )
@@ -260,7 +250,6 @@ def test__import_participants___sex__not_in_map(client, faker):
 
 def test__import_participants___sex__in_map(client, faker):
     d = ParticipantImportDefinition(
-        name='fred',
         sex_column_name='sex',
         sex_column_map='0:F,1:M',
     )
@@ -274,7 +263,6 @@ def test__import_participants___sex__in_map(client, faker):
 
 def test__import_participants___sex__empty_is_not_zero(client, faker):
     d = ParticipantImportDefinition(
-        name='fred',
         sex_column_name='sex',
         sex_column_map='0:F,1:M',
     )
@@ -287,7 +275,6 @@ def test__import_participants___sex__empty_is_not_zero(client, faker):
 
 def test__import_participants___sex__empty_map(client, faker):
     d = ParticipantImportDefinition(
-        name='fred',
         sex_column_name='sex',
         sex_column_map='',
     )
@@ -301,7 +288,6 @@ def test__import_participants___sex__empty_map(client, faker):
 @pytest.mark.parametrize("column_name, field_name", LIST_COLUMNS)
 def test__import_participants__list_column__values_is_null(client, faker, column_name, field_name):
     d = ParticipantImportDefinition(
-        name='fred',
         **{
             f'{field_name}_column_name': column_name,
             f'{field_name}_values': None,
@@ -318,7 +304,6 @@ def test__import_participants__list_column__values_is_null(client, faker, column
 @pytest.mark.parametrize("column_name, field_name", LIST_COLUMNS)
 def test__import_participants__list_column__values_is_empty(client, faker, column_name, field_name):
     d = ParticipantImportDefinition(
-        name='fred',
         **{
             f'{field_name}_column_name': column_name,
             f'{field_name}_values': '',
@@ -335,7 +320,6 @@ def test__import_participants__list_column__values_is_empty(client, faker, colum
 @pytest.mark.parametrize("column_name, field_name", LIST_COLUMNS)
 def test__import_participants__list_column__not_in_array(client, faker, column_name, field_name):
     d = ParticipantImportDefinition(
-        name='fred',
         **{
             f'{field_name}_column_name': column_name,
             f'{field_name}_values': 'a,b,c',
@@ -352,7 +336,6 @@ def test__import_participants__list_column__not_in_array(client, faker, column_n
 @pytest.mark.parametrize("column_name, field_name", LIST_COLUMNS)
 def test__import_participants__list_column__in_array(client, faker, column_name, field_name):
     d = ParticipantImportDefinition(
-        name='fred',
         **{
             f'{field_name}_column_name': column_name,
             f'{field_name}_values': 'a,b,c',
@@ -369,7 +352,6 @@ def test__import_participants__list_column__in_array(client, faker, column_name,
 @pytest.mark.parametrize("column_name, field_name", LIST_COLUMNS)
 def test__import_participants__list_column__is_null(client, faker, column_name, field_name):
     d = ParticipantImportDefinition(
-        name='fred',
         **{
             f'{field_name}_column_name': column_name,
             f'{field_name}_values': 'a,b,c,<isnull>,d',
@@ -386,7 +368,6 @@ def test__import_participants__list_column__is_null(client, faker, column_name, 
 @pytest.mark.parametrize("column_name, field_name", LIST_COLUMNS)
 def test__import_participants__list_column__is_null_but_isnt(client, faker, column_name, field_name):
     d = ParticipantImportDefinition(
-        name='fred',
         **{
             f'{field_name}_column_name': column_name,
             f'{field_name}_values': 'a,b,c,<isnull>,d',
@@ -403,7 +384,6 @@ def test__import_participants__list_column__is_null_but_isnt(client, faker, colu
 @pytest.mark.parametrize("column_name, field_name", LIST_COLUMNS)
 def test__import_participants__list_column__is_not_null(client, faker, column_name, field_name):
     d = ParticipantImportDefinition(
-        name='fred',
         **{
             f'{field_name}_column_name': column_name,
             f'{field_name}_values': 'a,b,c,<isnotnull>,d',
@@ -420,7 +400,6 @@ def test__import_participants__list_column__is_not_null(client, faker, column_na
 @pytest.mark.parametrize("column_name, field_name", LIST_COLUMNS)
 def test__import_participants__list_column__is_not_null_but_is(client, faker, column_name, field_name):
     d = ParticipantImportDefinition(
-        name='fred',
         **{
             f'{field_name}_column_name': column_name,
             f'{field_name}_values': 'a,b,c,<isnotnull>,d',
@@ -436,7 +415,6 @@ def test__import_participants__list_column__is_not_null_but_is(client, faker, co
 
 def test__import_participants__field_not_in_id_map(client, faker):
     d = ParticipantImportDefinition(
-        name='fred',
         identities_map=''
     )
     p = _get_project('fred', 1, d)
@@ -448,7 +426,6 @@ def test__import_participants__field_not_in_id_map(client, faker):
 
 def test__import_participants__field_in_id_map(client, faker):
     d = ParticipantImportDefinition(
-        name='fred',
         identities_map=f'{ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__}:record'
     )
     p = _get_project('fred', 1, d)

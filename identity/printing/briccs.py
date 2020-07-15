@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import LegacyIdProvider, SequentialIdProvider, StudyIdSpecification
 from .model import (
@@ -26,7 +27,7 @@ ID_TYPE_SAMPLE = "BSa"
 class BriccsIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='BRICCS',
+            study_name=StudyName.BRICCS,
             legacy_identifier_types=[
                 {ID_TYPE_PARTICIPANT: ID_NAME_BRICCS_PARTICIPANT},
                 {ID_TYPE_SAMPLE: ID_NAME_BRICCS_SAMPLE},
@@ -189,11 +190,11 @@ class BriccsPack(LabelPack):
         "polymorphic_identity": 'BriccsPack',
     }
 
-    __study_name__ = 'BRICCS'
+    __study_name__ = StudyName.BRICCS
 
     def _do_print(self):
         bb = BriccsBags()
-        participant_id = bb.print_pack(study_name='BRICCS', additional_sample_label_count=2)
+        participant_id = bb.print_pack(study_name=StudyName.BRICCS, additional_sample_label_count=2)
         self.save_participant_id(participant_id)
 
 
@@ -202,7 +203,7 @@ class BriccsKetteringPack(LabelPack):
         "polymorphic_identity": 'BriccsKetteringPack',
     }
 
-    __study_name__ = 'BRICCS'
+    __study_name__ = StudyName.BRICCS
 
     def _do_print(self):
         participant_id = self.print_pack(
@@ -268,7 +269,7 @@ class BriccsSamplePack(LabelPack):
         "polymorphic_identity": 'BriccsSamplePack',
     }
 
-    __study_name__ = 'BRICCS'
+    __study_name__ = StudyName.BRICCS
 
     def _do_print(self):
         print_sample(label_context=SampleContext(

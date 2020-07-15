@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
@@ -21,7 +22,7 @@ ID_TYPE_SAMPLE = "CarSa"
 class CardiometIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='Cardiomet',
+            study_name=StudyName.CARDIOMET,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'CARDIOMET Participants'},
                 {ID_TYPE_SAMPLE: 'CARDIOMET Samples'},
@@ -34,7 +35,7 @@ class CardiometPack(LabelPack):
         "polymorphic_identity": 'CardiometPack',
     }
 
-    __study_name__ = 'Cardiomet'
+    __study_name__ = StudyName.CARDIOMET
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()

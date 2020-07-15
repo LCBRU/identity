@@ -6,7 +6,7 @@ CMR_GUIDE = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'CIA',
+            'study': 'CMR Guide',
             'projects': [59],
         },
     ],

@@ -100,7 +100,6 @@ class ParticipantImportDefinition(db.Model):
             self.last_name_column_name,
             self.postcode_column_name,
             self.birth_date_column_name,
-            self.non_completion_reason_column_name,
             self.withdrawal_date_column_name,
             self.withdrawn_from_study_column_name,
             self.sex_column_name,
@@ -205,7 +204,6 @@ class ParticipantImportDefinition(db.Model):
         ecrf.birth_date = parse_date_or_none(record.get(self.birth_date_column_name))
         ecrf.sex = self.sex_column_map_dictionary.get(record.get(self.sex_column_name))
         ecrf.complete_or_expected = self._get_record_value_in_value_array(record, self.complete_or_expected_column_name, self.complete_or_expected_value_array)
-        ecrf.non_completion_reason = self._get_record_value_cleansed(record, self.non_completion_reason_column_name)
         ecrf.withdrawal_date = parse_date_or_none(record.get(self.withdrawal_date_column_name))
         ecrf.withdrawn_from_study = self._get_record_value_in_value_array(record, self.withdrawn_from_study_column_name, self.withdrawn_from_study_value_array)
         ecrf.post_withdrawal_keep_samples = self._get_record_value_in_value_array(record, self.post_withdrawal_keep_samples_column_name, self.post_withdrawal_keep_samples_value_array)
@@ -271,7 +269,6 @@ class EcrfDetail(db.Model):
     postcode = db.Column(db.String(10))
     birth_date = db.Column(db.Date)
     complete_or_expected = db.Column(db.Boolean)
-    non_completion_reason = db.Column(db.String(10))
     withdrawal_date = db.Column(db.Date)
     withdrawn_from_study = db.Column(db.Boolean)
     post_withdrawal_keep_samples = db.Column(db.Boolean)

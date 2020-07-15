@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from identity.setup.studies import StudyName
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 from flask import current_app
@@ -35,7 +36,6 @@ from identity.blinding.model import (
 
 
 PSEUDORANDOM_ID_PROVIDERS = {}
-STUDIES = ['Pilot', 'HIC Covid 19']
 
 
 def create_base_data():
@@ -274,7 +274,7 @@ def create_providers(user):
 
     for params in chain.from_iterable([x.sequential_identifier_types for x in get_concrete_classes(StudyIdSpecification)]):
         if SequentialIdProvider.query.filter_by(name=params['name']).count() == 0:
-            current_app.logger.info(f'Creating provider {name}')
+            current_app.logger.info(f'Creating provider {params["name"]}')
             db.session.add(SequentialIdProvider(
                 last_updated_by_user=user,
                 **params,
@@ -295,7 +295,7 @@ def create_providers(user):
 def create_studies(user):
     current_app.logger.info(f'Creating Studies')
 
-    for study_name in set([x.__study_name__ for x in get_concrete_classes(LabelPack)] + STUDIES):
+    for study_name in StudyName().all_studies():
         study = Study.query.filter_by(name=study_name).first()
 
         if not study:

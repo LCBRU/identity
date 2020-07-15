@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
@@ -22,7 +23,7 @@ ID_TYPE_SAMPLE = "LenSa"
 class LentenIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='LENTEN',
+            study_name=StudyName.LENTEN,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'LENTEN Participants'},
                 {ID_TYPE_SAMPLE: 'LENTEN Samples'},
@@ -35,7 +36,7 @@ class LentenPack(LabelPack):
         "polymorphic_identity": 'LentenPack',
     }
 
-    __study_name__ = 'LENTEN'
+    __study_name__ = StudyName.LENTEN
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
