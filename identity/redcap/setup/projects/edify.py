@@ -1,10 +1,11 @@
+from identity.setup.studies import StudyName
 from identity.model.id import ParticipantIdentifierType
 
 EDIFY = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'EDIFY',
+            'study': StudyName.EDIFY,
             'projects': [30],
         },
     ],

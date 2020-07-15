@@ -1,15 +1,16 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS
 from identity.model.id import ParticipantIdentifierType
 
 
 FAST = {
-    'crf': {
-        'FAST': {
-            'study': 'FAST',
+    'crf': [
+        {
             'instance': 'UHL Live',
-            'project_id': 43,
+            'study': StudyName.FAST,
+            'projects': [43],
         },
-    },
+    ],
 
     'recruitment_date_column_name': 'date',
     'birth_date_column_name': 'dob',
@@ -34,7 +35,7 @@ FAST_SCREENING = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'FAST',
+            'study': StudyName.FAST,
             'projects': [48],
         },
     ],

@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
 
@@ -5,7 +6,7 @@ from identity.model.id import ParticipantIdentifierType
 PREDICT = {
     'crf': {
         'PREDICT': {
-            'study': 'PREDICT',
+            'study': StudyName.PREDICT,
             'instance': 'UHL Live',
             'project_id': 62,
         },

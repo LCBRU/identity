@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ EXTEND = {
     'crfs': [
         {
             'instance': 'UoL Survey',
-            'study': 'EXTEND',
+            'study': StudyName.EXTEND,
             'projects': [17],
         },
     ],
@@ -27,7 +28,7 @@ EXTEND_DEMOGRAPHICS = {
     'crfs': [
         {
             'instance': 'UoL Survey',
-            'study': 'EXTEND',
+            'study': StudyName.EXTEND,
             'projects': [18, 21],
         },
     ],

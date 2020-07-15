@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.model.id import ParticipantIdentifierType
 
 
@@ -5,12 +6,12 @@ DREAM = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'DREAM',
+            'study': StudyName.DREAM,
             'projects': [8, 22],
         },
         {
             'instance': 'UHL HSCN',
-            'study': 'DREAM',
+            'study': StudyName.DREAM,
             'projects': [20, 21, 24],
         },
     ],

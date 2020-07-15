@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ FOAMI = {
     'crfs': [
         {
             'instance': 'UoL CRF',
-            'study': 'FOAMI',
+            'study': StudyName.FOAMI,
             'projects': [17],
         },
     ],
@@ -37,7 +38,7 @@ FOAMI_DEMOGRAPHICS = {
     'crfs': [
         {
             'instance': 'UoL CRF',
-            'study': 'FOAMI',
+            'study': StudyName.FOAMI,
             'projects': [25],
         },
     ],

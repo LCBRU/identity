@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ UHL_HCW_COVID_19 = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'UHL_HCW_COVID_19',
+            'study': StudyName.UHL_HCW_COVID_19,
             'projects': [110],
         },
     ],

@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ PHOSP_COVID19 = {
     'crfs': [
         {
             'instance': 'UoL Survey',
-            'study': 'PHOSP_COVID19',
+            'study': StudyName.PHOSP_COVID19,
             'projects': [44],
         },
     ],

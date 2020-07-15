@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ RECHARGE_CORE = {
     'crfs': [
         {
             'instance': 'UoL RECHARGE',
-            'study': 'RECHARGE',
+            'study': StudyName.RECHARGE,
             'projects': [13],
         },
     ],
@@ -27,7 +28,7 @@ RECHARGE_SITE = {
     'crfs': [
         {
             'instance': 'UoL RECHARGE',
-            'study': 'RECHARGE',
+            'study': StudyName.RECHARGE,
             'projects': [14, 15, 17, 18],
         },
     ],

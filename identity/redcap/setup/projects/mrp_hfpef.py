@@ -1,15 +1,16 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
 
 
 MRP_HFPEF_DEMOGRAPHICS = {
-    'crf': {
-        'MRP_HFPEF_DEMOGRAPHICS': {
-            'study': 'MRP_HFPEF',
+    'crf': [
+        {
             'instance': 'UHL Live',
-            'project_id': 99,
+            'study': StudyName.MRP_HFPEF,
+            'projects': [99],
         },
-    },
+    ],
 
     'recruitment_date_column_name': 'research_appt_date',
     'first_name_column_name': 'first_name',
@@ -32,7 +33,7 @@ MRP_HFPEF = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'MRP_HFPEF',
+            'study': StudyName.MRP_HFPEF,
             'projects': [100],
         },
     ],

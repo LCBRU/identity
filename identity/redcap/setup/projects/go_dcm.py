@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ GO_DCM = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'GO_DCM',
+            'study': StudyName.GO_DCM,
             'projects': [91],
         },
     ],
@@ -53,7 +54,7 @@ GO_DCM_DEMOGRAPHICS = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'GO_DCM',
+            'study': StudyName.GO_DCM,
             'projects': [92],
         },
     ],

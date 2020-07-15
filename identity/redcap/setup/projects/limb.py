@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ LIMB = {
     'crfs': [
         {
             'instance': 'UoL CRF',
-            'study': 'LIMB',
+            'study': StudyName.LIMb,
             'projects': [31, 32],
         },
     ],
@@ -26,7 +27,7 @@ LIMB_DEMOGRAPHICS = {
     'crfs': [
         {
             'instance': 'UoL CRF',
-            'study': 'LIMB',
+            'study': StudyName.LIMb,
             'projects': [34],
         },
     ],
@@ -52,7 +53,7 @@ LIMB_SCREENING = {
     'crfs': [
         {
             'instance': 'UoL CRF',
-            'study': 'LIMB',
+            'study': StudyName.LIMb,
             'projects': [36],
         },
     ],

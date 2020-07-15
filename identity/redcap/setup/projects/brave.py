@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,12 +7,12 @@ BRAVE = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'BRAVE',
+            'study': StudyName.BRAVE,
             'projects': [26, 29],
         },
         {
             'instance': 'UHL HSCN',
-            'study': 'BRAVE',
+            'study': StudyName.BRAVE,
             'projects': [28, 37, 54, 56, 59, 60],
         },
     ],

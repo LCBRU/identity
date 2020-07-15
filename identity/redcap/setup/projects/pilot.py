@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ PILOT = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'PILOT',
+            'study': StudyName.Pilot,
             'projects': [5],
         },
     ],

@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ AS_PROGRESSION = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'AS Progression',
+            'study': StudyName.AS_Progression,
             'projects': [37],
         },
     ],

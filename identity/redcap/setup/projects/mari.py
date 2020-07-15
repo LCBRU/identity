@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import REVERSE_SEX_MAP
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,17 +7,17 @@ MARI = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'MARI',
+            'study': StudyName.MARI,
             'projects': [28],
         },
         {
             'instance': 'UoL CRF',
-            'study': 'MARI',
+            'study': StudyName.MARI,
             'projects': [16],
         },
         {
             'instance': 'UHL HSCN',
-            'study': 'MARI',
+            'study': StudyName.MARI,
             'projects': [30, 31, 32, 33, 34, 35, 36, 55, 57, 58],
         },
     ],

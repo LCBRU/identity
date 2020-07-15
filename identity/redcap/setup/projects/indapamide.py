@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ INDAPAMIDE = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'Indapamide',
+            'study': StudyName.Indapamide,
             'projects': [50],
         },
     ],
@@ -31,7 +32,7 @@ INDAPAMIDE_SCREENING = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'Indapamide',
+            'study': StudyName.Indapamide,
             'projects': [54],
         },
     ],
@@ -50,7 +51,7 @@ INDAPAMIDE_DEMOGRAPHICS = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'Indapamide',
+            'study': StudyName.Indapamide,
             'projects': [83],
         },
     ],

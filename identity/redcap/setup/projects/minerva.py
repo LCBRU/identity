@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,12 +7,12 @@ MINERVA = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'MINERVA',
+            'study': StudyName.MINERVA,
             'projects': [53],
         },
         {
             'instance': 'UHL HSCN',
-            'study': 'MINERVA',
+            'study': StudyName.MINERVA,
             'projects': [38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 50, 51, 52, 61, 62, 64, 65, 69],
         },
     ],

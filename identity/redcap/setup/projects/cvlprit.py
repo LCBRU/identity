@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.model.id import ParticipantIdentifierType
 
 
@@ -5,7 +6,7 @@ CVLPRIT = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'CVLPRIT',
+            'study': StudyName.CVLPRIT,
             'projects': [23],
         },
     ],

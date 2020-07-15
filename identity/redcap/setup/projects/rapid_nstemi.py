@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ RAPID_NSTEMI = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'RAPID_NSTEMI',
+            'study': StudyName.RAPID_NSTEMI,
             'projects': [79],
         },
     ],

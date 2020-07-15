@@ -1,4 +1,4 @@
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.setup.studies import StudyName
 from identity.model.id import ParticipantIdentifierType
 
 
@@ -6,7 +6,7 @@ YOGA = {
     'crfs': [
         {
             'instance': 'UoL CRF',
-            'study': 'YOGA',
+            'study': StudyName.YOGA,
             'projects': [29],
         },
     ],

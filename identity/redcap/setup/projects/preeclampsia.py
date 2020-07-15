@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
 from identity.model.id import ParticipantIdentifierType
 
@@ -6,7 +7,7 @@ PRE_ECLAMPSIA = {
     'crfs': [
         {
             'instance': 'UHL Live',
-            'study': 'Pre-Eclampsia',
+            'study': StudyName.Pre_Eclampsia,
             'projects': [39],
         },
     ],
