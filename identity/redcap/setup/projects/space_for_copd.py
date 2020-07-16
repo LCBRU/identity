@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.redcap.setup import crfs
 
 
-SPACE_FOR_COPD = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -23,10 +24,10 @@ SPACE_FOR_COPD = {
     'identity_map': {
         ParticipantIdentifierTypeName.SPACE_FOR_COPD_ID: 'record',
     }
-}
+})
 
 
-SPACE_FOR_COPD_DEMOGRAPHICS = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -49,4 +50,4 @@ SPACE_FOR_COPD_DEMOGRAPHICS = {
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
-}
+})

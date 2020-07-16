@@ -6,7 +6,7 @@ from identity.redcap.setup import crfs
 
 
 crfs.append({
-    'crf': [
+    'crfs': [
         {
             'study': StudyName.ALLEVIATE,
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -37,7 +37,7 @@ crfs.append({
 })
 
 
-ALLEVIATE_DEMOGRAPHICS = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -60,4 +60,4 @@ ALLEVIATE_DEMOGRAPHICS = {
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
-}
+})

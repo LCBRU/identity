@@ -11,19 +11,189 @@ from identity.setup import create_base_data
     "instance, study_name, project_id",
     [
         (
-            REDCapInstanceDetail.UHL_LIVE['name'],
+            REDCapInstanceDetail.UHL_LIVE,
             StudyName.ALLEVIATE,
             98,
         ),
         (
-            REDCapInstanceDetail.UOL_CRF['name'],
+            REDCapInstanceDetail.UOL_CRF,
             StudyName.ALLEVIATE,
             45,
+        ),
+        (
+            REDCapInstanceDetail.UOL_CRF,
+            StudyName.ALLEVIATE,
+            46,
+        ),
+        (
+            REDCapInstanceDetail.UOL_CRF,
+            StudyName.YOGA,
+            29,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.YAKULT,
+            109,
+        ),
+        (
+            REDCapInstanceDetail.UOL_CRF,
+            StudyName.VasCeGenS,
+            19,
+        ),
+        (
+            REDCapInstanceDetail.UOL_CRF,
+            StudyName.Upfor5,
+            24,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.UHL_HCW_COVID_19,
+            110,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.TMAO,
+            25,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.SPIRAL,
+            68,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.SPIRAL,
+            69,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.SPACE_FOR_COPD,
+            102,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.SPACE_FOR_COPD,
+            101,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.SKOPE,
+            95,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.CAE,
+            71,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.CAE,
+            93,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.CAE,
+            28,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.SCAD,
+            28,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.SCAD,
+            77,
+        ),
+        (
+            REDCapInstanceDetail.UHL_HSCN,
+            StudyName.SCAD,
+            68,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.SCAD,
+            31,
+        ),
+        (
+            REDCapInstanceDetail.UOL_INTERNET,
+            StudyName.SCAD,
+            12,
+        ),
+        (
+            REDCapInstanceDetail.UOL_INTERNET,
+            StudyName.SCAD,
+            13,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.SALT,
+            111,
+        ),
+        (
+            REDCapInstanceDetail.UOL_INTERNET,
+            StudyName.REST,
+            30,
+        ),
+        (
+            REDCapInstanceDetail.UOL_CRF,
+            StudyName.REST,
+            44,
+        ),
+        (
+            REDCapInstanceDetail.UOL_RECHARGE,
+            StudyName.RECHARGE,
+            13,
+        ),
+        (
+            REDCapInstanceDetail.UOL_RECHARGE,
+            StudyName.RECHARGE,
+            14,
+        ),
+        (
+            REDCapInstanceDetail.UOL_RECHARGE,
+            StudyName.RECHARGE,
+            15,
+        ),
+        (
+            REDCapInstanceDetail.UOL_RECHARGE,
+            StudyName.RECHARGE,
+            17,
+        ),
+        (
+            REDCapInstanceDetail.UOL_RECHARGE,
+            StudyName.RECHARGE,
+            18,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.RAPID_NSTEMI,
+            79,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.Pre_Eclampsia,
+            39,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.PREDICT,
+            62,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.PREDICT,
+            63,
+        ),
+        (
+            REDCapInstanceDetail.UHL_LIVE,
+            StudyName.PREDICT,
+            76,
         ),
     ],
 )
 def test__create_base_data__creates_alleviate_participant_import_definitions(client, faker, instance, study_name, project_id):
-    ri = RedcapInstance.query.filter_by(name=instance).one_or_none()
+    ri = RedcapInstance.query.filter_by(name=instance['name']).one_or_none()
     rp = RedcapProject(
         redcap_instance_id=ri.id,
         project_id=project_id,

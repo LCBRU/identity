@@ -2,16 +2,17 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.redcap.setup import crfs
 
 
-PREDICT = {
-    'crf': {
-        'PREDICT': {
-            'study': StudyName.PREDICT,
+crfs.append({
+    'crfs': [
+        {
             'instance': REDCapInstanceDetail.UHL_LIVE,
-            'project_id': 62,
+            'study': StudyName.PREDICT,
+            'projects': [62],
         },
-    },
+    ],
 
     'recruitment_date_column_name': 'date_of_visit',
     'birth_date_column_name': 'dob',
@@ -29,10 +30,10 @@ PREDICT = {
     'identity_map': {
         ParticipantIdentifierTypeName.PREDICT_ID: 'record',
     }
-}
+})
 
 
-PREDICT_DEMOGRAPHICS = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -54,10 +55,10 @@ PREDICT_DEMOGRAPHICS = {
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
-}
+})
 
 
-PREDICT_REPRODUCIBILITY = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -71,4 +72,4 @@ PREDICT_REPRODUCIBILITY = {
     'identity_map': {
         ParticipantIdentifierTypeName.PREDICT_ID: 'predict_id',
     }
-}
+})

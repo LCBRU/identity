@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
+from identity.redcap.setup import crfs
 
 
-PRE_ECLAMPSIA = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -27,6 +28,6 @@ PRE_ECLAMPSIA = {
 
     'identity_map': {
         ParticipantIdentifierTypeName.PREECLAMPSIA_ID: 'record',
-        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER_ID: 's_number',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_number',
     }
-}
+})

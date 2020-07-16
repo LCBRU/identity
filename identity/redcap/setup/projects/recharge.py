@@ -1,11 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
+from identity.redcap.setup import crfs
 
 
-RECHARGE_CORE = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_RECHARGE,
@@ -23,10 +22,10 @@ RECHARGE_CORE = {
     'identity_map': {
         ParticipantIdentifierTypeName.RECHARGE_ID: 'record',
     }
-}
+})
 
 
-RECHARGE_SITE = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_RECHARGE,
@@ -54,4 +53,4 @@ RECHARGE_SITE = {
     'identity_map': {
         ParticipantIdentifierTypeName.RECHARGE_ID: 'record',
     }
-}
+})

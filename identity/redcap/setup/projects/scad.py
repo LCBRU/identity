@@ -1,13 +1,15 @@
+from identity.redcap.model import RedcapInstance, RedcapProject
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_WITHDRAWAL
+from identity.redcap.setup import crfs
 
 
-SCAD_CLINICAL_VISIT = {
+crfs.append({
     'crfs': [
         {
-            'instance': 'UHL Live',
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.SCAD,
             'projects': [28],
         },
@@ -31,10 +33,10 @@ SCAD_CLINICAL_VISIT = {
         ParticipantIdentifierTypeName.SCAD_ID: 'scad_id',
         ParticipantIdentifierTypeName.SCAD_LOCAL_ID: 'scad_local_id',
     }
-}
+})
 
 
-SCAD_CLINICAL_VISIT_V2 = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -63,10 +65,10 @@ SCAD_CLINICAL_VISIT_V2 = {
         ParticipantIdentifierTypeName.SCAD_ID: 'record',
         ParticipantIdentifierTypeName.SCAD_REG_ID: 'scadreg_id',
     }
-}
+})
 
 
-SCAD_REGISTRY = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -87,10 +89,10 @@ SCAD_REGISTRY = {
     'identity_map': {
         ParticipantIdentifierTypeName.SCAD_REG_ID: 'record_id',
     }
-}
+})
 
 
-SCAD_SURVEY = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,
@@ -110,10 +112,10 @@ SCAD_SURVEY = {
     'identity_map': {
         ParticipantIdentifierTypeName.SCAD_SURVEY_ID: 'record',
     }
-}
+})
 
 
-SCAD_SURVEY_2016 = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,
@@ -133,4 +135,4 @@ SCAD_SURVEY_2016 = {
     'identity_map': {
         ParticipantIdentifierTypeName.SCAD_REG_ID: 'scad_reg_id',
     }
-}
+})

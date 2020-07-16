@@ -1,10 +1,12 @@
+from sqlalchemy.log import Identified
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import REVERSE_SEX_MAP, STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.redcap.setup import crfs
 
 
-SALT = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -21,4 +23,4 @@ SALT = {
     'identity_map': {
         ParticipantIdentifierTypeName.SALT_ID: 'record',
     }
-}
+})

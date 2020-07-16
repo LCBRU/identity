@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
@@ -386,7 +384,7 @@ def create_partipipant_import_definitions(user):
     current_app.logger.info(f'Creating particpant import definitions')
 
     for p in crfs:
-        for c in p['crf']:
+        for c in p['crfs']:
             study = Study.query.filter_by(name=c['study']).one_or_none()
             ri = RedcapInstance.query.filter_by(name=c['instance']['name']).one_or_none()
 
