@@ -1,7 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 BRICCS_CT_2ND_ANALYSIS = {
@@ -16,7 +15,7 @@ BRICCS_CT_2ND_ANALYSIS = {
     'recruitment_date_column_name': 'ct_date_time_start',
 
     'identity_map': {
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_number',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_number',
     }
 }
 
@@ -33,6 +32,6 @@ BRICCS_CT_SCREENING = {
     'birth_date_column_name': 'dob',
 
     'identity_map': {
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 'record',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 'record',
     }
 }

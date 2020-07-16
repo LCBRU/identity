@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 PREDICT = {
@@ -27,7 +27,7 @@ PREDICT = {
     'excluded_from_analysis_values': ['0'],
 
     'identity_map': {
-        ParticipantIdentifierType.__PREDICT_ID__: 'record',
+        ParticipantIdentifierTypeName.PREDICT_ID: 'record',
     }
 }
 
@@ -50,9 +50,9 @@ PREDICT_DEMOGRAPHICS = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__PREDICT_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_no',
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_no',
+        ParticipantIdentifierTypeName.PREDICT_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
 }
 
@@ -69,6 +69,6 @@ PREDICT_REPRODUCIBILITY = {
     'recruitment_date_column_name': 'visit_date',
 
     'identity_map': {
-        ParticipantIdentifierType.__PREDICT_ID__: 'predict_id',
+        ParticipantIdentifierTypeName.PREDICT_ID: 'predict_id',
     }
 }

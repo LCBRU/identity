@@ -1,6 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.model.id import ParticipantIdentifierType
 
 
 CVLPRIT = {
@@ -19,7 +19,7 @@ CVLPRIT = {
     },
 
     'identity_map': {
-        ParticipantIdentifierType.__CVLPRIT_ID__: 'patient_id',
-        ParticipantIdentifierType.__CVLPRIT_LOCAL_ID__: 'local_id',
+        ParticipantIdentifierTypeName.CVLPRIT_ID: 'patient_id',
+        ParticipantIdentifierTypeName.CVLPRIT_LOCAL_ID: 'local_id',
     }   
 }

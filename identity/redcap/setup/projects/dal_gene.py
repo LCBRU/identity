@@ -1,6 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.model.id import ParticipantIdentifierType
 
 
 DAL_GENE = {
@@ -18,7 +18,7 @@ DAL_GENE = {
     'birth_date_column_name': 'dob',
 
     'identity_map': {
-        ParticipantIdentifierType.__DAL_GENE_ID__: 'record',
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_number',
+        ParticipantIdentifierTypeName.DAL_GENE_ID: 'record',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_number',
     }
 }

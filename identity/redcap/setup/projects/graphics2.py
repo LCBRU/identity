@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
-from identity.model.id import ParticipantIdentifierType
 
 
 GRAPHIC2 = {
@@ -23,6 +23,6 @@ GRAPHIC2 = {
     'excluded_from_analysis_values': ['1'],
 
     'identity_map': {
-        ParticipantIdentifierType.__GRAPHICS2_ID__: 'record',
+        ParticipantIdentifierTypeName.GRAPHICS2_ID: 'record',
     }
 }

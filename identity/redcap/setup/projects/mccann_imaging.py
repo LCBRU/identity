@@ -1,7 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 MCCANN_IMAGING = {
@@ -16,7 +15,7 @@ MCCANN_IMAGING = {
     'recruitment_date_column_name': 'mri_date',
 
     'identity_map': {
-        ParticipantIdentifierType.__MCCANN_IMAGE_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_no',
+        ParticipantIdentifierTypeName.MCCANN_IMAGE_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
     }
 }

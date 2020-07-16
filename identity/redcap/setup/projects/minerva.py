@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
-from identity.model.id import ParticipantIdentifierType
 
 
 MINERVA = {
@@ -31,6 +31,6 @@ MINERVA = {
     'complete_or_expected_values': ['1'],
 
     'identity_map': {
-        ParticipantIdentifierType.__MINERVA_ID__: 'record',
+        ParticipantIdentifierTypeName.MINERVA_ID: 'record',
     }
 }

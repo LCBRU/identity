@@ -1,6 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.model.id import ParticipantIdentifierType
 
 EDIFY = {
     'crfs': [
@@ -12,6 +12,6 @@ EDIFY = {
     ],
 
     'identity_map': {
-        ParticipantIdentifierType.__EDIFY_ID__: 'h1_record_id',
+        ParticipantIdentifierTypeName.EDIFY_ID: 'h1_record_id',
     }
 }

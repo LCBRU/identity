@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 SCAD_CLINICAL_VISIT = {
@@ -27,9 +27,9 @@ SCAD_CLINICAL_VISIT = {
     'complete_or_expected_values': ['<isnull>', '1'],
 
     'identity_map': {
-        ParticipantIdentifierType.__SCAD_REG_ID__: 'scadreg_id',
-        ParticipantIdentifierType.__SCAD_ID__: 'scad_id',
-        ParticipantIdentifierType.__SCAD_LOCAL_ID__: 'scad_local_id',
+        ParticipantIdentifierTypeName.SCAD_REG_ID: 'scadreg_id',
+        ParticipantIdentifierTypeName.SCAD_ID: 'scad_id',
+        ParticipantIdentifierTypeName.SCAD_LOCAL_ID: 'scad_local_id',
     }
 }
 
@@ -60,8 +60,8 @@ SCAD_CLINICAL_VISIT_V2 = {
     'complete_or_expected_values': ['1'],
 
     'identity_map': {
-        ParticipantIdentifierType.__SCAD_ID__: 'record',
-        ParticipantIdentifierType.__SCAD_REG_ID__: 'scadreg_id',
+        ParticipantIdentifierTypeName.SCAD_ID: 'record',
+        ParticipantIdentifierTypeName.SCAD_REG_ID: 'scadreg_id',
     }
 }
 
@@ -85,7 +85,7 @@ SCAD_REGISTRY = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__SCAD_REG_ID__: 'record_id',
+        ParticipantIdentifierTypeName.SCAD_REG_ID: 'record_id',
     }
 }
 
@@ -108,7 +108,7 @@ SCAD_SURVEY = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__SCAD_SURVEY_ID__: 'record',
+        ParticipantIdentifierTypeName.SCAD_SURVEY_ID: 'record',
     }
 }
 
@@ -131,6 +131,6 @@ SCAD_SURVEY_2016 = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__SCAD_REG_ID__: 'scad_reg_id',
+        ParticipantIdentifierTypeName.SCAD_REG_ID: 'scad_reg_id',
     }
 }

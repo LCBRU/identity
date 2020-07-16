@@ -1,7 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 GENVASC_DEATH_DATA = {
@@ -18,8 +17,8 @@ GENVASC_DEATH_DATA = {
     'last_name_column_name': 'last_name',
 
     'identity_map': {
-        ParticipantIdentifierType.__GENVASC_ID__: 'genvasc_id',
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_number',
+        ParticipantIdentifierTypeName.GENVASC_ID: 'genvasc_id',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_number',
     }
 }

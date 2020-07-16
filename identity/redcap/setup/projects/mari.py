@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import REVERSE_SEX_MAP
-from identity.model.id import ParticipantIdentifierType
 
 
 MARI = {
@@ -33,6 +33,6 @@ MARI = {
     'excluded_from_analysis_values': ['0'],
 
     'identity_map': {
-        ParticipantIdentifierType.__MARI_ID__: 'record',
+        ParticipantIdentifierTypeName.MARI_ID: 'record',
     }
 }

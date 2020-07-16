@@ -1,3 +1,4 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
@@ -20,7 +21,7 @@ RECHARGE_CORE = {
     },
 
     'identity_map': {
-        ParticipantIdentifierType.__RECHARGE_ID__: 'record',
+        ParticipantIdentifierTypeName.RECHARGE_ID: 'record',
     }
 }
 
@@ -51,6 +52,6 @@ RECHARGE_SITE = {
     'complete_or_expected_values': ['<isnull>', '1'],
 
     'identity_map': {
-        ParticipantIdentifierType.__RECHARGE_ID__: 'record',
+        ParticipantIdentifierTypeName.RECHARGE_ID: 'record',
     }
 }

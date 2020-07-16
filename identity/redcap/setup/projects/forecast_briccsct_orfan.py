@@ -1,7 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 FORECAST_BRICCSCT_ORFAN_SCREENING = {
@@ -17,7 +16,7 @@ FORECAST_BRICCSCT_ORFAN_SCREENING = {
     'birth_date_column_name': 'dob',
 
     'identity_map': {
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 'record',
-        ParticipantIdentifierType.__UHL_NUMBER__: 'uhl_number', # What is This?
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 'record',
+        ParticipantIdentifierTypeName.UHL_NUMBER: 'uhl_number', # What is This?
     }
 }

@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
+from identity.redcap.setup.standard import STANDARD_SEX_MAP
 
 
 FOAMI = {
@@ -30,7 +30,7 @@ FOAMI = {
     'excluded_from_analysis_values': ['2'],
 
     'identity_map': {
-        ParticipantIdentifierType.__FOAMI_ID__: 'record',
+        ParticipantIdentifierTypeName.FOAMI_ID: 'record',
     }
 }
 
@@ -53,8 +53,8 @@ FOAMI_DEMOGRAPHICS = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__FOAMI_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_no',
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_no',
+        ParticipantIdentifierTypeName.FOAMI_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
 }

@@ -1,6 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.model.id import ParticipantIdentifierType
 
 
 DREAM = {
@@ -34,6 +34,6 @@ DREAM = {
     'excluded_from_analysis_values': [None, '0'],
 
     'identity_map': {
-        ParticipantIdentifierType.__DREAM_ID__: 'record',
+        ParticipantIdentifierTypeName.DREAM_ID: 'record',
     }
 }

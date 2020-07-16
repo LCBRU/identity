@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
+from identity.redcap.setup.standard import STANDARD_SEX_MAP
 
 
 ELASTIC_AS = {
@@ -33,7 +33,7 @@ ELASTIC_AS = {
     'brc_opt_out_values': ['4'],
 
     'identity_map': {
-        ParticipantIdentifierType.__EASY_AS_ID__: 'record',
+        ParticipantIdentifierTypeName.EASY_AS_ID: 'record',
     }
 }
 
@@ -57,8 +57,8 @@ ELASTIC_AS_DEMOGRAPHICS = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__ELASTIC_AS_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_no',
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_no',
+        ParticipantIdentifierTypeName.ELASTIC_AS_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
 }

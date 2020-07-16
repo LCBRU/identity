@@ -1,7 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 PHOSP_COVID19 = {
@@ -25,9 +24,9 @@ PHOSP_COVID19 = {
     },
 
     'identity_map': {
-        ParticipantIdentifierType.__PHOSP_COVID19_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_num',
-        ParticipantIdentifierType.__CHI_NUMBER__: 'chi_num',
-        ParticipantIdentifierType.__HC_NUMBER__: 'hc_num',
+        ParticipantIdentifierTypeName.PHOSP_COVID19_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_num',
+        ParticipantIdentifierTypeName.CHI_NUMBER: 'chi_num',
+        ParticipantIdentifierTypeName.HC_NUMBER: 'hc_num',
     }
 }

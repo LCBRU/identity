@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from sqlalchemy import create_engine
@@ -360,7 +361,7 @@ def create_blinding_sets(user):
 def create_participant_id_types(user):
     current_app.logger.info(f'Creating Participant ID Types')
 
-    for name in ParticipantIdentifierType.__TYPE_NAMES__:
+    for name in ParticipantIdentifierTypeName().all_types():
         if ParticipantIdentifierType.query.filter_by(name=name).count() == 0:
             current_app.logger.info(f'Creating Participant ID Type "{name}"')
 
@@ -383,10 +384,6 @@ def create_redcap_instances(user):
 
 def create_partipipant_import_definitions(user):
     current_app.logger.info(f'Creating particpant import definitions')
-
-    project_id = 98
-    study_name = StudyName.ALLEVIATE
-    redcap_instance_name = REDCapInstanceDetail.UHL_LIVE['name']
 
     for p in crfs:
         for c in p['crf']:

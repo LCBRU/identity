@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 SPIRAL_DEMOGRAPHICS = {
@@ -22,9 +22,9 @@ SPIRAL_DEMOGRAPHICS = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__SPIRAL_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_no',
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_no',
+        ParticipantIdentifierTypeName.SPIRAL_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
 }
 
@@ -46,6 +46,6 @@ SPIRAL = {
     **STANDARD_WITHDRAWAL,
 
     'identity_map': {
-        ParticipantIdentifierType.__SPIRAL_ID__: 'record',
+        ParticipantIdentifierTypeName.SPIRAL_ID: 'record',
     }
 }

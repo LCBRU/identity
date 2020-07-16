@@ -1,6 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.model.id import ParticipantIdentifierType
 
 
 YOGA = {
@@ -24,6 +24,6 @@ YOGA = {
     },
 
     'identity_map': {
-        ParticipantIdentifierType.__YOGA_ID__: 'record',
+        ParticipantIdentifierTypeName.YOGA_ID: 'record',
     }
 }

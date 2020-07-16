@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
-from identity.model.id import ParticipantIdentifierType
 
 
 PRE_ECLAMPSIA = {
@@ -26,7 +26,7 @@ PRE_ECLAMPSIA = {
     'complete_or_expected_values': ['<isnull>', '1'],
 
     'identity_map': {
-        ParticipantIdentifierType.__PREECLAMPSIA_ID__: 'record',
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER_ID__: 's_number',
+        ParticipantIdentifierTypeName.PREECLAMPSIA_ID: 'record',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER_ID: 's_number',
     }
 }

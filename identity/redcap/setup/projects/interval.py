@@ -1,7 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS
-from identity.model.id import ParticipantIdentifierType
 
 
 INTERVAL = {
@@ -20,7 +19,7 @@ INTERVAL = {
     'sex_column_map': {},
 
     'identity_map': {
-        ParticipantIdentifierType.__BIORESOURCE_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs',
+        ParticipantIdentifierTypeName.BIORESOURCE_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs',
     }
 }

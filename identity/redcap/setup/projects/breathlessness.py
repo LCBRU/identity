@@ -1,7 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 BREATHLESSNESS = {
@@ -24,6 +23,6 @@ BREATHLESSNESS = {
     },
 
     'identity_map': {
-        ParticipantIdentifierType.__BREATHLESSNESS_ID__: 'record',
+        ParticipantIdentifierTypeName.BREATHLESSNESS_ID: 'record',
     }
 }

@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
+from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS
 
 
 EPIGENE1 = {
@@ -27,6 +27,6 @@ EPIGENE1 = {
     'excluded_from_study_values': ['6'],
 
     'identity_map': {
-        ParticipantIdentifierType.__EPIGENE1_ID__: 'record',
+        ParticipantIdentifierTypeName.EPIGENE1_ID: 'record',
     }
 }

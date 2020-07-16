@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS
-from identity.model.id import ParticipantIdentifierType
 
 
 FAST = {
@@ -26,8 +26,8 @@ FAST = {
     **STANDARD_STATUS,
 
     'identity_map': {
-        ParticipantIdentifierType.__FAST_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_number',
+        ParticipantIdentifierTypeName.FAST_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_number',
     }
 }
 
@@ -47,7 +47,7 @@ FAST_SCREENING = {
     'birth_date_column_name': 'dob',
 
     'identity_map': {
-        ParticipantIdentifierType.__PILOT_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_no',
+        ParticipantIdentifierTypeName.PILOT_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
     }
 }

@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
+from identity.redcap.setup.standard import STANDARD_SEX_MAP
 
 
 EXTEND = {
@@ -19,8 +19,8 @@ EXTEND = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__EXTEND_ID__: 'record',
-        ParticipantIdentifierType.__MEIRU_ID__: 'meiru_study_id',
+        ParticipantIdentifierTypeName.EXTEND_ID: 'record',
+        ParticipantIdentifierTypeName.MEIRU_ID: 'meiru_study_id',
     }
 }
 
@@ -44,9 +44,9 @@ EXTEND_DEMOGRAPHICS = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__EXTEND_ID__: 'record',
-        ParticipantIdentifierType.__MEIRU_ID__: 'meiru_study_id',
-        ParticipantIdentifierType._NHS_NUMBER__: 'nhs_no',
-        ParticipantIdentifierType._UHL_SYSTEM_NUMBER__: 's_no',
+        ParticipantIdentifierTypeName.EXTEND_ID: 'record',
+        ParticipantIdentifierTypeName.MEIRU_ID: 'meiru_study_id',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
 }

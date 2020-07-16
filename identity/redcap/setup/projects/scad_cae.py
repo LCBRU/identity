@@ -1,3 +1,4 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
@@ -23,9 +24,9 @@ SCAD_CAE_DEMOGRAPHICS = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__SCAD_CAE_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_no',
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_no',
+        ParticipantIdentifierTypeName.SCAD_CAE_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
 }
 
@@ -49,8 +50,8 @@ SCAD_CAE_REGISTRY = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__SCAD_CAE_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_no',
+        ParticipantIdentifierTypeName.SCAD_CAE_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
     }
 }
 
@@ -76,6 +77,6 @@ SCAD_CAE_PHASE_2 = {
     **STANDARD_WITHDRAWAL,
 
     'identity_map': {
-        ParticipantIdentifierType.__SCAD_CAE_ID__: 'record',
+        ParticipantIdentifierTypeName.SCAD_CAE_ID: 'record',
     }
 }

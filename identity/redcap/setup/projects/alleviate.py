@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 from identity.redcap.setup import crfs
 
 
@@ -32,7 +32,7 @@ crfs.append({
     'excluded_from_analysis_values': ['0'],
 
     'identity_map': {
-        ParticipantIdentifierType.__ALLEVIATE_ID__: 'record',
+        ParticipantIdentifierTypeName.ALLEVIATE_ID: 'record',
     }
 })
 
@@ -56,8 +56,8 @@ ALLEVIATE_DEMOGRAPHICS = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__ALLEVIATE_ID__: 'record',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_no',
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 's_no',
+        ParticipantIdentifierTypeName.ALLEVIATE_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
 }

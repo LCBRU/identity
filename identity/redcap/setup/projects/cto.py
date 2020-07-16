@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
-from identity.model.id import ParticipantIdentifierType
 
 
 CTO = {
@@ -26,8 +26,8 @@ CTO = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__CTO_ID__: 'record',
-        ParticipantIdentifierType.__UHL_SYSTEM_NUMBER__: 'hospital_num',
-        ParticipantIdentifierType.__NHS_NUMBER__: 'nhs_num',
+        ParticipantIdentifierTypeName.CTO_ID: 'record',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 'hospital_num',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_num',
     }
 }

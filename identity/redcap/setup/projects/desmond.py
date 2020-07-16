@@ -1,7 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 DESMOND = {
@@ -40,7 +39,7 @@ DESMOND = {
     'post_withdrawal_keep_data_values': ['<isnull>', '2', '3'],
 
     'identity_map': {
-        ParticipantIdentifierType.__DESMOND_ID__: 'record',
-        ParticipantIdentifierType._NHS_NUMBER__: 'nhs_no',
+        ParticipantIdentifierTypeName.DESMOND_ID: 'record',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
     }
 }

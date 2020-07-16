@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 NON_ADHERENCE = {
@@ -24,6 +24,6 @@ NON_ADHERENCE = {
     **STANDARD_WITHDRAWAL,
 
     'identity_map': {
-        ParticipantIdentifierType.__NON_ADHERENCE_ID__: 'record',
+        ParticipantIdentifierTypeName.NON_ADHERENCE_ID: 'record',
     }
 }

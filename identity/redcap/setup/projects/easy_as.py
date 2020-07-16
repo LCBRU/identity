@@ -1,7 +1,6 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
 
 
 E = {
@@ -16,6 +15,6 @@ E = {
     'recruitment_date_column_name': 'consent_date',
 
     'identity_map': {
-        ParticipantIdentifierType.__EASY_AS_ID__: 'record',
+        ParticipantIdentifierTypeName.EASY_AS_ID: 'record',
     }
 }

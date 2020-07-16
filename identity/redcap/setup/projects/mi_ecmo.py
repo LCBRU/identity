@@ -1,7 +1,7 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
+from identity.redcap.setup.standard import STANDARD_SEX_MAP
 
 
 MI_ECMO = {
@@ -29,6 +29,6 @@ MI_ECMO = {
     'excluded_from_study_values': ['5'],
 
     'identity_map': {
-        ParticipantIdentifierType.__MI_ECMO_ID__: 'record',
+        ParticipantIdentifierTypeName.MI_ECMO_ID: 'record',
     }
 }

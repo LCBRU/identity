@@ -1,7 +1,8 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.model.id import ParticipantIdentifierType
+from identity.redcap.setup.standard import STANDARD_SEX_MAP
+
 
 # Need to check with Sue
 
@@ -20,7 +21,7 @@ EDEN_STP = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__EDEN_ID__: 'patient_id',
+        ParticipantIdentifierTypeName.EDEN_ID: 'patient_id',
     }
 }
 
@@ -40,6 +41,6 @@ EDEN_STP = {
     **STANDARD_SEX_MAP,
 
     'identity_map': {
-        ParticipantIdentifierType.__EDEN_ID__: 'patient_id_pat1',
+        ParticipantIdentifierTypeName.EDEN_ID: 'patient_id_pat1',
     }
 }
