@@ -1,19 +1,20 @@
-from identity.setup.redcap_instances import REDCapInstance
+from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
+from identity.redcap.setup import crfs
 
 
-ALLEVIATE = {
+crfs.append({
     'crf': [
         {
             'study': StudyName.ALLEVIATE,
-            'instance': REDCapInstance.UHL_LIVE,
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'projects': [98],
         },
         {
             'study': StudyName.ALLEVIATE,
-            'instance': REDCapInstance.UOL_CRF,
+            'instance': REDCapInstanceDetail.UOL_CRF,
             'projects': [45],
         },
     ],
@@ -33,13 +34,13 @@ ALLEVIATE = {
     'identity_map': {
         ParticipantIdentifierType.__ALLEVIATE_ID__: 'record',
     }
-}
+})
 
 
 ALLEVIATE_DEMOGRAPHICS = {
     'crfs': [
         {
-            'instance': REDCapInstance.UOL_CRF,
+            'instance': REDCapInstanceDetail.UOL_CRF,
             'study': StudyName.ALLEVIATE,
             'projects': [46],
         },

@@ -1,4 +1,4 @@
-from identity.setup.redcap_instances import REDCapInstance
+from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
@@ -7,7 +7,7 @@ from identity.model.id import ParticipantIdentifierType
 CARDIOMET = {
     'crfs': [
         {
-            'instance': REDCapInstance.UHL_LIVE,
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.CARDIOMET,
             'projects': [67],
         },
@@ -33,7 +33,7 @@ CARDIOMET = {
 CARDIOMET_DEMOGRAPHICS = {
     'crfs': [
         {
-            'instance': REDCapInstance.UHL_LIVE,
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.CARDIOMET,
             'projects': [64],
         },

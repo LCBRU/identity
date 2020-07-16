@@ -1,11 +1,11 @@
-from identity.setup.redcap_instances import REDCapInstance
+from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.model.id import ParticipantIdentifierType
 
 EDIFY = {
     'crfs': [
         {
-            'instance': REDCapInstance.UHL_LIVE,
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.EDIFY,
             'projects': [30],
         },

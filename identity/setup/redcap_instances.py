@@ -1,6 +1,6 @@
 from enum import Enum
 
-class REDCapInstance():
+class REDCapInstanceDetail():
     UHL_LIVE = {
         'name': 'UHL Live',
         'database_name': 'redcap6170_briccs',

@@ -1,4 +1,4 @@
-from identity.setup.redcap_instances import REDCapInstance
+from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
@@ -7,7 +7,7 @@ from identity.model.id import ParticipantIdentifierType
 ELASTIC_AS = {
     'crfs': [
         {
-            'instance': REDCapInstance.UHL_LIVE,
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.ELASTIC_AS,
             'projects': [94],
         },
@@ -41,7 +41,7 @@ ELASTIC_AS = {
 ELASTIC_AS_DEMOGRAPHICS = {
     'crfs': [
         {
-            'instance': REDCapInstance.UHL_LIVE,
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.ELASTIC_AS,
             'projects': [96],
         },

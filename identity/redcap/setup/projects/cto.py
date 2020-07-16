@@ -1,4 +1,4 @@
-from identity.setup.redcap_instances import REDCapInstance
+from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
 from identity.model.id import ParticipantIdentifierType
@@ -7,12 +7,12 @@ from identity.model.id import ParticipantIdentifierType
 CTO = {
     'crfs': [
         {
-            'instance': REDCapInstance.UHL_LIVE,
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.CTO,
             'projects': [51],
         },
         {
-            'instance': REDCapInstance.UOL_CRF,
+            'instance': REDCapInstanceDetail.UOL_CRF,
             'study': StudyName.CTO,
             'projects': [15],
         },

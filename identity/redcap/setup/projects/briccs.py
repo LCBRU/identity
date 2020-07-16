@@ -1,4 +1,4 @@
-from identity.setup.redcap_instances import REDCapInstance
+from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
@@ -7,12 +7,12 @@ from identity.model.id import ParticipantIdentifierType
 BRICCS = {
     'crfs': [
         {
-            'instance': REDCapInstance.UHL_LIVE,
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.BRICCS,
             'projects': [24],
         },
         {
-            'instance': REDCapInstance.UHL_HSCN,
+            'instance': REDCapInstanceDetail.UHL_HSCN,
             'study': StudyName.BRICCS,
             'projects': [13, 14, 15, 16, 17, 18, 19, 25, 26, 27],
         },

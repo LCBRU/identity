@@ -1,4 +1,4 @@
-from identity.setup.redcap_instances import REDCapInstance
+from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
@@ -7,7 +7,7 @@ from identity.model.id import ParticipantIdentifierType
 MULTI_MOBID_PRIORITIES = {
     'crfs': [
         {
-            'instance': REDCapInstance.UOL_INTERNET,
+            'instance': REDCapInstanceDetail.UOL_INTERNET,
             'study': StudyName.Multi_Morbid_Priorities,
             'projects': [38],
         },

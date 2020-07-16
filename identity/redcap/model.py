@@ -8,8 +8,51 @@ from identity.model import Study
 from identity.model.security import User
 
 
+class RedcapInstance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    database_name = db.Column(db.String(100), nullable=False)
+    base_url = db.Column(db.String(500), nullable=False)
+    version = db.Column(db.String(10), nullable=False)
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def __str__(self):
+        return self.name
+
+
+class RedcapProject(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    project_id = db.Column(db.Integer, nullable=False)
+    redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
+    redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def __repr__(self):
+        return f'<Project: "{self.name}" from instance "{self.redcap_instance.name}">'
+
+    def __str__(self):
+        return self.name
+
+    def get_link(self, record_id):
+        return "/".join(map(lambda x: str(x).rstrip('/'), [
+            self.redcap_instance.base_url,
+            f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
+        ))
+
+
 class ParticipantImportDefinition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
+    study_id = db.Column(db.Integer, db.ForeignKey(Study.id))
+    study = db.relationship(Study)
+
+    redcap_project_id = db.Column(db.Integer, db.ForeignKey(RedcapProject.id))
+    redcap_project = db.relationship(RedcapProject)
 
     recruitment_date_column_name = db.Column(db.String(100))
     first_name_column_name = db.Column(db.String(100))
@@ -213,47 +256,6 @@ class ParticipantImportDefinition(db.Model):
         ecrf.excluded_from_study = self._get_record_value_in_value_array(record, self.excluded_from_study_column_name, self.excluded_from_study_value_array)
 
         return ecrf
-
-
-class RedcapInstance(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    database_name = db.Column(db.String(100), nullable=False)
-    base_url = db.Column(db.String(500), nullable=False)
-    version = db.Column(db.String(10), nullable=False)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
-
-    def __str__(self):
-        return self.name
-
-
-class RedcapProject(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    project_id = db.Column(db.Integer, nullable=False)
-    redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
-    redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
-    study_id = db.Column(db.Integer, db.ForeignKey(Study.id))
-    study = db.relationship(Study, backref=db.backref("redcap_projects"))
-    participant_import_definition_id =  db.Column(db.Integer, db.ForeignKey(ParticipantImportDefinition.id), nullable=True)
-    participant_import_definition = db.relationship(ParticipantImportDefinition, backref=db.backref("redcap_projects"))
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
-
-    def __repr__(self):
-        return f'<Project: "{self.name}" from instance "{self.redcap_instance.name}">'
-
-    def __str__(self):
-        return self.name
-
-    def get_link(self, record_id):
-        return "/".join(map(lambda x: str(x).rstrip('/'), [
-            self.redcap_instance.base_url,
-            f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
-        ))
 
 
 class EcrfDetail(db.Model):

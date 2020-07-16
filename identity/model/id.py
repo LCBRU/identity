@@ -353,6 +353,8 @@ class StudyIdSpecification():
 class ParticipantIdentifierType(db.Model):
 
     __STUDY_PARTICIPANT_ID__ = 'study_participant_id'
+
+    __ALLEVIATE_ID__ = 'alleviate_id'
     __BRICCS_ID__ = 'briccs_id'
     __CVLPRIT_ID__ = 'cvlprit_id'
     __CVLPRIT_LOCAL_ID__ = 'cvlprit_local_id'
@@ -368,6 +370,8 @@ class ParticipantIdentifierType(db.Model):
 
     __TYPE_NAMES__ = [
         __STUDY_PARTICIPANT_ID__,
+
+        __ALLEVIATE_ID__,
         __BRICCS_ID__,
         __CVLPRIT_ID__,
         __CVLPRIT_LOCAL_ID__,

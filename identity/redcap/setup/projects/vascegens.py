@@ -1,4 +1,4 @@
-from identity.setup.redcap_instances import REDCapInstance
+from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
@@ -7,7 +7,7 @@ from identity.model.id import ParticipantIdentifierType
 VASCEGENS = {
     'crfs': [
         {
-            'instance': REDCapInstance.UOL_CRF,
+            'instance': REDCapInstanceDetail.UOL_CRF,
             'study': StudyName.VasCeGenS,
             'projects': [19],
         },

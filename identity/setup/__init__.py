@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from identity.setup.redcap_instances import REDCapInstance
+from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
@@ -21,7 +21,7 @@ from identity.model.id import (
 )
 from identity.utils import get_concrete_classes
 from identity.model import Study
-from identity.redcap.model import RedcapInstance
+from identity.redcap.model import ParticipantImportDefinition, RedcapInstance, RedcapProject
 from identity.security import get_system_user, get_admin_user
 from identity.printing.briccs import (
     ID_NAME_BRICCS_PARTICIPANT,
@@ -34,6 +34,7 @@ from identity.blinding.model import (
     BlindingType,
     Blinding,
 )
+from identity.redcap.setup import crfs
 
 
 PSEUDORANDOM_ID_PROVIDERS = {}
@@ -50,6 +51,7 @@ def create_base_data():
     create_blinding_sets(system)
     create_participant_id_types(system)
     create_redcap_instances(system)
+    create_partipipant_import_definitions(system)
 
 
 def import_ids():
@@ -372,8 +374,32 @@ def create_participant_id_types(user):
 def create_redcap_instances(user):
     current_app.logger.info(f'Creating REDCap Instances')
 
-    for i in REDCapInstance().all_instances():
+    for i in REDCapInstanceDetail().all_instances():
         if RedcapInstance.query.filter_by(name=i['name']).count() == 0:
             db.session.add(RedcapInstance(**i, last_updated_by_user=user))
 
     db.session.commit()
+
+
+def create_partipipant_import_definitions(user):
+    current_app.logger.info(f'Creating particpant import definitions')
+
+    project_id = 98
+    study_name = StudyName.ALLEVIATE
+    redcap_instance_name = REDCapInstanceDetail.UHL_LIVE['name']
+
+    for p in crfs:
+        for c in p['crf']:
+            study = Study.query.filter_by(name=c['study']).one_or_none()
+            ri = RedcapInstance.query.filter_by(name=c['instance']['name']).one_or_none()
+
+            for project in c['projects']:
+
+                rp = RedcapProject.query.filter_by(redcap_instance_id=ri.id, project_id=project).one_or_none()
+
+                if rp:
+                    db.session.add(ParticipantImportDefinition(
+                        study_id=study.id,
+                        redcap_project_id=rp.id,
+                    ))
+                    db.session.commit()

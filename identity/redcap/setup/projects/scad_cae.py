@@ -1,4 +1,4 @@
-from identity.setup.redcap_instances import REDCapInstance
+from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.model.id import ParticipantIdentifierType
@@ -7,7 +7,7 @@ from identity.model.id import ParticipantIdentifierType
 SCAD_CAE_DEMOGRAPHICS = {
     'crfs': [
         {
-            'instance': REDCapInstance.UHL_LIVE,
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.CAE,
             'projects': [71],
         },
@@ -33,7 +33,7 @@ SCAD_CAE_DEMOGRAPHICS = {
 SCAD_CAE_REGISTRY = {
     'crfs': [
         {
-            'instance': REDCapInstance.UHL_LIVE,
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.CAE,
             'projects': [93],
         },
@@ -58,7 +58,7 @@ SCAD_CAE_REGISTRY = {
 SCAD_CAE_PHASE_2 = {
     'crfs': [
         {
-            'instance': REDCapInstance.UHL_LIVE,
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.CAE,
             'projects': [28],
         },
