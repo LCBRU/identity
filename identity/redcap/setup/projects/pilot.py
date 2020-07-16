@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
+from identity.redcap.setup import crfs
 
 
-PILOT = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -21,4 +22,4 @@ PILOT = {
     'identity_map': {
         ParticipantIdentifierTypeName.PILOT_ID: 'record',
     }
-}
+})

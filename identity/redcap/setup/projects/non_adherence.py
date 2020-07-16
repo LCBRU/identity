@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.redcap.setup import crfs
 
 
-NON_ADHERENCE = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -26,4 +27,4 @@ NON_ADHERENCE = {
     'identity_map': {
         ParticipantIdentifierTypeName.NON_ADHERENCE_ID: 'record',
     }
-}
+})

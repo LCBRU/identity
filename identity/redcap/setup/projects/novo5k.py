@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-NOVO5K = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -15,4 +16,4 @@ NOVO5K = {
     'identity_map': {
         ParticipantIdentifierTypeName.NOVO5K_ID: 'record',
     }
-}
+})

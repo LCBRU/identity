@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-MULTI_MOBID_PRIORITIES = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,
@@ -23,4 +24,4 @@ MULTI_MOBID_PRIORITIES = {
     'identity_map': {
         ParticipantIdentifierTypeName.MULTI_MORBID_PRIORITIES_ID: 'record',
     }
-}
+})

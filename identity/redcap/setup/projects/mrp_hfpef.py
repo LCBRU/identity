@@ -2,10 +2,11 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.redcap.setup import crfs
 
 
-MRP_HFPEF_DEMOGRAPHICS = {
-    'crf': [
+crfs.append({
+    'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.MRP_HFPEF,
@@ -27,10 +28,10 @@ MRP_HFPEF_DEMOGRAPHICS = {
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
-}
+})
 
 
-MRP_HFPEF = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -54,4 +55,4 @@ MRP_HFPEF = {
     'identity_map': {
         ParticipantIdentifierTypeName.MRP_HFPEF_ID: 'record',
     }
-}
+})

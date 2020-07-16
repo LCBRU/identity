@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-PHOSP_COVID19 = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,
@@ -29,4 +30,4 @@ PHOSP_COVID19 = {
         ParticipantIdentifierTypeName.CHI_NUMBER: 'chi_num',
         ParticipantIdentifierTypeName.HC_NUMBER: 'hc_num',
     }
-}
+})
