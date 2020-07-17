@@ -1,7 +1,7 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.redcap.setup.standard import SEX_MAP_1M2F_GENDER, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.redcap.setup import crfs
 
 
@@ -17,12 +17,7 @@ crfs.append({
     'recruitment_date_column_name': 'date_of_sig',
     'birth_date_column_name': 'date_of_birth',
 
-    'sex_column_name': 'gender',
-    'sex_column_map': {
-        '1': 'M',
-        '2': 'F',
-        '0': 'N',
-    },
+    **SEX_MAP_1M2F_GENDER,
 
     **STANDARD_STATUS,
     **STANDARD_WITHDRAWAL,

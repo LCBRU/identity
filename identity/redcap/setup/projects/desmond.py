@@ -1,3 +1,4 @@
+from identity.redcap.setup.standard import SEX_MAP_1M2F_GENDER
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
@@ -19,12 +20,7 @@ crfs.append({
     'postcode_column_name': 'postcode',
     'birth_date_column_name': 'birthdate',
 
-    'sex_column_name': 'gender',
-    'sex_column_map': {
-        '2': 'F', # Female
-        '1': 'M', # Male
-        '3': 'N', # Do not wish to disclose
-    },
+    **SEX_MAP_1M2F_GENDER,
 
     'withdrawal_date_column_name': 'wthdrw_date',
     'withdrawn_from_study_column_name': 'wthdrw_date',

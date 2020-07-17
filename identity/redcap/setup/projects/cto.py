@@ -1,7 +1,7 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP
+from identity.redcap.setup.standard import SEX_MAP_0F1M_SEX
 from identity.redcap.setup import crfs
 
 
@@ -23,8 +23,7 @@ crfs.append({
     'last_name_column_name': 'surname',
     'birth_date_column_name': 'dob',
 
-    'sex_column_name': 'sex',
-    **STANDARD_SEX_MAP,
+    **SEX_MAP_0F1M_SEX,
 
     'identity_map': {
         ParticipantIdentifierTypeName.CTO_ID: 'record',

@@ -1,3 +1,4 @@
+from identity.redcap.setup.standard import SEX_MAP_MMFF
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
@@ -18,11 +19,7 @@ crfs.append({
     'birth_date_column_name': 'crf1a_date_of_birth',
 
     'sex_column_name': 'crf1a_sex',
-    'sex_column_map': {
-        'M': 'M', # Male
-        'F': 'F', # Female
-        'NK': 'NK', # Not Known
-    },
+    **SEX_MAP_MMFF,
 
     'identity_map': {
         ParticipantIdentifierTypeName.PHOSP_COVID19_ID: 'record',

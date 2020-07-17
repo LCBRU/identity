@@ -1,3 +1,4 @@
+from identity.redcap.setup.standard import SEX_MAP_1M2F3T_SEX
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
@@ -20,13 +21,7 @@ crfs.append({
 
     'recruitment_date_column_name': 'date_enrolled',
 
-    'sex_column_name': 'sex',
-    'sex_column_map': {
-        '1': 'M',
-        '2': 'F',
-        '3': 'T',
-        '4': 'O',
-    },
+    **SEX_MAP_1M2F3T_SEX,
 
     'withdrawn_from_study_column_name': 'reason_for_participant_rem',
     'withdrawn_from_study_values': ['6'],

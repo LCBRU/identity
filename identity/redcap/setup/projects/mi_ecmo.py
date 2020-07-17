@@ -1,7 +1,7 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP
+from identity.redcap.setup.standard import SEX_MAP_0F1M_GENDER
 from identity.redcap.setup import crfs
 
 
@@ -20,8 +20,7 @@ crfs.append({
     'withdrawn_from_study_column_name': 'withdrl_date',
     'withdrawn_from_study_values': ['<isnotnull>'],
 
-    'sex_column_name': 'gender',
-    **STANDARD_SEX_MAP,
+    **SEX_MAP_0F1M_GENDER,
 
     'complete_or_expected_column_name': 'eos_study_comp_yn',
     'complete_or_expected_values': ['<isnull>', '1'],

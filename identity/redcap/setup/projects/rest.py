@@ -1,7 +1,7 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP
+from identity.redcap.setup.standard import SEX_MAP_0F1M_SEX, SEX_MAP_0M1F_SEX
 from identity.redcap.setup import crfs
 
 
@@ -20,11 +20,7 @@ crfs.append({
     'withdrawn_from_study_column_name': 'not_complete_reason',
     'withdrawn_from_study_values': ['5'],
 
-    'sex_column_name': 'sex',
-    'sex_column_map': {
-        '2': 'F', # Female
-        '1': 'M', # Male
-    },
+    **SEX_MAP_0M1F_SEX,
 
     'complete_or_expected_column_name': 'did_complete_yn',
     'complete_or_expected_values': ['<isnull>', '1'],
@@ -51,8 +47,7 @@ crfs.append({
     'postcode_column_name': 'postcode',
     'birth_date_column_name': 'dob',
 
-    'sex_column_name': 'sex',
-    **STANDARD_SEX_MAP,
+    **SEX_MAP_0F1M_SEX,
 
     'identity_map': {
         ParticipantIdentifierTypeName.REST_ID: 'record',

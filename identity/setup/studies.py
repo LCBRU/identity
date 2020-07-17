@@ -1,5 +1,3 @@
-from enum import Enum
-
 class StudyName():
     ALLEVIATE = 'ALLEVIATE'
     AS_Progression = 'AS Progression'

@@ -1,3 +1,4 @@
+from identity.redcap.setup.standard import SEX_MAP_1M2F_GENDER
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
@@ -20,12 +21,7 @@ crfs.append({
     'withdrawn_from_study_column_name': 'withdrawal_date',
     'withdrawn_from_study_values': ['<isnotnull>'],
 
-    'sex_column_name': 'gender',
-    'sex_column_map': {
-        '2': 'F', # Female
-        '1': 'M', # Male
-        '999': 'N', # Missing
-    },
+    **SEX_MAP_1M2F_GENDER,
 
     'identity_map': {
         ParticipantIdentifierTypeName.HAD_ID: 'record',

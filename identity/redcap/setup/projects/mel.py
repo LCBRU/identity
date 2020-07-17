@@ -1,3 +1,4 @@
+from identity.redcap.setup.standard import SEX_MAP_1M2F_GENDER
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
@@ -19,13 +20,7 @@ crfs.append({
     'postcode_column_name': 'address_postcode',
     'birth_date_column_name': 'date_of_birth',
 
-    'sex_column_name': 'gender',
-    'sex_column_map': {
-        '2': 'F', # Female
-        '1': 'M', # Male
-        '3': 'N', # Prefer not to say
-        '4': 'O', # Other
-    },
+    **SEX_MAP_1M2F_GENDER,
 
     'identity_map': {
         ParticipantIdentifierTypeName.MEL_ID: 'record',

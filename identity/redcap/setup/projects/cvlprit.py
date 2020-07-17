@@ -1,3 +1,4 @@
+from identity.redcap.setup.standard import SEX_MAP_1M2F_SEX
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
@@ -13,11 +14,7 @@ crfs.append({
         },
     ],
 
-    'sex_column_name': 'sex',
-    'sex_column_map': {
-        '1': 'M',
-        '2': 'F',
-    },
+    **SEX_MAP_1M2F_SEX,
 
     'identity_map': {
         ParticipantIdentifierTypeName.CVLPRIT_ID: 'patient_id',

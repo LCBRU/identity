@@ -1,7 +1,7 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.redcap.setup.standard import SEX_MAP_0F1M_GENDER, STANDARD_STATUS, STANDARD_WITHDRAWAL
 from identity.redcap.setup import crfs
 
 
@@ -20,8 +20,7 @@ crfs.append({
     'postcode_column_name': 'postcode',
     'birth_date_column_name': 'dob',
 
-    'sex_column_name': 'gender',
-    **STANDARD_SEX_MAP,
+    **SEX_MAP_0F1M_GENDER,
 
     'identity_map': {
         ParticipantIdentifierTypeName.MRP_HFPEF_ID: 'record',
@@ -43,8 +42,7 @@ crfs.append({
     'recruitment_date_column_name': 'consent_date',
     'birth_date_column_name': 'dob',
 
-    'sex_column_name': 'gender',
-    **STANDARD_SEX_MAP,
+    **SEX_MAP_0F1M_GENDER,
 
     **STANDARD_STATUS,
     **STANDARD_WITHDRAWAL,

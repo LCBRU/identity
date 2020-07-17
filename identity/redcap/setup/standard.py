@@ -1,3 +1,6 @@
+from identity.model.sex import SexName
+
+
 STANDARD_STATUS = {
     'complete_or_expected_column_name': 'study_status_comp_yn',
     'complete_or_expected_values': [None, '1'],
@@ -20,19 +23,101 @@ STANDARD_WITHDRAWAL = {
 }
 
 
-STANDARD_SEX_MAP = {
+SEX_MAP_0F1M = {
     'sex_column_map': {
-        '0': 'F', # Female
-        '1': 'M', # Male
-        '9': 'N', # Not Recorded
+        '0': SexName.FEMALE,
+        '1': SexName.MALE,
+        '9': SexName.NOT_RECORDED
     },
 }
 
 
-REVERSE_SEX_MAP = {
+SEX_MAP_0F1M_SEX = {
+    'sex_column_name': 'sex',
+    **SEX_MAP_0F1M,
+}
+
+
+SEX_MAP_0F1M_GENDER = {
+    'sex_column_name': 'gender',
+    **SEX_MAP_0F1M,
+}
+
+SEX_MAP_0M1F = {
     'sex_column_map': {
-        '1': 'F', # Female
-        '0': 'M', # Male
-        '9': 'N', # Not Recorded
+        '1': SexName.FEMALE,
+        '0': SexName.MALE,
+        '9': SexName.NOT_RECORDED,
+    },
+}
+
+SEX_MAP_0M1F_GENDER = {
+    'sex_column_name': 'gender',
+    **SEX_MAP_0M1F,
+}
+
+SEX_MAP_0M1F_SEX = {
+    'sex_column_name': 'sex',
+    **SEX_MAP_0M1F,
+}
+
+
+SEX_MAP_1M2F = {
+    'sex_column_map': {
+        '0': SexName.NOT_RECORDED,
+        '1': SexName.MALE,
+        '2': SexName.FEMALE,
+        '3': SexName.PREFER_NOT_TO_SAY,
+        '4': SexName.OTHER,
+        '999': SexName.NOT_RECORDED,
+    },
+}
+
+
+SEX_MAP_1M2F_SEX = {
+    'sex_column_name': 'sex',
+    **SEX_MAP_1M2F,
+}
+
+
+SEX_MAP_1M2F_GENDER = {
+    'sex_column_name': 'gender',
+    **SEX_MAP_1M2F,
+}
+
+
+SEX_MAP_MMFF = {
+    'sex_column_map': {
+        'M': SexName.MALE,
+        'F': SexName.FEMALE,
+        'NK': SexName.NOT_RECORDED,
+    },
+}
+
+
+SEX_MAP_1M2F3T = {
+    'sex_column_map': {
+        '1': SexName.MALE,
+        '2': SexName.FEMALE,
+        '3': SexName.TRANSGENDER,
+        '4': SexName.OTHER,
+        '999': SexName.NOT_RECORDED,
+    },
+}
+
+
+SEX_MAP_1M2F3T_SEX = {
+    'sex_column_name': 'sex',
+    **SEX_MAP_1M2F3T,
+}
+
+
+SEX_MAP_1M2F3I = {
+    'sex_column_map': {
+        '1': SexName.MALE,
+        '2': SexName.FEMALE,
+        '3': SexName.INTERSEX,
+        '4': SexName.NON_BINARY,
+        '5': SexName.PREFER_NOT_TO_SAY,
     },
 }

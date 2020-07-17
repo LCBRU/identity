@@ -1,7 +1,7 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.redcap.setup.standard import REVERSE_SEX_MAP
+from identity.redcap.setup.standard import SEX_MAP_0M1F_GENDER
 from identity.redcap.setup import crfs
 
 
@@ -27,8 +27,7 @@ crfs.append({
     'recruitment_date_column_name': 'operation_date',
     'birth_date_column_name': 'dob',
 
-    'sex_column_name': 'gender',
-    **REVERSE_SEX_MAP,
+    **SEX_MAP_0M1F_GENDER,
 
     'excluded_from_analysis_column_name': 'inc_in_eos_analysis',
     'excluded_from_analysis_values': ['0'],
