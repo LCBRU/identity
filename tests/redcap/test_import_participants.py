@@ -131,13 +131,9 @@ def test__import_participants__one_project(client, faker):
 
     with patch('identity.redcap._load_participants') as mock__load_participants:
 
-        before = datetime.utcnow()
-        
         import_participants()
 
         db.session.commit()
-
-        after = datetime.utcnow()        
 
         mock__load_participants.assert_called_with(pid, get_system_user())
 
