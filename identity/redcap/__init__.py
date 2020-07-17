@@ -109,12 +109,12 @@ def import_participants():
 
 
 def _load_participants(pid, system_user):
-    current_app.logger.info(f'_load_instance_participants: project="{pid.project.name}"')
+    current_app.logger.info(f'_load_instance_participants: project="{pid.redcap_project.name}"')
 
-    max_timestamp, = db.session.query(func.max(EcrfDetail.ecrf_timestamp)).filter_by(redcap_project_id=pid.project.id).one()
-    current_app.logger.info(f'Project {pid.project.name} previous timestamp: {max_timestamp}')
+    max_timestamp, = db.session.query(func.max(EcrfDetail.ecrf_timestamp)).filter_by(redcap_project_id=pid.redcap_project.id).one()
+    current_app.logger.info(f'Project {pid.redcap_project.name} previous timestamp: {max_timestamp}')
 
-    with redcap_engine(pid.project.redcap_instance.database_name) as conn:
+    with redcap_engine(pid.redcap_project.redcap_instance.database_name) as conn:
         type_ids = {pt.name: pt.id for pt in ParticipantIdentifierType.query.all()}    
         ecrfs = []
         all_ids = {}
@@ -122,7 +122,7 @@ def _load_participants(pid, system_user):
         participants = conn.execute(
             text(pid.get_query()),
             timestamp=max_timestamp or 0,
-            project_id=pid.project_id,
+            project_id=pid.redcap_project.id,
         )
 
         rows = 0
@@ -131,10 +131,10 @@ def _load_participants(pid, system_user):
             rows += 0
 
             ecrf = pid.fill_ecrf(
-                redcap_project=pid.project,
+                redcap_project=pid.redcap_project,
                 participant_details=participant,
                 existing_ecrf=EcrfDetail.query.filter_by(
-                    redcap_project_id=pid.project.id,
+                    redcap_project_id=pid.redcap_project.id,
                     ecrf_participant_identifier=participant['record']
                 ).one_or_none(),
             )
@@ -146,20 +146,20 @@ def _load_participants(pid, system_user):
             ecrf.identifier_source.last_updated_by_user_id=system_user.id
             ecrf.identifier_source.last_updated_datetime=datetime.utcnow()
 
-            add_identifiers(ecrf, pid.project, all_ids, participant, type_ids, system_user)
+            add_identifiers(ecrf, pid, all_ids, participant, type_ids, system_user)
             
             ecrfs.append(ecrf)
             
         db.session.add_all(ecrfs)
 
-    current_app.logger.info(f'_load_instance_participants: project="{pid.project.name}" imported {rows} records')
+    current_app.logger.info(f'_load_instance_participants: project="{pid.redcap_project.name}" imported {rows} records')
 
 
-def add_identifiers(ecrf, project, all_ids, participant, type_ids, system_user):
+def add_identifiers(ecrf, pid, all_ids, participant, type_ids, system_user):
 
     ecrf.identifier_source.identifiers.clear()
 
-    for id in project.participant_import_definition.extract_identifiers(participant):
+    for id in pid.extract_identifiers(participant):
 
         idkey = frozenset(id.items())
 

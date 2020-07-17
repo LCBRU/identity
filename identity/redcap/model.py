@@ -203,7 +203,7 @@ class ParticipantImportDefinition(db.Model):
                 redcap_project_id=redcap_project.id,
                 ecrf_participant_identifier=participant_details['record'],
             )
-            result.identifier_source = EcrfParticipantIdentifierSource(study_id=redcap_project.study_id)
+            result.identifier_source = EcrfParticipantIdentifierSource(study_id=self.study_id)
         else:
             current_app.logger.info(f'Updating ecrf for participant: {participant_details["record"]}')
             result = existing_ecrf
