@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-COPD_COVID_19 = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -17,4 +18,4 @@ COPD_COVID_19 = {
     'identity_map': {
         ParticipantIdentifierTypeName.COPD_COVID_19_ID: 'record',
     }
-}
+})

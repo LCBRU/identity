@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
+from identity.redcap.setup import crfs
 
 
-GRAPHIC2 = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -23,6 +24,6 @@ GRAPHIC2 = {
     'excluded_from_analysis_values': ['1'],
 
     'identity_map': {
-        ParticipantIdentifierTypeName.GRAPHICS2_ID: 'record',
+        ParticipantIdentifierTypeName.GRAPHIC2_ID: 'record',
     }
-}
+})

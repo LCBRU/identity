@@ -2,11 +2,11 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
-
+from identity.redcap.setup import crfs
 
 # Need to check with Sue
 
-EDEN_STP = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -23,10 +23,10 @@ EDEN_STP = {
     'identity_map': {
         ParticipantIdentifierTypeName.EDEN_ID: 'patient_id',
     }
-}
+})
 
 
-EDEN_STP = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_HSCN,
@@ -43,4 +43,4 @@ EDEN_STP = {
     'identity_map': {
         ParticipantIdentifierTypeName.EDEN_ID: 'patient_id_pat1',
     }
-}
+})

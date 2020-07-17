@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-BME_COVID = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,
@@ -24,4 +25,4 @@ BME_COVID = {
     'identity_map': {
         ParticipantIdentifierTypeName.BME_COVID_ID: 'record',
     }
-}
+})

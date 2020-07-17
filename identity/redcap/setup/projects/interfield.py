@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
+from identity.redcap.setup import crfs
 
 
-INTERFIELD = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -21,10 +22,10 @@ INTERFIELD = {
     'identity_map': {
         ParticipantIdentifierTypeName.INTERFIELD_ID: 'record',
     }
-}
+})
 
 
-INTERFIELD_DEMOGRAPHICS = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -47,4 +48,4 @@ INTERFIELD_DEMOGRAPHICS = {
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
-}
+})

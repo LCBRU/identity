@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
+from identity.redcap.setup import crfs
 
 
-ELASTIC_AS = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -33,12 +34,12 @@ ELASTIC_AS = {
     'brc_opt_out_values': ['4'],
 
     'identity_map': {
-        ParticipantIdentifierTypeName.EASY_AS_ID: 'record',
+        ParticipantIdentifierTypeName.ELASTIC_AS_ID: 'record',
     }
-}
+})
 
 
-ELASTIC_AS_DEMOGRAPHICS = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -61,4 +62,4 @@ ELASTIC_AS_DEMOGRAPHICS = {
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
-}
+})

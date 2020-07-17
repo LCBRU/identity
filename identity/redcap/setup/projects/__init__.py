@@ -1,27 +1,8 @@
-from .alleviate import *
+from importlib import import_module
+from os.path import dirname, basename, isfile, join
+import glob
+modules = glob.glob(join(dirname(__file__), "*.py"))
+__all__ = [ basename(f)[:-3] for f in modules if isfile(f) and not f.endswith('__init__.py')]
 
-from .minerva import *
-from .mrp_hfpef import *
-from .Multi_Morbid_Priorities import *
-from .non_adherence import *
-from .novo5k import *
-from .parc import *
-from .phosp_cobid19 import *
-from .pilot import *
-from .predict import *
-from .preeclampsia import *
-from .rapid_nstemi import *
-from .recharge import *
-from .rest import *
-from .salt import *
-from .scad import *
-from .scad_cae import *
-from .skope import *
-from .space_for_copd import *
-from .spiral import *
-from .tmao import *
-from .uhl_hcw_covid_19 import *
-from .upfor5 import *
-from .vascegens import *
-from .yakult import *
-from .yoga import *
+for a in __all__:
+    import_module(f'.{a}', __package__)

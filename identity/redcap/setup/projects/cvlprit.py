@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-CVLPRIT = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -22,4 +23,4 @@ CVLPRIT = {
         ParticipantIdentifierTypeName.CVLPRIT_ID: 'patient_id',
         ParticipantIdentifierTypeName.CVLPRIT_LOCAL_ID: 'local_id',
     }   
-}
+})

@@ -2,10 +2,11 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS
+from identity.redcap.setup import crfs
 
 
-FAST = {
-    'crf': [
+crfs.append({
+    'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.FAST,
@@ -29,10 +30,10 @@ FAST = {
         ParticipantIdentifierTypeName.FAST_ID: 'record',
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_number',
     }
-}
+})
 
 
-FAST_SCREENING = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -47,7 +48,7 @@ FAST_SCREENING = {
     'birth_date_column_name': 'dob',
 
     'identity_map': {
-        ParticipantIdentifierTypeName.PILOT_ID: 'record',
+        ParticipantIdentifierTypeName.FAST_ID: 'record',
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
     }
-}
+})

@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
+from identity.redcap.setup import crfs
 
 
-CTO = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -30,4 +31,4 @@ CTO = {
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 'hospital_num',
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_num',
     }
-}
+})

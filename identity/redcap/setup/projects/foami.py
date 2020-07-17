@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP
+from identity.redcap.setup import crfs
 
 
-FOAMI = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -32,10 +33,10 @@ FOAMI = {
     'identity_map': {
         ParticipantIdentifierTypeName.FOAMI_ID: 'record',
     }
-}
+})
 
 
-FOAMI_DEMOGRAPHICS = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -57,4 +58,4 @@ FOAMI_DEMOGRAPHICS = {
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
-}
+})

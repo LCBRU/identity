@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-INTERVAL = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -22,4 +23,4 @@ INTERVAL = {
         ParticipantIdentifierTypeName.BIORESOURCE_ID: 'record',
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs',
     }
-}
+})

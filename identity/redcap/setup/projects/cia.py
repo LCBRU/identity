@@ -2,12 +2,13 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_WITHDRAWAL
+from identity.redcap.setup import crfs
 
 
-CIA = {
+crfs.append({
     'crfs': [
         {
-            'instance': 'UHL Live',
+            'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.CIA,
             'projects': [82],
         },
@@ -23,10 +24,10 @@ CIA = {
     'identity_map': {
         ParticipantIdentifierTypeName.CIA_ID: 'record',
     }
-}
+})
 
 
-CIA_DEMOGRAPHICS = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -49,4 +50,4 @@ CIA_DEMOGRAPHICS = {
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
-}
+})

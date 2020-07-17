@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-FORECAST_BRICCSCT_ORFAN_SCREENING = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -19,4 +20,4 @@ FORECAST_BRICCSCT_ORFAN_SCREENING = {
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 'record',
         ParticipantIdentifierTypeName.UHL_NUMBER: 'uhl_number', # What is This?
     }
-}
+})

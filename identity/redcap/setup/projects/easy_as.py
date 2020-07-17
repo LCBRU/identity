@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-E = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,
@@ -17,4 +18,4 @@ E = {
     'identity_map': {
         ParticipantIdentifierTypeName.EASY_AS_ID: 'record',
     }
-}
+})

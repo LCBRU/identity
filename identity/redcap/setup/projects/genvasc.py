@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-GENVASC_DEATH_DATA = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -21,4 +22,4 @@ GENVASC_DEATH_DATA = {
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 'record',
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_number',
     }
-}
+})

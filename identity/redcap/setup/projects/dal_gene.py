@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-DAL_GENE = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -21,4 +22,4 @@ DAL_GENE = {
         ParticipantIdentifierTypeName.DAL_GENE_ID: 'record',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_number',
     }
-}
+})

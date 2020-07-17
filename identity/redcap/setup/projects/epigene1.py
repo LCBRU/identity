@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS
+from identity.redcap.setup import crfs
 
 
-EPIGENE1 = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -29,4 +30,4 @@ EPIGENE1 = {
     'identity_map': {
         ParticipantIdentifierTypeName.EPIGENE1_ID: 'record',
     }
-}
+})

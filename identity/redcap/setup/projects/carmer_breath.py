@@ -1,9 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
+from identity.redcap.setup import crfs
 
 
-CARMER_BREATH = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -22,6 +23,6 @@ CARMER_BREATH = {
     },
 
     'identity_map': {
-        ParticipantIdentifierTypeName.PILOT_ID: 'record',
+        ParticipantIdentifierTypeName.CARMER_BREATH_ID: 'record',
     }
-}
+})

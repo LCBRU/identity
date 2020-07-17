@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_STATUS
+from identity.redcap.setup import crfs
 
 
-COPD_INTRO = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -27,6 +28,6 @@ COPD_INTRO = {
     **STANDARD_STATUS,
 
     'identity_map': {
-        ParticipantIdentifierTypeName.PILOT_ID: 'record',
+        ParticipantIdentifierTypeName.COPD_INTRO_ID: 'record',
     }
-}
+})

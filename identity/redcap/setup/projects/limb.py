@@ -1,10 +1,12 @@
+from identity.database import redcap_engine
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.redcap.setup import crfs
 
 
-LIMB = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -21,10 +23,10 @@ LIMB = {
     'identity_map': {
         ParticipantIdentifierTypeName.LIMB_ID: 'record',
     }
-}
+})
 
 
-LIMB_DEMOGRAPHICS = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -47,10 +49,10 @@ LIMB_DEMOGRAPHICS = {
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
-}
+})
 
 
-LIMB_SCREENING = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -68,4 +70,4 @@ LIMB_SCREENING = {
     'identity_map': {
         ParticipantIdentifierTypeName.LIMB_ID: 'record',
     }
-}
+})

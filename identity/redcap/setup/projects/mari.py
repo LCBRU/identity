@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import REVERSE_SEX_MAP
+from identity.redcap.setup import crfs
 
 
-MARI = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -35,4 +36,4 @@ MARI = {
     'identity_map': {
         ParticipantIdentifierTypeName.MARI_ID: 'record',
     }
-}
+})

@@ -2,9 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.redcap.setup.standard import STANDARD_SEX_MAP, STANDARD_STATUS, STANDARD_WITHDRAWAL
+from identity.redcap.setup import crfs
 
 
-INDAPAMIDE = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -26,10 +27,10 @@ INDAPAMIDE = {
         ParticipantIdentifierTypeName.IDAPAMIDE_ID: 'record',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_number',
     }
-}
+})
 
 
-INDAPAMIDE_SCREENING = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -45,10 +46,10 @@ INDAPAMIDE_SCREENING = {
     'identity_map': {
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 'record',
     }
-}
+})
 
 
-INDAPAMIDE_DEMOGRAPHICS = {
+crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -71,4 +72,4 @@ INDAPAMIDE_DEMOGRAPHICS = {
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
-}
+})
