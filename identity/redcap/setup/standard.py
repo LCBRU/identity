@@ -121,3 +121,14 @@ SEX_MAP_1M2F3I = {
         '5': SexName.PREFER_NOT_TO_SAY,
     },
 }
+
+
+STANDARD_DEMOGRAPHICS = {
+    'recruitment_date_column_name': 'research_appt_date',
+    'first_name_column_name': 'first_name',
+    'last_name_column_name': 'last_name',
+    'postcode_column_name': 'postcode',
+    'birth_date_column_name': 'dob',
+
+    **SEX_MAP_0F1M_GENDER,
+}

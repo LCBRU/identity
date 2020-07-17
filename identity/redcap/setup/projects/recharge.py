@@ -16,11 +16,6 @@ crfs.append({
 
     **SEX_MAP_1M2F_SEX,
 
-    'sex_column_map': {
-        '1': 'M', # Male
-        '2': 'F',
-    },
-
     'identity_map': {
         ParticipantIdentifierTypeName.RECHARGE_ID: 'record',
     }
