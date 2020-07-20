@@ -6,6 +6,7 @@ import os
 import csv
 from identity.model.id import PseudoRandomIdProvider
 
+@pytest.mark.slow_integration_test
 def test_all_numbers_unique(client):
     iut = PseudoRandomIdProvider(prefix='Tst')
     created = set()
