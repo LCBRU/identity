@@ -396,5 +396,6 @@ def create_partipipant_import_definitions(user):
                     db.session.add(ParticipantImportDefinition(
                         study_id=study.id,
                         redcap_project_id=rp.id,
+                        last_updated_by_user_id=user.id,
                     ))
                     db.session.commit()

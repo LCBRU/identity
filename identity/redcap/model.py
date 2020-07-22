@@ -220,42 +220,54 @@ class ParticipantImportDefinition(db.Model):
             if (participant_details[field] or '').strip()
         ]
 
-    def _get_record_value_in_value_array(self, record, column_name, value_array):
-        if column_name is None or len(column_name.strip()) == 0 or column_name not in record:
-            return None
-        elif value_array is None or len(value_array) == 0:
-            return None
-        elif record[column_name] is None and '<isnull>' in value_array:
-            return True
-        elif record[column_name] is not None and '<isnotnull>' in value_array:
-            return True
-        else:
-            return record[column_name] in value_array
-    
-    def _get_record_value_cleansed(self, record, column_name):
-        if column_name is None or len(column_name.strip()) == 0 or column_name not in record:
-            return None
-        else:
-            return record[column_name].strip()
-    
     def _fill_ecrf_details(self, record, ecrf):
+        erec = EcrfRecord(record)
 
-        ecrf.recruitment_date = parse_date_or_none(record.get(self.recruitment_date_column_name))
-        ecrf.first_name = self._get_record_value_cleansed(record, self.first_name_column_name)
-        ecrf.last_name = self._get_record_value_cleansed(record, self.last_name_column_name)
-        ecrf.postcode = self._get_record_value_cleansed(record, self.postcode_column_name)
-        ecrf.birth_date = parse_date_or_none(record.get(self.birth_date_column_name))
-        ecrf.sex = self.sex_column_map_dictionary.get(record.get(self.sex_column_name))
-        ecrf.complete_or_expected = self._get_record_value_in_value_array(record, self.complete_or_expected_column_name, self.complete_or_expected_value_array)
-        ecrf.withdrawal_date = parse_date_or_none(record.get(self.withdrawal_date_column_name))
-        ecrf.withdrawn_from_study = self._get_record_value_in_value_array(record, self.withdrawn_from_study_column_name, self.withdrawn_from_study_value_array)
-        ecrf.post_withdrawal_keep_samples = self._get_record_value_in_value_array(record, self.post_withdrawal_keep_samples_column_name, self.post_withdrawal_keep_samples_value_array)
-        ecrf.post_withdrawal_keep_data = self._get_record_value_in_value_array(record, self.post_withdrawal_keep_data_column_name, self.post_withdrawal_keep_data_value_array)
-        ecrf.brc_opt_out = self._get_record_value_in_value_array(record, self.brc_opt_out_column_name, self.brc_opt_out_value_array)
-        ecrf.excluded_from_analysis = self._get_record_value_in_value_array(record, self.excluded_from_analysis_column_name, self.excluded_from_analysis_value_array)
-        ecrf.excluded_from_study = self._get_record_value_in_value_array(record, self.excluded_from_study_column_name, self.excluded_from_study_value_array)
+        ecrf.recruitment_date = erec.get_parsed_date(self.recruitment_date_column_name)
+        ecrf.first_name = erec.get(self.first_name_column_name)
+        ecrf.last_name = erec.get(self.last_name_column_name)
+        ecrf.postcode = erec.get(self.postcode_column_name)
+        ecrf.birth_date = erec.get_parsed_date(self.birth_date_column_name)
+        ecrf.sex = self.sex_column_map_dictionary.get(erec.get(self.sex_column_name))
+        ecrf.complete_or_expected = erec.get_from_value_array(self.complete_or_expected_column_name, self.complete_or_expected_value_array)
+        ecrf.withdrawal_date = erec.get_parsed_date(self.withdrawal_date_column_name)
+        ecrf.withdrawn_from_study = erec.get_from_value_array(self.withdrawn_from_study_column_name, self.withdrawn_from_study_value_array)
+        ecrf.post_withdrawal_keep_samples = erec.get_from_value_array(self.post_withdrawal_keep_samples_column_name, self.post_withdrawal_keep_samples_value_array)
+        ecrf.post_withdrawal_keep_data = erec.get_from_value_array(self.post_withdrawal_keep_data_column_name, self.post_withdrawal_keep_data_value_array)
+        ecrf.brc_opt_out = erec.get_from_value_array(self.brc_opt_out_column_name, self.brc_opt_out_value_array)
+        ecrf.excluded_from_analysis = erec.get_from_value_array(self.excluded_from_analysis_column_name, self.excluded_from_analysis_value_array)
+        ecrf.excluded_from_study = erec.get_from_value_array(self.excluded_from_study_column_name, self.excluded_from_study_value_array)
 
         return ecrf
+
+
+class EcrfRecord():
+    def __init__(self, record):
+        self.record = record
+    
+    def get(self, column_name):
+        if len((column_name or '').strip()) == 0 or column_name not in self.record:
+            return None
+        else:
+            return self.record[column_name].strip()
+
+    def get_parsed_date(self, column_name):
+        return parse_date_or_none(self.get(self.column_name))
+
+    def get_from_value_array(self, column_name, value_array):
+        if len(value_array or []) == 0:
+            return None
+        if len((column_name or '').strip()) == 0 or column_name not in self.record:
+            return None
+
+        value = self.get(column_name)
+
+        if value is None and '<isnull>' in value_array:
+            return True
+        if value is not None and '<isnotnull>' in value_array:
+            return True
+
+        return value in value_array
 
 
 class EcrfDetail(db.Model):
