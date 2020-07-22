@@ -195,12 +195,11 @@ class ParticipantImportDefinition(db.Model):
             GROUP BY rd.record, rd.project_id
         """
 
-    def fill_ecrf(self, redcap_project, participant_details, existing_ecrf):
-
+    def fill_ecrf(self, participant_details, existing_ecrf):
         if existing_ecrf is None:
             current_app.logger.info(f'Creating ecrf for participant "{participant_details["record"]}"')
             result = EcrfDetail(
-                redcap_project_id=redcap_project.id,
+                participant_import_definition_id=self.id,
                 ecrf_participant_identifier=participant_details['record'],
             )
             result.identifier_source = EcrfParticipantIdentifierSource(study_id=self.study_id)
@@ -272,8 +271,9 @@ class EcrfRecord():
 
 class EcrfDetail(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    redcap_project_id = db.Column(db.Integer, db.ForeignKey(RedcapProject.id), nullable=False)
-    redcap_project = db.relationship(RedcapProject, backref=db.backref("details"))
+
+    participant_import_definition_id = db.Column(db.Integer, db.ForeignKey(ParticipantImportDefinition.id), nullable=False)
+    participant_import_definition = db.relationship(ParticipantImportDefinition, backref=db.backref("ecrfs"))
 
     ecrf_participant_identifier = db.Column(db.String(100))
     recruitment_date = db.Column(db.Date)

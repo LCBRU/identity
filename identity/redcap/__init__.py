@@ -109,10 +109,10 @@ def import_participants():
 
 
 def _load_participants(pid, system_user):
-    current_app.logger.info(f'_load_instance_participants: project="{pid.redcap_project.name}"')
+    current_app.logger.info(f'Importing Participants: study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}".')
 
-    max_timestamp, = db.session.query(func.max(EcrfDetail.ecrf_timestamp)).filter_by(redcap_project_id=pid.redcap_project.id).one()
-    current_app.logger.info(f'Project {pid.redcap_project.name} previous timestamp: {max_timestamp}')
+    max_timestamp, = db.session.query(func.max(EcrfDetail.ecrf_timestamp)).filter_by(participant_import_definition_id=pid.id).one()
+    current_app.logger.info(f'previous timestamp: {max_timestamp}')
 
     with redcap_engine(pid.redcap_project.redcap_instance.database_name) as conn:
         type_ids = {pt.name: pt.id for pt in ParticipantIdentifierType.query.all()}    
@@ -122,19 +122,18 @@ def _load_participants(pid, system_user):
         participants = conn.execute(
             text(pid.get_query()),
             timestamp=max_timestamp or 0,
-            project_id=pid.redcap_project.id,
+            project_id=pid.redcap_project.project_id,
         )
 
         rows = 0
 
         for participant in participants:
-            rows += 0
+            rows += 1
 
             ecrf = pid.fill_ecrf(
-                redcap_project=pid.redcap_project,
                 participant_details=participant,
                 existing_ecrf=EcrfDetail.query.filter_by(
-                    redcap_project_id=pid.redcap_project.id,
+                    participant_import_definition_id=pid.id,
                     ecrf_participant_identifier=participant['record']
                 ).one_or_none(),
             )
@@ -152,7 +151,7 @@ def _load_participants(pid, system_user):
             
         db.session.add_all(ecrfs)
 
-    current_app.logger.info(f'_load_instance_participants: project="{pid.redcap_project.name}" imported {rows} records')
+    current_app.logger.info(f'Importing Participants: study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}". Imported {rows} records')
 
 
 def add_identifiers(ecrf, pid, all_ids, participant, type_ids, system_user):
