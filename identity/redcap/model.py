@@ -252,7 +252,7 @@ class EcrfRecord():
             return self.record[column_name].strip()
 
     def get_parsed_date(self, column_name):
-        return parse_date_or_none(self.get(self.column_name))
+        return parse_date_or_none(self.get(column_name))
 
     def get_from_value_array(self, column_name, value_array):
         if len(value_array or []) == 0:
