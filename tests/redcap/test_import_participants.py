@@ -86,15 +86,15 @@ def _run_import_test(participant_import_definition, record, expected, expected_i
 
         db.session.commit()
 
-        after = datetime.utcnow()        
+        after = datetime.utcnow()
 
         actual = EcrfDetail.query.filter(EcrfDetail.last_updated_datetime.between(before, after)).one_or_none()
-        _assert_actual_equals_expected(actual, expected, expected_identifiers)
+        _assert_actual_equals_expected(participant_import_definition, actual, expected, expected_identifiers)
 
 
-def _assert_actual_equals_expected(actual, expected, expected_identifiers):
+def _assert_actual_equals_expected(participant_import_definition, actual, expected, expected_identifiers):
     assert actual is not None
-    assert actual.redcap_project_id == 1
+    assert actual.participant_import_definition_id == participant_import_definition.id
     assert actual.ecrf_participant_identifier == expected['ecrf_participant_identifier']
     assert parse_date(actual.recruitment_date) == expected['recruitment_date']
     assert actual.first_name == expected['first_name']

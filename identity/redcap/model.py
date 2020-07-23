@@ -245,7 +245,7 @@ class EcrfRecord():
         self.record = record
     
     def get(self, column_name):
-        if len((column_name or '').strip()) == 0 or column_name not in self.record:
+        if len((column_name or '').strip()) == 0 or column_name not in self.record or self.record[column_name] is None:
             return None
         else:
             return self.record[column_name].strip()
