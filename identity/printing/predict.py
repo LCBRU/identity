@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
@@ -21,7 +22,7 @@ ID_TYPE_SAMPLE = "PreSa"
 class PredictIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='PREDICT',
+            study_name=StudyName.PREDICT,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'PREDICT Participants'},
                 {ID_TYPE_SAMPLE: 'PREDICT Samples'},
@@ -34,7 +35,7 @@ class PredictPack(LabelPack):
         "polymorphic_identity": 'PredictPack',
     }
 
-    __study_name__ = 'PREDICT'
+    __study_name__ = StudyName.PREDICT
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()

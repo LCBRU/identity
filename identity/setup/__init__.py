@@ -1,11 +1,12 @@
-#!/usr/bin/env python3
-
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
+from identity.setup.redcap_instances import REDCapInstanceDetail
+from identity.setup.studies import StudyName
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 from flask import current_app
 from itertools import groupby, chain
 from collections import ChainMap
-from .database import db
+from identity.database import db
 from identity.model.id import (
     SequentialIdProvider,
     LegacyIdProvider,
@@ -19,12 +20,11 @@ from identity.model.id import (
 )
 from identity.utils import get_concrete_classes
 from identity.model import Study
-from identity.redcap.model import RedcapInstance
+from identity.redcap.model import ParticipantImportDefinition, RedcapInstance, RedcapProject
 from identity.security import get_system_user, get_admin_user
 from identity.printing.briccs import (
     ID_NAME_BRICCS_PARTICIPANT,
     ID_NAME_BRICCS_SAMPLE,
-    ID_NAME_BRICCS_ALIQUOT,
 )
 from identity.printing.model import LabelPack
 from identity.blinding import BLINDING_SETS
@@ -33,10 +33,10 @@ from identity.blinding.model import (
     BlindingType,
     Blinding,
 )
+from identity.redcap.setup import crfs
 
 
 PSEUDORANDOM_ID_PROVIDERS = {}
-STUDIES = ['Pilot', 'HIC Covid 19']
 
 
 def create_base_data():
@@ -50,6 +50,7 @@ def create_base_data():
     create_blinding_sets(system)
     create_participant_id_types(system)
     create_redcap_instances(system)
+    create_partipipant_import_definitions(system)
 
 
 def import_ids():
@@ -275,7 +276,7 @@ def create_providers(user):
 
     for params in chain.from_iterable([x.sequential_identifier_types for x in get_concrete_classes(StudyIdSpecification)]):
         if SequentialIdProvider.query.filter_by(name=params['name']).count() == 0:
-            current_app.logger.info(f'Creating provider {name}')
+            current_app.logger.info(f'Creating provider {params["name"]}')
             db.session.add(SequentialIdProvider(
                 last_updated_by_user=user,
                 **params,
@@ -296,7 +297,7 @@ def create_providers(user):
 def create_studies(user):
     current_app.logger.info(f'Creating Studies')
 
-    for study_name in set([x.__study_name__ for x in get_concrete_classes(LabelPack)] + STUDIES):
+    for study_name in StudyName().all_studies():
         study = Study.query.filter_by(name=study_name).first()
 
         if not study:
@@ -358,7 +359,7 @@ def create_blinding_sets(user):
 def create_participant_id_types(user):
     current_app.logger.info(f'Creating Participant ID Types')
 
-    for name in ParticipantIdentifierType.__TYPE_NAMES__:
+    for name in ParticipantIdentifierTypeName().all_types():
         if ParticipantIdentifierType.query.filter_by(name=name).count() == 0:
             current_app.logger.info(f'Creating Participant ID Type "{name}"')
 
@@ -372,41 +373,69 @@ def create_participant_id_types(user):
 def create_redcap_instances(user):
     current_app.logger.info(f'Creating REDCap Instances')
 
-    instances = [
-        {
-            'name': 'UHL Live',
-            'database_name': 'redcap6170_briccs',
-            'base_url': 'https://briccs.xuhl-tr.nhs.uk/redcap',
-            'version': '7.2.2',
-        },
-        {
-            'name': 'UHL HSCN',
-            'database_name': 'redcap6170_briccsext',
-            'base_url': 'https://uhlbriccsext01.xuhl-tr.nhs.uk/redcap',
-            'version': '7.2.2',
-        },
-        {
-            'name': 'GENVASC',
-            'database_name': 'redcap_genvasc',
-            'base_url': 'https://genvasc.uhl-tr.nhs.uk/redcap',
-            'version': '9.1.15',
-        },
-        {
-            'name': 'UoL CRF',
-            'database_name': 'uol_crf_redcap',
-            'base_url': 'https://crf.lcbru.le.ac.uk',
-            'version': '7.2.2',
-        },
-        {
-            'name': 'UoL Internet',
-            'database_name': 'uol_survey_redcap',
-            'base_url': 'https://redcap.lcbru.le.ac.uk',
-            'version': '7.2.2',
-        },
-    ]
-
-    for i in instances:
+    for i in REDCapInstanceDetail().all_instances():
         if RedcapInstance.query.filter_by(name=i['name']).count() == 0:
             db.session.add(RedcapInstance(**i, last_updated_by_user=user))
 
     db.session.commit()
+
+
+def create_partipipant_import_definitions(user):
+    current_app.logger.info(f'Creating particpant import definitions')
+
+    for p in crfs:
+        for c in p['crfs']:
+            study = Study.query.filter_by(name=c['study']).one_or_none()
+            ri = RedcapInstance.query.filter_by(name=c['instance']['name']).one_or_none()
+
+            for project in c['projects']:
+
+                rp = RedcapProject.query.filter_by(redcap_instance_id=ri.id, project_id=project).one_or_none()
+
+                if rp is None:
+                    continue
+                
+                pid = ParticipantImportDefinition.query.filter_by(study_id=study.id, redcap_project_id=rp.id).one_or_none()
+
+                if pid is None:
+                    pid = ParticipantImportDefinition(
+                        study_id=study.id,
+                        redcap_project_id=rp.id,
+                        last_updated_by_user_id=user.id,
+                    )
+
+                pid.recruitment_date_column_name = _get_definition_for_column_name(p, 'recruitment_date_column_name')
+                pid.first_name_column_name = _get_definition_for_column_name(p, 'first_name_column_name')
+                pid.last_name_column_name = _get_definition_for_column_name(p, 'last_name_column_name')
+                pid.postcode_column_name = _get_definition_for_column_name(p, 'postcode_column_name')
+                pid.birth_date_column_name = _get_definition_for_column_name(p, 'birth_date_column_name')
+                pid.withdrawal_date_column_name = _get_definition_for_column_name(p, 'withdrawal_date_column_name')
+                pid.withdrawn_from_study_column_name = _get_definition_for_column_name(p, 'withdrawn_from_study_column_name')
+                pid.set_withdrawn_from_study_values_list(_get_definition_for_column_name(p, 'withdrawn_from_study_values'))
+                pid.sex_column_name = _get_definition_for_column_name(p, 'sex_column_name')
+                pid.set_sex_column_map_dictionary(_get_definition_for_column_name(p, 'sex_column_map'))
+                pid.complete_or_expected_column_name = _get_definition_for_column_name(p, 'complete_or_expected_column_name')
+                pid.set_complete_or_expected_values_list(_get_definition_for_column_name(p, 'complete_or_expected_values'))
+                pid.post_withdrawal_keep_samples_column_name = _get_definition_for_column_name(p, 'post_withdrawal_keep_samples_column_name')
+                pid.set_post_withdrawal_keep_samples_values_list(_get_definition_for_column_name(p, 'post_withdrawal_keep_samples_values'))
+                pid.post_withdrawal_keep_data_column_name = _get_definition_for_column_name(p, 'post_withdrawal_keep_data_column_name')
+                pid.set_post_withdrawal_keep_data_values_list(_get_definition_for_column_name(p, 'post_withdrawal_keep_data_values'))
+                pid.brc_opt_out_column_name = _get_definition_for_column_name(p, 'brc_opt_out_column_name')
+                pid.set_brc_opt_out_values_list(_get_definition_for_column_name(p, 'brc_opt_out_values'))
+                pid.excluded_from_analysis_column_name = _get_definition_for_column_name(p, 'excluded_from_analysis_column_name')
+                pid.set_excluded_from_analysis_values_list(_get_definition_for_column_name(p, 'excluded_from_analysis_values'))
+                pid.excluded_from_study_column_name = _get_definition_for_column_name(p, 'excluded_from_study_column_name')
+                pid.set_excluded_from_study_values_list(_get_definition_for_column_name(p, 'excluded_from_study_values'))
+                pid.set_identities_map_dictionary(_get_definition_for_column_name(p, 'identity_map'))
+
+                db.session.add(pid)
+    
+    db.session.commit()
+
+
+def _get_definition_for_column_name(definition, column_name):
+    if column_name in definition and definition[column_name]:
+        return definition[column_name]
+    else:
+        return None
+

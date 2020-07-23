@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
@@ -21,7 +22,7 @@ ID_TYPE_SAMPLE = "AllSa"
 class AlleviateIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='ALLEVIATE',
+            study_name=StudyName.ALLEVIATE,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'ALLEVIATE Participants'},
                 {ID_TYPE_SAMPLE: 'ALLEVIATE Samples'},
@@ -34,7 +35,7 @@ class AlleviatePack(LabelPack):
         "polymorphic_identity": 'AlleviatePack',
     }
 
-    __study_name__ = 'ALLEVIATE'
+    __study_name__ = StudyName.ALLEVIATE
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
@@ -45,7 +46,7 @@ class AlleviatePack(LabelPack):
         bag_context = BagContext(
             printer=PRINTER_TMF_BAG,
             participant_id=participant_id,
-            side_bar='ALLEVIATE',
+            side_bar=StudyName.ALLEVIATE,
         )
 
         sample_context = SampleContext(

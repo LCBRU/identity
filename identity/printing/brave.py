@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
@@ -24,7 +25,7 @@ ID_TYPE_EXTERNAL_PARTICIPANT = "BavXPt"
 class BraveIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='BRAVE',
+            study_name=StudyName.BRAVE,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'BRAVE Participants'},
                 {ID_TYPE_SAMPLE: 'BRAVE Samples'},
@@ -40,7 +41,7 @@ class BravePack(LabelPack):
         "polymorphic_identity": 'BravePack',
     }
 
-    __study_name__ = 'BRAVE'
+    __study_name__ = StudyName.BRAVE
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
@@ -77,7 +78,7 @@ class BraveExternalPack(LabelPack):
         "polymorphic_identity": 'BraveExternalPack',
     }
 
-    __study_name__ = 'BRAVE'
+    __study_name__ = StudyName.BRAVE
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_EXTERNAL_PARTICIPANT).first()
@@ -113,7 +114,7 @@ class BravePolandPack(LabelPack):
         "polymorphic_identity": 'BravePolandPack',
     }
 
-    __study_name__ = 'BRAVE'
+    __study_name__ = StudyName.BRAVE
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_POLAND_PARTICIPANT).first()

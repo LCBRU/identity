@@ -1,15 +1,12 @@
-from itertools import chain
-from dateutil.parser import parse
 from datetime import datetime
 from celery.schedules import crontab
 from flask import current_app
 from sqlalchemy.sql import text
 from sqlalchemy import func
-from sqlalchemy.orm import joinedload
 from identity.celery import celery
 from identity.database import redcap_engine, db
 from identity.redcap.model import (
-    RedcapInstance,
+    ParticipantImportDefinition, RedcapInstance,
     RedcapProject,
     EcrfDetail,
 )
@@ -100,9 +97,9 @@ def import_participants():
 
     system_user = get_system_user()
 
-    for p in RedcapProject.query.filter(RedcapProject.study_id != None, RedcapProject.participant_import_definition_id != None).all():
+    for pid in ParticipantImportDefinition.query.all():
         try:
-            _load_participants(p, system_user)
+            _load_participants(pid, system_user)
         except Exception as e:
             log_exception(e)
     
@@ -111,33 +108,32 @@ def import_participants():
     current_app.logger.info('Importing REDCap particiapnts - Done')
 
 
-def _load_participants(project, system_user):
-    current_app.logger.info(f'_load_instance_participants: project="{project.name}"')
+def _load_participants(pid, system_user):
+    current_app.logger.info(f'Importing Participants: study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}".')
 
-    max_timestamp, = db.session.query(func.max(EcrfDetail.ecrf_timestamp)).filter_by(redcap_project_id=project.id).one()
-    current_app.logger.info(f'Project {project.name} previous timestamp: {max_timestamp}')
+    max_timestamp, = db.session.query(func.max(EcrfDetail.ecrf_timestamp)).filter_by(participant_import_definition_id=pid.id).one()
+    current_app.logger.info(f'previous timestamp: {max_timestamp}')
 
-    with redcap_engine(project.redcap_instance.database_name) as conn:
+    with redcap_engine(pid.redcap_project.redcap_instance.database_name) as conn:
         type_ids = {pt.name: pt.id for pt in ParticipantIdentifierType.query.all()}    
         ecrfs = []
         all_ids = {}
 
         participants = conn.execute(
-            text(project.participant_import_definition.get_query()),
+            text(pid.get_query()),
             timestamp=max_timestamp or 0,
-            project_id=project.project_id,
+            project_id=pid.redcap_project.project_id,
         )
 
         rows = 0
 
         for participant in participants:
-            rows += 0
+            rows += 1
 
-            ecrf = project.participant_import_definition.fill_ecrf(
-                redcap_project=project,
+            ecrf = pid.fill_ecrf(
                 participant_details=participant,
                 existing_ecrf=EcrfDetail.query.filter_by(
-                    redcap_project_id=project.id,
+                    participant_import_definition_id=pid.id,
                     ecrf_participant_identifier=participant['record']
                 ).one_or_none(),
             )
@@ -149,20 +145,20 @@ def _load_participants(project, system_user):
             ecrf.identifier_source.last_updated_by_user_id=system_user.id
             ecrf.identifier_source.last_updated_datetime=datetime.utcnow()
 
-            add_identifiers(ecrf, project, all_ids, participant, type_ids, system_user)
+            add_identifiers(ecrf, pid, all_ids, participant, type_ids, system_user)
             
             ecrfs.append(ecrf)
             
         db.session.add_all(ecrfs)
 
-    current_app.logger.info(f'_load_instance_participants: project="{project.name}" imported {rows} records')
+    current_app.logger.info(f'Importing Participants: study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}". Imported {rows} records')
 
 
-def add_identifiers(ecrf, project, all_ids, participant, type_ids, system_user):
+def add_identifiers(ecrf, pid, all_ids, participant, type_ids, system_user):
 
     ecrf.identifier_source.identifiers.clear()
 
-    for id in project.participant_import_definition.extract_identifiers(participant):
+    for id in pid.extract_identifiers(participant):
 
         idkey = frozenset(id.items())
 

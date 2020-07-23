@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import (
     PseudoRandomIdProvider,
@@ -27,7 +28,7 @@ ID_TYPE_SAMPLE = "GDSa"
 class GoDcmIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='GO-DCM',
+            study_name=StudyName.GO_DCM,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'GO-DCM Participants'},
                 {ID_TYPE_SAMPLE: 'GO-DCM Samples'},
@@ -41,7 +42,7 @@ class GoDcmPack(LabelPack):
         "polymorphic_identity": 'GoDcmPack',
     }
 
-    __study_name__ = 'GO-DCM'
+    __study_name__ = StudyName.GO_DCM
 
     def set_participant_id(self, participant_id):
         self._participant_id = participant_id

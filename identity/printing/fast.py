@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
@@ -14,7 +15,7 @@ ID_TYPE_PARTICIPANT = "FST"
 class FastIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='FAST',
+            study_name=StudyName.FAST,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'FAST Participants'},
             ],
@@ -26,7 +27,7 @@ class FastPack(LabelPack):
         "polymorphic_identity": 'FastPack',
     }
 
-    __study_name__ = 'FAST'
+    __study_name__ = StudyName.FAST
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()

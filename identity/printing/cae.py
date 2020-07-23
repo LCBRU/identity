@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
@@ -22,7 +23,7 @@ ID_TYPE_SAMPLE = "CaeSa"
 class CaeIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='CAE',
+            study_name=StudyName.CAE,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'CAE Participants'},
                 {ID_TYPE_SAMPLE: 'CAE Samples'},
@@ -35,7 +36,7 @@ class CaePack(LabelPack):
         "polymorphic_identity": 'CaePack',
     }
 
-    __study_name__ = 'CAE'
+    __study_name__ = StudyName.CAE
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()

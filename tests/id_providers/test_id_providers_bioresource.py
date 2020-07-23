@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import pytest
-import glob
-import os
-import csv
 from identity.model.id import BioresourceIdProvider
 
 def test_validate(client):

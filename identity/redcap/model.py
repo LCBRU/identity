@@ -8,17 +8,57 @@ from identity.model import Study
 from identity.model.security import User
 
 
+class RedcapInstance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    database_name = db.Column(db.String(100), nullable=False)
+    base_url = db.Column(db.String(500), nullable=False)
+    version = db.Column(db.String(10), nullable=False)
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def __str__(self):
+        return self.name
+
+
+class RedcapProject(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    project_id = db.Column(db.Integer, nullable=False)
+    redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
+    redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def __repr__(self):
+        return f'<Project: "{self.name}" from instance "{self.redcap_instance.name}">'
+
+    def __str__(self):
+        return self.name
+
+    def get_link(self, record_id):
+        return "/".join(map(lambda x: str(x).rstrip('/'), [
+            self.redcap_instance.base_url,
+            f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
+        ))
+
+
 class ParticipantImportDefinition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    name = db.Column(db.String(100), nullable=False)
+    study_id = db.Column(db.Integer, db.ForeignKey(Study.id))
+    study = db.relationship(Study)
+
+    redcap_project_id = db.Column(db.Integer, db.ForeignKey(RedcapProject.id))
+    redcap_project = db.relationship(RedcapProject)
 
     recruitment_date_column_name = db.Column(db.String(100))
     first_name_column_name = db.Column(db.String(100))
     last_name_column_name = db.Column(db.String(100))
     postcode_column_name = db.Column(db.String(100))
     birth_date_column_name = db.Column(db.String(100))
-    non_completion_reason_column_name = db.Column(db.String(100))
     withdrawal_date_column_name = db.Column(db.String(100))
 
     withdrawn_from_study_column_name = db.Column(db.String(100))
@@ -61,40 +101,80 @@ class ParticipantImportDefinition(db.Model):
         return {k: v for k, v in [i.split(':') for i in self._parse_list_string(value)]}
 
     @property
-    def withdrawn_from_study_value_array(self):
+    def withdrawn_from_study_values_list(self):
         return self._parse_list_string(self.withdrawn_from_study_values)
 
+    def set_withdrawn_from_study_values_list(self, value):
+        if value:
+            self.withdrawn_from_study_values = ",".join(value)
+
     @property
-    def complete_or_expected_value_array(self):
+    def complete_or_expected_values_list(self):
         return self._parse_list_string(self.complete_or_expected_values)
 
+    def set_complete_or_expected_values_list(self, value):
+        if value:
+            self.complete_or_expected_values = ",".join(value)
+
     @property
-    def post_withdrawal_keep_samples_value_array(self):
+    def post_withdrawal_keep_samples_values_list(self):
         return self._parse_list_string(self.post_withdrawal_keep_samples_values)
 
+    def set_post_withdrawal_keep_samples_values_list(self, value):
+        if value:
+            self.post_withdrawal_keep_samples_values = ",".join(value)
+
     @property
-    def post_withdrawal_keep_data_value_array(self):
+    def post_withdrawal_keep_data_values_list(self):
         return self._parse_list_string(self.post_withdrawal_keep_data_values)
 
+    def set_post_withdrawal_keep_data_values_list(self, value):
+        if value:
+            self.post_withdrawal_keep_data_values = ",".join(value)
+
     @property
-    def brc_opt_out_value_array(self):
+    def brc_opt_out_values_list(self):
         return self._parse_list_string(self.brc_opt_out_values)
 
-    @property
-    def excluded_from_analysis_value_array(self):
-        return self._parse_list_string(self.excluded_from_analysis_values)
+    def set_brc_opt_out_values_list(self, value):
+        if value:
+            self.brc_opt_out_values = ",".join(value)
 
     @property
-    def excluded_from_study_value_array(self):
+    def excluded_from_analysis_values_list(self):
+        return self._parse_list_string(self.excluded_from_analysis_values)
+
+    def set_excluded_from_analysis_values_list(self, value):
+        if value:
+            self.excluded_from_analysis_values = ",".join(value)
+
+    @property
+    def excluded_from_study_values_list(self):
         return self._parse_list_string(self.excluded_from_study_values)
+
+    def set_excluded_from_study_values_list(self, value):
+        if value:
+            self.excluded_from_study_values = ",".join(value)
 
     @property
     def sex_column_map_dictionary(self):
         return self._parse_dictionary_string(self.sex_column_map)
 
+    def set_sex_column_map_dictionary(self, map):
+        if map is None:
+            self.identities_map = None
+        else:
+            self.sex_column_map = ','.join([f'{k}:{v}' for k, v in map.items()])
+
     @property
     def identities_map_dictionary(self):
         return self._parse_dictionary_string(self.identities_map)
+
+    def set_identities_map_dictionary(self, map):
+        if map is None:
+            self.identities_map = None
+        else:
+            self.identities_map = ','.join([f'{k}:{v}' for k, v in map.items()])
 
     def _get_fields(self):
         return filter(None, set([
@@ -103,7 +183,6 @@ class ParticipantImportDefinition(db.Model):
             self.last_name_column_name,
             self.postcode_column_name,
             self.birth_date_column_name,
-            self.non_completion_reason_column_name,
             self.withdrawal_date_column_name,
             self.withdrawn_from_study_column_name,
             self.sex_column_name,
@@ -156,15 +235,14 @@ class ParticipantImportDefinition(db.Model):
             GROUP BY rd.record, rd.project_id
         """
 
-    def fill_ecrf(self, redcap_project, participant_details, existing_ecrf):
-
+    def fill_ecrf(self, participant_details, existing_ecrf):
         if existing_ecrf is None:
             current_app.logger.info(f'Creating ecrf for participant "{participant_details["record"]}"')
             result = EcrfDetail(
-                redcap_project_id=redcap_project.id,
+                participant_import_definition_id=self.id,
                 ecrf_participant_identifier=participant_details['record'],
             )
-            result.identifier_source = EcrfParticipantIdentifierSource(study_id=redcap_project.study_id)
+            result.identifier_source = EcrfParticipantIdentifierSource(study_id=self.study_id)
         else:
             current_app.logger.info(f'Updating ecrf for participant: {participant_details["record"]}')
             result = existing_ecrf
@@ -181,90 +259,61 @@ class ParticipantImportDefinition(db.Model):
             if (participant_details[field] or '').strip()
         ]
 
-    def _get_record_value_in_value_array(self, record, column_name, value_array):
-        if column_name is None or len(column_name.strip()) == 0 or column_name not in record:
-            return None
-        elif value_array is None or len(value_array) == 0:
-            return None
-        elif record[column_name] is None and '<isnull>' in value_array:
-            return True
-        elif record[column_name] is not None and '<isnotnull>' in value_array:
-            return True
-        else:
-            return record[column_name] in value_array
-    
-    def _get_record_value_cleansed(self, record, column_name):
-        if column_name is None or len(column_name.strip()) == 0 or column_name not in record:
-            return None
-        else:
-            return record[column_name].strip()
-    
     def _fill_ecrf_details(self, record, ecrf):
+        erec = EcrfRecord(record)
 
-        ecrf.recruitment_date = parse_date_or_none(record.get(self.recruitment_date_column_name))
-        ecrf.first_name = self._get_record_value_cleansed(record, self.first_name_column_name)
-        ecrf.last_name = self._get_record_value_cleansed(record, self.last_name_column_name)
-        ecrf.postcode = self._get_record_value_cleansed(record, self.postcode_column_name)
-        ecrf.birth_date = parse_date_or_none(record.get(self.birth_date_column_name))
-        ecrf.sex = self.sex_column_map_dictionary.get(record.get(self.sex_column_name))
-        ecrf.complete_or_expected = self._get_record_value_in_value_array(record, self.complete_or_expected_column_name, self.complete_or_expected_value_array)
-        ecrf.non_completion_reason = self._get_record_value_cleansed(record, self.non_completion_reason_column_name)
-        ecrf.withdrawal_date = parse_date_or_none(record.get(self.withdrawal_date_column_name))
-        ecrf.withdrawn_from_study = self._get_record_value_in_value_array(record, self.withdrawn_from_study_column_name, self.withdrawn_from_study_value_array)
-        ecrf.post_withdrawal_keep_samples = self._get_record_value_in_value_array(record, self.post_withdrawal_keep_samples_column_name, self.post_withdrawal_keep_samples_value_array)
-        ecrf.post_withdrawal_keep_data = self._get_record_value_in_value_array(record, self.post_withdrawal_keep_data_column_name, self.post_withdrawal_keep_data_value_array)
-        ecrf.brc_opt_out = self._get_record_value_in_value_array(record, self.brc_opt_out_column_name, self.brc_opt_out_value_array)
-        ecrf.excluded_from_analysis = self._get_record_value_in_value_array(record, self.excluded_from_analysis_column_name, self.excluded_from_analysis_value_array)
-        ecrf.excluded_from_study = self._get_record_value_in_value_array(record, self.excluded_from_study_column_name, self.excluded_from_study_value_array)
+        ecrf.recruitment_date = erec.get_parsed_date(self.recruitment_date_column_name)
+        ecrf.first_name = erec.get(self.first_name_column_name)
+        ecrf.last_name = erec.get(self.last_name_column_name)
+        ecrf.postcode = erec.get(self.postcode_column_name)
+        ecrf.birth_date = erec.get_parsed_date(self.birth_date_column_name)
+        ecrf.sex = self.sex_column_map_dictionary.get(erec.get(self.sex_column_name))
+        ecrf.complete_or_expected = erec.get_from_value_array(self.complete_or_expected_column_name, self.complete_or_expected_values_list)
+        ecrf.withdrawal_date = erec.get_parsed_date(self.withdrawal_date_column_name)
+        ecrf.withdrawn_from_study = erec.get_from_value_array(self.withdrawn_from_study_column_name, self.withdrawn_from_study_values_list)
+        ecrf.post_withdrawal_keep_samples = erec.get_from_value_array(self.post_withdrawal_keep_samples_column_name, self.post_withdrawal_keep_samples_values_list)
+        ecrf.post_withdrawal_keep_data = erec.get_from_value_array(self.post_withdrawal_keep_data_column_name, self.post_withdrawal_keep_data_values_list)
+        ecrf.brc_opt_out = erec.get_from_value_array(self.brc_opt_out_column_name, self.brc_opt_out_values_list)
+        ecrf.excluded_from_analysis = erec.get_from_value_array(self.excluded_from_analysis_column_name, self.excluded_from_analysis_values_list)
+        ecrf.excluded_from_study = erec.get_from_value_array(self.excluded_from_study_column_name, self.excluded_from_study_values_list)
 
         return ecrf
 
 
-class RedcapInstance(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    database_name = db.Column(db.String(100), nullable=False)
-    base_url = db.Column(db.String(500), nullable=False)
-    version = db.Column(db.String(10), nullable=False)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
+class EcrfRecord():
+    def __init__(self, record):
+        self.record = record
+    
+    def get(self, column_name):
+        if len((column_name or '').strip()) == 0 or column_name not in self.record or self.record[column_name] is None:
+            return None
+        else:
+            return self.record[column_name].strip()
 
-    def __str__(self):
-        return self.name
+    def get_parsed_date(self, column_name):
+        return parse_date_or_none(self.get(column_name))
 
+    def get_from_value_array(self, column_name, value_array):
+        if len(value_array or []) == 0:
+            return None
+        if len((column_name or '').strip()) == 0 or column_name not in self.record:
+            return None
 
-class RedcapProject(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    project_id = db.Column(db.Integer, nullable=False)
-    redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
-    redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
-    study_id = db.Column(db.Integer, db.ForeignKey(Study.id))
-    study = db.relationship(Study, backref=db.backref("redcap_projects"))
-    participant_import_definition_id =  db.Column(db.Integer, db.ForeignKey(ParticipantImportDefinition.id), nullable=True)
-    participant_import_definition = db.relationship(ParticipantImportDefinition, backref=db.backref("redcap_projects"))
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
+        value = self.get(column_name)
 
-    def __repr__(self):
-        return f'<Project: "{self.name}" from instance "{self.redcap_instance.name}">'
+        if value is None and '<isnull>' in value_array:
+            return True
+        if value is not None and '<isnotnull>' in value_array:
+            return True
 
-    def __str__(self):
-        return self.name
-
-    def get_link(self, record_id):
-        return "/".join(map(lambda x: str(x).rstrip('/'), [
-            self.redcap_instance.base_url,
-            f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
-        ))
+        return value in value_array
 
 
 class EcrfDetail(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    redcap_project_id = db.Column(db.Integer, db.ForeignKey(RedcapProject.id), nullable=False)
-    redcap_project = db.relationship(RedcapProject, backref=db.backref("details"))
+
+    participant_import_definition_id = db.Column(db.Integer, db.ForeignKey(ParticipantImportDefinition.id), nullable=False)
+    participant_import_definition = db.relationship(ParticipantImportDefinition, backref=db.backref("ecrfs"))
 
     ecrf_participant_identifier = db.Column(db.String(100))
     recruitment_date = db.Column(db.Date)
@@ -274,7 +323,6 @@ class EcrfDetail(db.Model):
     postcode = db.Column(db.String(10))
     birth_date = db.Column(db.Date)
     complete_or_expected = db.Column(db.Boolean)
-    non_completion_reason = db.Column(db.String(10))
     withdrawal_date = db.Column(db.Date)
     withdrawn_from_study = db.Column(db.Boolean)
     post_withdrawal_keep_samples = db.Column(db.Boolean)

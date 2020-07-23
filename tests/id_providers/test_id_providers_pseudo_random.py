@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-
 import pytest
 import glob
 import os
 import csv
 from identity.model.id import PseudoRandomIdProvider
 
+@pytest.mark.slow_integration_test
 def test_all_numbers_unique(client):
     iut = PseudoRandomIdProvider(prefix='Tst')
     created = set()
@@ -15,7 +14,8 @@ def test_all_numbers_unique(client):
         assert x not in created
         created.add(x)
 
-def test_compate_to_expected(client):
+
+def test_compare_to_expected(client):
     test_data_dir = os.path.join(
         os.path.dirname(__file__),
         'test_data',

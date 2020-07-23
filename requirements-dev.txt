@@ -6,3 +6,5 @@ Faker
 coverage
 pytest-cov
 pickle5
+pytest-integration
+pytest-xdist

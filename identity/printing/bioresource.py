@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from identity.model.id import BioresourceIdProvider, StudyIdSpecification
 from .model import (
     PRINTER_BRU_CRF_SAMPLE,
@@ -13,7 +14,7 @@ ID_TYPE_PARTICIPANT = "BR"
 class BioresourceIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='Bioresource',
+            study_name=StudyName.Bioresource,
             bioresource_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'Bioresource Participants'},
             ],
@@ -25,7 +26,7 @@ class BioresourcePack(LabelPack):
         "polymorphic_identity": 'BioresourcePack',
     }
 
-    __study_name__ = 'Bioresource'
+    __study_name__ = StudyName.Bioresource
 
 
     def _do_print(self):

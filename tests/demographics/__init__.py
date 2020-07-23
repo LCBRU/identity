@@ -5,7 +5,7 @@ import pytest
 from openpyxl import Workbook
 from datetime import datetime
 from io import BytesIO
-from flask import url_for, current_app
+from flask import url_for
 from identity.demographics.model import DemographicsRequest, DemographicsRequestColumn
 from unittest.mock import patch
 from identity.demographics import (
@@ -222,8 +222,6 @@ def do_submit(client, id):
             content_type="multipart/form-data",
             data={'id': id},
         )
-
-        mock_schedule_lookup_tasks.delay.assert_called_once_with(id)
 
 
 def do_delete(client, id):

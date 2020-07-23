@@ -66,16 +66,7 @@ class RedcapInstanceView(CustomView):
 
 
 class RedcapProjectView(CustomView):
-    form_columns = ["study", "redcap_instance", "project_id", "participant_import_definition"]
-
-    form_args = {
-        'study': {
-            'query_factory': lambda: db.session.query(Study).order_by(Study.name),
-        },
-        'participant_import_definition': {
-            'query_factory': lambda: db.session.query(ParticipantImportDefinition).order_by(ParticipantImportDefinition.name),
-        },
-    }
+    form_columns = ["redcap_instance", "project_id"]
 
     def on_model_change(self, form, model, is_created):
         model.last_updated_datetime = datetime.datetime.utcnow()
@@ -103,13 +94,11 @@ class ParticipantImportDefinitionView(CustomView):
 
 
     form_columns = [
-        "name",
         "recruitment_date_column_name",
         "first_name_column_name",
         "last_name_column_name",
         "postcode_column_name",
         "birth_date_column_name",
-        "non_completion_reason_column_name",
         "withdrawal_date_column_name",
         "withdrawn_from_study_column_name",
         "withdrawn_from_study_values",
@@ -132,13 +121,11 @@ class ParticipantImportDefinitionView(CustomView):
 
     form_rules = [
         'csrf_token',
-        "name",
         "recruitment_date_column_name",
         "first_name_column_name",
         "last_name_column_name",
         "postcode_column_name",
         "birth_date_column_name",
-        "non_completion_reason_column_name",
         "withdrawal_date_column_name",
         rules.Header("Withdrawn from Study"),
         "withdrawn_from_study_column_name",

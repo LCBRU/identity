@@ -1,6 +1,6 @@
+import contextlib
 import pytest
 import os
-import datetime
 from unittest.mock import patch
 from identity.demographics import produce_demographics_result
 from identity.demographics.model import DemographicsRequestCsv, DemographicsRequest
@@ -65,3 +65,11 @@ def test__produce_demographics_result(client, faker, mock_email, row_count, exte
         assert parse_date(row['pmi_dob']) == parse_date(expected['date_of_birth'])
         assert parse_date(row['pmi_date_of_death']) == parse_date(expected["date_of_death"])
         assert row['pmi_postcode'] == expected['postcode']
+
+    _remove_files(dr)
+
+
+def _remove_files(dr):
+    with contextlib.suppress(FileNotFoundError):
+        os.remove(dr.filepath)
+        os.remove(dr.result_filepath)

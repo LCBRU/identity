@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
@@ -17,10 +18,10 @@ ID_TYPE_PARTICIPANT = "PePt"
 ID_TYPE_SAMPLE = "PeSa"
 
 
-class AlleviateIdSpecification(StudyIdSpecification):
+class PreelampsiaIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='Pre-Eclampsia',
+            study_name=StudyName.Pre_Eclampsia,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'PRE-ECLAMPSIA Participants'},
                 {ID_TYPE_SAMPLE: 'PRE-ECLAMPSIA Samples'},
@@ -33,7 +34,7 @@ class PreeclampsiaPack(LabelPack):
         "polymorphic_identity": 'PreeclampsiaPack',
     }
 
-    __study_name__ = 'Pre-Eclampsia'
+    __study_name__ = StudyName.Pre_Eclampsia
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()

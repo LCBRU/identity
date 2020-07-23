@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from .model import LabelPack
 from .briccs import BriccsBags
 
@@ -7,7 +8,7 @@ class MermaidPack(LabelPack):
         "polymorphic_identity": 'MermaidPack',
     }
 
-    __study_name__ = 'MERMAID'
+    __study_name__ = StudyName.MERMAID
 
     def _do_print(self):
         bb = BriccsBags()

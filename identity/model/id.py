@@ -1,3 +1,4 @@
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 import random
 from datetime import datetime
 from identity.database import db
@@ -352,30 +353,6 @@ class StudyIdSpecification():
 
 class ParticipantIdentifierType(db.Model):
 
-    __STUDY_PARTICIPANT_ID__ = 'study_participant_id'
-    __BRICCS_ID__ = 'briccs_id'
-    __CVLPRIT_ID__ = 'cvlprit_id'
-    __CVLPRIT_LOCAL_ID__ = 'cvlprit_local_id'
-    __PILOT_ID__ = 'pilot_id'
-    __DREAM_ID__ = 'dream_id'
-    __BIORESOURCE_ID__ = 'bioresource_id'
-    __GRAPHICS2_ID__ = 'graphic2_id'
-    __NHS_NUMBER__ = 'nhs_number'
-    __UHL_SYSTEM_NUMBER__ = 'uhl_system_number'
-
-    __TYPE_NAMES__ = [
-        __STUDY_PARTICIPANT_ID__,
-        __BRICCS_ID__,
-        __CVLPRIT_ID__,
-        __CVLPRIT_LOCAL_ID__,
-        __PILOT_ID__,
-        __DREAM_ID__,
-        __BIORESOURCE_ID__,
-        __GRAPHICS2_ID__,
-        __NHS_NUMBER__,
-        __UHL_SYSTEM_NUMBER__,
-    ]
-
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
 
@@ -394,7 +371,7 @@ class ParticipantIdentifierType(db.Model):
 
     @staticmethod
     def get_study_participant_id():
-        return ParticipantIdentifierType.get_type(ParticipantIdentifierType.__STUDY_PARTICIPANT_ID__)
+        return ParticipantIdentifierType.get_type(ParticipantIdentifierTypeName.STUDY_PARTICIPANT_ID)
 
 
 participant_identifiers__participant_identifier_sources = db.Table(

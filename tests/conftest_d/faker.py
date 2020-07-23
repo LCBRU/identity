@@ -3,6 +3,9 @@
 import io
 import csv
 import pytest
+import datetime
+import random
+from dateutil.relativedelta import relativedelta
 from faker import Faker
 from faker.providers import BaseProvider
 from identity.model.security import User
@@ -13,6 +16,13 @@ from identity.services.validators import (
     calculate_nhs_number_checksum,
 )
 from identity.services.pmi import PmiData
+
+
+def _random_date(start_date, end_date):
+    time_between_dates = end_date - start_date
+    days_between_dates = time_between_dates.days
+    random_number_of_days = random.randrange(days_between_dates)
+    return start_date + datetime.timedelta(days=random_number_of_days)
 
 
 class FakerProvider(BaseProvider):
@@ -80,14 +90,17 @@ class FakerProvider(BaseProvider):
             **self._generic_person_details(),
         }
 
+
     def _generic_person_details(self):
-        dob = self.generator.date_between(start_date='-80y', end_date='-30y')
+
+        today = datetime.date.today()
+        dob = _random_date(today - relativedelta(years=75), today - relativedelta(years=40))
 
         if randint(0, 10):
             dod = None
             is_deceased = False
         else:
-            dod = self.generator.date_between(start_date=dob, end_date='today')
+            dod = _random_date(dob, today)
             is_deceased = True
 
         return {
@@ -112,7 +125,7 @@ class FakerProviderCsv(BaseProvider):
 
         if data is None:
             for _ in range(rows):
-                writer.writerow(dict(zip(headers, self.generator.pylist(len(headers), False, 'str'))))
+                writer.writerow(dict(zip(headers, self.generator.pylist(len(headers), False, ['str']))))
         else:
             for d in data:
                 writer.writerow(dict(zip(headers, d)))
@@ -130,7 +143,7 @@ class FakerProviderXslx(BaseProvider):
 
         if data is None:
             for _ in range(rows):
-                ws1.append(self.generator.pylist(len(headers), False, 'str'))
+                ws1.append(self.generator.pylist(len(headers), False, ['str']))
         else:
             for d in data:
                 ws1.append(d)

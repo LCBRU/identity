@@ -26,7 +26,7 @@ def upgrade(migrate_engine):
         Column("recruitment_date_column_name", NVARCHAR(100)),
         Column("first_name_column_name", NVARCHAR(100)),
         Column("last_name_column_name", NVARCHAR(100)),
-        Column("post_code_column_name", NVARCHAR(100)),
+        Column("postcode_column_name", NVARCHAR(100)),
         Column("birth_date_column_name", NVARCHAR(100)),
         Column("non_completion_reason_column_name", NVARCHAR(100)),
         Column("withdrawal_date_column_name", NVARCHAR(100)),

@@ -1,3 +1,4 @@
+from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
@@ -22,7 +23,7 @@ ID_TYPE_SAMPLE = "EasPt"
 class ElasticAsIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='ELASTIC-AS',
+            study_name=StudyName.ELASTIC_AS,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'ELASTIC-AS Participants'},
                 {ID_TYPE_SAMPLE: 'ELASTIC-AS Samples'},
@@ -35,7 +36,7 @@ class ElasticAsPack(LabelPack):
         "polymorphic_identity": 'ElasticAsPack',
     }
 
-    __study_name__ = 'ELASTIC-AS'
+    __study_name__ = StudyName.ELASTIC_AS
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
