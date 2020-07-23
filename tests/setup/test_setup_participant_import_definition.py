@@ -1,874 +1,272 @@
+from datetime import datetime
+from identity.model import Study
+from identity.model.sex import SexName
+from identity.security import get_system_user
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 import identity
-from identity.redcap.setup import crfs
 from unittest.mock import patch
 import pytest
 from identity.database import db
 from identity.setup.redcap_instances import REDCapInstanceDetail
-from identity.model import Study
 from identity.setup.studies import StudyName
 from identity.redcap.model import ParticipantImportDefinition, RedcapInstance, RedcapProject
 from identity.setup import create_base_data
 
 
-CRFS = [
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.ALLEVIATE,
-        98,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.ALLEVIATE,
-        45,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.ALLEVIATE,
-        46,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.YOGA,
-        29,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.YAKULT,
-        109,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.VasCeGenS,
-        19,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.Upfor5,
-        24,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.UHL_HCW_COVID_19,
-        110,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.TMAO,
-        25,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.SPIRAL,
-        68,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.SPIRAL,
-        69,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.SPACE_FOR_COPD,
-        102,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.SPACE_FOR_COPD,
-        101,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.SKOPE,
-        95,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.CAE,
-        71,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.CAE,
-        93,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.CAE,
-        28,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.SCAD,
-        28,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.SCAD,
-        77,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.SCAD,
-        68,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.SCAD,
-        31,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.SCAD,
-        12,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.SCAD,
-        13,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.SALT,
-        111,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.REST,
-        30,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.REST,
-        44,
-    ),
-    (
-        REDCapInstanceDetail.UOL_RECHARGE,
-        StudyName.RECHARGE,
-        13,
-    ),
-    (
-        REDCapInstanceDetail.UOL_RECHARGE,
-        StudyName.RECHARGE,
-        14,
-    ),
-    (
-        REDCapInstanceDetail.UOL_RECHARGE,
-        StudyName.RECHARGE,
-        15,
-    ),
-    (
-        REDCapInstanceDetail.UOL_RECHARGE,
-        StudyName.RECHARGE,
-        17,
-    ),
-    (
-        REDCapInstanceDetail.UOL_RECHARGE,
-        StudyName.RECHARGE,
-        18,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.RAPID_NSTEMI,
-        79,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.Pre_Eclampsia,
-        39,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.PREDICT,
-        62,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.PREDICT,
-        63,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.PREDICT,
-        76,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.Pilot,
-        5,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.PHOSP_COVID19,
-        44,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.PARC,
-        28,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.NOVO5K,
-        70,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.NON_ADHERENCE,
-        87,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.Multi_Morbid_Priorities,
-        38,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.MRP_HFPEF,
-        99,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.MRP_HFPEF,
-        100,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.MINERVA,
-        53,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        38,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        39,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        40,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        41,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        42,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        43,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        44,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        45,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        46,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        47,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        50,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        51,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        52,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        61,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        62,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        64,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        65,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MINERVA,
-        69,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.MI_ECMO,
-        14,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.MEL,
-        25,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.MCCANN_IMAGING,
-        103,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.MARI,
-        28,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.MARI,
-        16,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MARI,
-        30,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MARI,
-        31,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MARI,
-        32,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MARI,
-        33,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MARI,
-        34,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MARI,
-        35,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MARI,
-        36,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MARI,
-        55,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MARI,
-        57,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.MARI,
-        58,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.LIMb,
-        31,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.LIMb,
-        32,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.LIMb,
-        34,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.LIMb,
-        36,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.LENTEN,
-        56,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.INTERVAL,
-        55,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.INTERFIELD,
-        104,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.INTERFIELD,
-        105,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.Indapamide,
-        50,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.Indapamide,
-        54,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.Indapamide,
-        83,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.Heart_Failure_Screening,
-        60,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.HAD,
-        23,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.GRAPHIC2,
-        20,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.GO_DCM,
-        91,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.GO_DCM,
-        92,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.Global_Views,
-        37,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.GENVASC,
-        66,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.FORECAST_BRICCSCT_ORFAN_SCREENING,
-        72,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.FOAMI,
-        17,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.FOAMI,
-        25,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.FAST,
-        43,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.FAST,
-        48,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.EXTEND,
-        17,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.EXTEND,
-        18,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.EXTEND,
-        21,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.EPIGENE1,
-        12,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.ELASTIC_AS,
-        94,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.ELASTIC_AS,
-        96,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.EDIFY,
-        30,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.EDEN,
-        74,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.EDEN,
-        63,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.EDEN,
-        66,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.EASY_AS,
-        43,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.DREAM,
-        8,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.DREAM,
-        22,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.DREAM,
-        20,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.DREAM,
-        21,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.DREAM,
-        24,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.DISCORDANCE,
-        84,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.DISCORDANCE,
-        28,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.DHF,
-        70,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.DESMOND,
-        19,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.Dal_Gene,
-        47,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.CVLPRIT,
-        23,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.CTO,
-        51,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.CTO,
-        15,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.COPD_INTROL,
-        41,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.COPD_COVID_19,
-        108,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.COHERE,
-        22,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.CMR_Guide,
-        59,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.CIA,
-        82,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.CIA,
-        86,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.CHABLIS,
-        49,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.CARMER_BREATH,
-        40,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.CARDIOMET,
-        67,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.CARDIOMET,
-        64,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.BRICCS_CT,
-        80,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.BRICCS_CT,
-        28,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.BRICCS,
-        24,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRICCS,
-        13,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRICCS,
-        14,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRICCS,
-        15,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRICCS,
-        16,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRICCS,
-        17,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRICCS,
-        18,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRICCS,
-        19,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRICCS,
-        25,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRICCS,
-        26,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRICCS,
-        27,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.Breathlessness,
-        30,
-    ),
-    (
-        REDCapInstanceDetail.UOL_CRF,
-        StudyName.Breathe_Deep,
-        43,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.BRAVE,
-        26,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.BRAVE,
-        29,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRAVE,
-        28,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRAVE,
-        37,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRAVE,
-        54,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRAVE,
-        56,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRAVE,
-        59,
-    ),
-    (
-        REDCapInstanceDetail.UHL_HSCN,
-        StudyName.BRAVE,
-        60,
-    ),
-    (
-        REDCapInstanceDetail.UOL_INTERNET,
-        StudyName.BME_COVID,
-        40,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.Bioresource,
-        9,
-    ),
-    (
-        REDCapInstanceDetail.UHL_LIVE,
-        StudyName.AS_Progression,
-        37,
-    ),
-]
+EXAMPLE_DEFINITION = {
+    'crfs': [
+        {
+            'instance': REDCapInstanceDetail.UHL_LIVE,
+            'study': StudyName.MARI,
+            'projects': [1],
+        },
+    ],
 
+    'recruitment_date_column_name': 'fred_a',
+    'first_name_column_name': 'fred_b',
+    'last_name_column_name': 'fred_c',
+    'postcode_column_name': 'fred_d',
+    'birth_date_column_name': 'fred_e',
 
-@pytest.mark.parametrize("instance, study_name, project_id", CRFS)
-def test__create_base_data__creates_participant_import_definitions(client, faker, instance, study_name, project_id):
-    ri = RedcapInstance.query.filter_by(name=instance['name']).one_or_none()
-    rp = RedcapProject(
-        redcap_instance_id=ri.id,
-        project_id=project_id,
-    )
+    'withdrawal_date_column_name': 'fred_f',
+    'withdrawn_from_study_column_name': 'fred_g',
+    'withdrawn_from_study_values': ['x', 'y', 'z'],
 
-    db.session.add(rp)
-    db.session.commit()
+    'sex_column_name': 'fred_i',
+    'sex_column_map': {
+        '0': SexName.FEMALE,
+        '1': SexName.MALE,
+        '9': SexName.NOT_RECORDED
+    },
 
-    create_base_data()
+    'complete_or_expected_column_name': 'fred_j',
+    'complete_or_expected_values': ['a', 'b', 'c'],
 
-    s = Study.query.filter_by(name=study_name).one_or_none()
+    'post_withdrawal_keep_samples_column_name': 'fred_k',
+    'post_withdrawal_keep_samples_values': ['d', 'e', 'f'],
 
-    assert ParticipantImportDefinition.query.filter_by(
-        study_id=s.id,
-        redcap_project_id=rp.id,
-    ).one_or_none() is not None
+    'post_withdrawal_keep_data_column_name': 'fred_l',
+    'post_withdrawal_keep_data_values': ['g', 'h', 'i'],
 
+    'brc_opt_out_column_name': 'fred_m',
+    'brc_opt_out_values': ['j', 'k', 'l'],
 
-def test__create_base_data__creates_all_participant_import_definitions(client, faker):
-    _create_projects()
+    'excluded_from_analysis_column_name': 'fred_n',
+    'excluded_from_analysis_values': ['m', 'n', 'o'],
 
-    create_base_data()
+    'excluded_from_study_column_name': 'fred_o',
+    'excluded_from_study_values': ['p', 'q', 'r'],
 
-    assert ParticipantImportDefinition.query.count() == len(CRFS)
+    'identity_map': {
+        ParticipantIdentifierTypeName.MARI_ID: 'record',
+        ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 'uhl_systemn_number',
+        ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_number',
+    }
+}
 
 
 def test__create_base_data__no_participant_import_definitions(client, faker):
-    _create_projects()
-
     with patch.object(identity.setup, 'crfs', []):
         create_base_data()
 
     assert ParticipantImportDefinition.query.count() == 0
 
 
-def _create_projects():
-    for instance, study_name, project_id in CRFS:
+def test__create_base_data__an_example_participant_import_definitions(client, faker):
+    _test__create_base_data__participant_import_definitions(EXAMPLE_DEFINITION)
 
-        ri = RedcapInstance.query.filter_by(name=instance['name']).one_or_none()
 
-        if RedcapProject.query.filter_by(redcap_instance_id=ri.id, project_id=project_id).count() == 0:
-            rp = RedcapProject(
-                redcap_instance_id=ri.id,
-                project_id=project_id,
+def test__create_base_data__participant_import_definitions__multiple_projects(client, faker):
+    definition = EXAMPLE_DEFINITION.copy()
+    definition['crfs'] = [
+        {
+            'instance': REDCapInstanceDetail.UHL_LIVE,
+            'study': StudyName.MARI,
+            'projects': [1, 2],
+        },
+    ]
+
+    _test__create_base_data__participant_import_definitions(definition)
+
+
+def test__create_base_data__participant_import_definitions__multiple_instances(client, faker):
+    definition = EXAMPLE_DEFINITION.copy()
+    definition['crfs'] = [
+        {
+            'instance': REDCapInstanceDetail.UHL_LIVE,
+            'study': StudyName.MARI,
+            'projects': [1, 2],
+        },
+        {
+            'instance': REDCapInstanceDetail.UHL_HSCN,
+            'study': StudyName.MARI,
+            'projects': [4, 5],
+        },
+    ]
+
+    _test__create_base_data__participant_import_definitions(definition)
+
+
+def test__create_base_data__participant_import_definitions__multiple_studies(client, faker):
+    definition = EXAMPLE_DEFINITION.copy()
+    definition['crfs'] = [
+        {
+            'instance': REDCapInstanceDetail.UHL_LIVE,
+            'study': StudyName.MARI,
+            'projects': [1, 2],
+        },
+        {
+            'instance': REDCapInstanceDetail.UHL_HSCN,
+            'study': StudyName.BRICCS,
+            'projects': [4, 5],
+        },
+    ]
+
+    _test__create_base_data__participant_import_definitions(definition)
+
+
+COLUMN_NAMES = [
+    ('recruitment_date_column_name'),
+    ('first_name_column_name'),
+    ('last_name_column_name'),
+    ('postcode_column_name'),
+    ('birth_date_column_name'),
+    ('withdrawal_date_column_name'),
+    ('withdrawn_from_study_column_name'),
+    ('sex_column_name'),
+    ('complete_or_expected_column_name'),
+    ('post_withdrawal_keep_samples_column_name'),
+    ('post_withdrawal_keep_data_column_name'),
+    ('brc_opt_out_column_name'),
+    ('excluded_from_analysis_column_name'),
+    ('excluded_from_study_column_name'),
+    ('complete_or_expected_values'),
+    ('post_withdrawal_keep_samples_values'),
+    ('post_withdrawal_keep_data_values'),
+    ('brc_opt_out_values'),
+    ('excluded_from_analysis_values'),
+    ('excluded_from_study_values'),
+    ('sex_column_map'),
+    ('identity_map'),
+]
+
+
+@pytest.mark.parametrize("column_name", COLUMN_NAMES)
+def test__create_base_data__participant_import_definitions__empty_column_name(client, faker, column_name):
+    definition = EXAMPLE_DEFINITION.copy()
+    definition[column_name] = ''
+
+    _test__create_base_data__participant_import_definitions(definition)
+
+
+@pytest.mark.parametrize("column_name", COLUMN_NAMES)
+def test__create_base_data__participant_import_definitions__none_column_name(client, faker, column_name):
+    definition = EXAMPLE_DEFINITION.copy()
+    definition[column_name] = None
+
+    _test__create_base_data__participant_import_definitions(definition)
+
+
+@pytest.mark.parametrize("column_name", COLUMN_NAMES)
+def test__create_base_data__participant_import_definitions__missing_column_name(client, faker, column_name):
+    definition = EXAMPLE_DEFINITION.copy()
+    del definition[column_name]
+
+    _test__create_base_data__participant_import_definitions(definition)
+
+
+def _test__create_base_data__participant_import_definitions(definition):
+    projects = _create_projects(definition['crfs'])
+
+    before = datetime.utcnow()
+    
+    with patch.object(identity.setup, 'crfs', [definition]):
+        create_base_data()
+
+    after = datetime.utcnow()
+
+    assert ParticipantImportDefinition.query.count() == len(projects)
+
+    for p in projects:
+        actual = ParticipantImportDefinition.query.filter_by(
+            study_id=p['study_id'],
+            redcap_project_id=p['redcap_project_id'],
+        ).one_or_none()
+
+        assert actual is not None
+        assert actual.first_name_column_name == _get_definition_column_name(definition, 'first_name_column_name')
+        assert actual.last_name_column_name == _get_definition_column_name(definition, 'last_name_column_name')
+        assert actual.postcode_column_name == _get_definition_column_name(definition, 'postcode_column_name')
+        assert actual.birth_date_column_name == _get_definition_column_name(definition, 'birth_date_column_name')
+        assert actual.withdrawal_date_column_name == _get_definition_column_name(definition, 'withdrawal_date_column_name')
+        assert actual.withdrawn_from_study_column_name == _get_definition_column_name(definition, 'withdrawn_from_study_column_name')
+        assert actual.withdrawn_from_study_values_list == _get_definition_list(definition, 'withdrawn_from_study_values')
+        assert actual.sex_column_name == _get_definition_column_name(definition, 'sex_column_name')
+        assert actual.sex_column_map_dictionary == _get_definition_map(definition, 'sex_column_map')
+        assert actual.complete_or_expected_column_name == _get_definition_column_name(definition, 'complete_or_expected_column_name')
+        assert actual.complete_or_expected_values_list == _get_definition_list(definition, 'complete_or_expected_values')
+        assert actual.post_withdrawal_keep_samples_column_name == _get_definition_column_name(definition, 'post_withdrawal_keep_samples_column_name')
+        assert actual.post_withdrawal_keep_samples_values_list == _get_definition_list(definition, 'post_withdrawal_keep_samples_values')
+        assert actual.post_withdrawal_keep_data_column_name == _get_definition_column_name(definition, 'post_withdrawal_keep_data_column_name')
+        assert actual.post_withdrawal_keep_data_values_list == _get_definition_list(definition, 'post_withdrawal_keep_data_values')
+        assert actual.brc_opt_out_column_name == _get_definition_column_name(definition, 'brc_opt_out_column_name')
+        assert actual.brc_opt_out_values_list == _get_definition_list(definition, 'brc_opt_out_values')
+        assert actual.excluded_from_analysis_column_name == _get_definition_column_name(definition, 'excluded_from_analysis_column_name')
+        assert actual.excluded_from_analysis_values_list == _get_definition_list(definition, 'excluded_from_analysis_values')
+        assert actual.excluded_from_study_column_name == _get_definition_column_name(definition, 'excluded_from_study_column_name')
+        assert actual.excluded_from_study_values_list == _get_definition_list(definition, 'excluded_from_study_values')
+        assert actual.identities_map_dictionary == _get_definition_map(definition, 'identity_map')
+
+        assert before < actual.last_updated_datetime < after
+        assert actual.last_updated_by_user_id == get_system_user().id
+
+
+def _get_definition_column_name(definition, column_name):
+    if column_name in definition and definition[column_name]:
+        return definition[column_name]
+    else:
+        return None
+
+
+def _get_definition_list(definition, column_name):
+    if column_name in definition and definition[column_name]:
+        return definition[column_name]
+    else:
+        return []
+
+
+def _get_definition_map(definition, column_name):
+    if column_name in definition and definition[column_name]:
+        return definition[column_name]
+    else:
+        return {}
+
+
+def _create_projects(crfs):
+    result = []
+
+    for c in crfs:
+        study = Study.query.filter_by(name=c['study']).one_or_none()
+        ri = RedcapInstance.query.filter_by(name=c['instance']['name']).one_or_none()
+
+        for project in c['projects']:
+            rp = RedcapProject.query.filter_by(redcap_instance_id=ri.id, project_id=project).one_or_none()
+
+            if not rp:
+                rp = RedcapProject(
+                    redcap_instance_id=ri.id,
+                    project_id=project,
+                )
+
+                db.session.add(rp)
+                db.session.flush()
+
+            result.append(
+                {
+                    'study_id': study.id,
+                    'redcap_project_id': rp.id,
+                }
             )
 
-            db.session.add(rp)
-
     db.session.commit()
-
+    return result

@@ -3,7 +3,7 @@ from identity.model.sex import SexName
 
 STANDARD_STATUS = {
     'complete_or_expected_column_name': 'study_status_comp_yn',
-    'complete_or_expected_values': [None, '1'],
+    'complete_or_expected_values': ['<isnull>', '1'],
 }
 
 

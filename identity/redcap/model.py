@@ -101,40 +101,80 @@ class ParticipantImportDefinition(db.Model):
         return {k: v for k, v in [i.split(':') for i in self._parse_list_string(value)]}
 
     @property
-    def withdrawn_from_study_value_array(self):
+    def withdrawn_from_study_values_list(self):
         return self._parse_list_string(self.withdrawn_from_study_values)
 
+    def set_withdrawn_from_study_values_list(self, value):
+        if value:
+            self.withdrawn_from_study_values = ",".join(value)
+
     @property
-    def complete_or_expected_value_array(self):
+    def complete_or_expected_values_list(self):
         return self._parse_list_string(self.complete_or_expected_values)
 
+    def set_complete_or_expected_values_list(self, value):
+        if value:
+            self.complete_or_expected_values = ",".join(value)
+
     @property
-    def post_withdrawal_keep_samples_value_array(self):
+    def post_withdrawal_keep_samples_values_list(self):
         return self._parse_list_string(self.post_withdrawal_keep_samples_values)
 
+    def set_post_withdrawal_keep_samples_values_list(self, value):
+        if value:
+            self.post_withdrawal_keep_samples_values = ",".join(value)
+
     @property
-    def post_withdrawal_keep_data_value_array(self):
+    def post_withdrawal_keep_data_values_list(self):
         return self._parse_list_string(self.post_withdrawal_keep_data_values)
 
+    def set_post_withdrawal_keep_data_values_list(self, value):
+        if value:
+            self.post_withdrawal_keep_data_values = ",".join(value)
+
     @property
-    def brc_opt_out_value_array(self):
+    def brc_opt_out_values_list(self):
         return self._parse_list_string(self.brc_opt_out_values)
 
-    @property
-    def excluded_from_analysis_value_array(self):
-        return self._parse_list_string(self.excluded_from_analysis_values)
+    def set_brc_opt_out_values_list(self, value):
+        if value:
+            self.brc_opt_out_values = ",".join(value)
 
     @property
-    def excluded_from_study_value_array(self):
+    def excluded_from_analysis_values_list(self):
+        return self._parse_list_string(self.excluded_from_analysis_values)
+
+    def set_excluded_from_analysis_values_list(self, value):
+        if value:
+            self.excluded_from_analysis_values = ",".join(value)
+
+    @property
+    def excluded_from_study_values_list(self):
         return self._parse_list_string(self.excluded_from_study_values)
+
+    def set_excluded_from_study_values_list(self, value):
+        if value:
+            self.excluded_from_study_values = ",".join(value)
 
     @property
     def sex_column_map_dictionary(self):
         return self._parse_dictionary_string(self.sex_column_map)
 
+    def set_sex_column_map_dictionary(self, map):
+        if map is None:
+            self.identities_map = None
+        else:
+            self.sex_column_map = ','.join([f'{k}:{v}' for k, v in map.items()])
+
     @property
     def identities_map_dictionary(self):
         return self._parse_dictionary_string(self.identities_map)
+
+    def set_identities_map_dictionary(self, map):
+        if map is None:
+            self.identities_map = None
+        else:
+            self.identities_map = ','.join([f'{k}:{v}' for k, v in map.items()])
 
     def _get_fields(self):
         return filter(None, set([
@@ -228,14 +268,14 @@ class ParticipantImportDefinition(db.Model):
         ecrf.postcode = erec.get(self.postcode_column_name)
         ecrf.birth_date = erec.get_parsed_date(self.birth_date_column_name)
         ecrf.sex = self.sex_column_map_dictionary.get(erec.get(self.sex_column_name))
-        ecrf.complete_or_expected = erec.get_from_value_array(self.complete_or_expected_column_name, self.complete_or_expected_value_array)
+        ecrf.complete_or_expected = erec.get_from_value_array(self.complete_or_expected_column_name, self.complete_or_expected_values_list)
         ecrf.withdrawal_date = erec.get_parsed_date(self.withdrawal_date_column_name)
-        ecrf.withdrawn_from_study = erec.get_from_value_array(self.withdrawn_from_study_column_name, self.withdrawn_from_study_value_array)
-        ecrf.post_withdrawal_keep_samples = erec.get_from_value_array(self.post_withdrawal_keep_samples_column_name, self.post_withdrawal_keep_samples_value_array)
-        ecrf.post_withdrawal_keep_data = erec.get_from_value_array(self.post_withdrawal_keep_data_column_name, self.post_withdrawal_keep_data_value_array)
-        ecrf.brc_opt_out = erec.get_from_value_array(self.brc_opt_out_column_name, self.brc_opt_out_value_array)
-        ecrf.excluded_from_analysis = erec.get_from_value_array(self.excluded_from_analysis_column_name, self.excluded_from_analysis_value_array)
-        ecrf.excluded_from_study = erec.get_from_value_array(self.excluded_from_study_column_name, self.excluded_from_study_value_array)
+        ecrf.withdrawn_from_study = erec.get_from_value_array(self.withdrawn_from_study_column_name, self.withdrawn_from_study_values_list)
+        ecrf.post_withdrawal_keep_samples = erec.get_from_value_array(self.post_withdrawal_keep_samples_column_name, self.post_withdrawal_keep_samples_values_list)
+        ecrf.post_withdrawal_keep_data = erec.get_from_value_array(self.post_withdrawal_keep_data_column_name, self.post_withdrawal_keep_data_values_list)
+        ecrf.brc_opt_out = erec.get_from_value_array(self.brc_opt_out_column_name, self.brc_opt_out_values_list)
+        ecrf.excluded_from_analysis = erec.get_from_value_array(self.excluded_from_analysis_column_name, self.excluded_from_analysis_values_list)
+        ecrf.excluded_from_study = erec.get_from_value_array(self.excluded_from_study_column_name, self.excluded_from_study_values_list)
 
         return ecrf
 

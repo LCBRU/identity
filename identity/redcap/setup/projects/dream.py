@@ -27,7 +27,7 @@ crfs.append({
     'withdrawn_from_study_values': ['6'],
 
     'excluded_from_analysis_column_name': 'inc_in_eos_analysis',
-    'excluded_from_analysis_values': [None, '0'],
+    'excluded_from_analysis_values': ['<isnull>', '0'],
 
     'identity_map': {
         ParticipantIdentifierTypeName.DREAM_ID: 'record',
