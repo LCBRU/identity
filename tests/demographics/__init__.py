@@ -223,8 +223,6 @@ def do_submit(client, id):
             data={'id': id},
         )
 
-        mock_schedule_lookup_tasks.delay.assert_called_once_with(id)
-
 
 def do_delete(client, id):
     return client.post(

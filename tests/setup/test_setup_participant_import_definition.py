@@ -1,3 +1,6 @@
+import identity
+from identity.redcap.setup import crfs
+from unittest.mock import patch
 import pytest
 from identity.database import db
 from identity.setup.redcap_instances import REDCapInstanceDetail
@@ -838,6 +841,23 @@ def test__create_base_data__creates_participant_import_definitions(client, faker
 
 
 def test__create_base_data__creates_all_participant_import_definitions(client, faker):
+    _create_projects()
+
+    create_base_data()
+
+    assert ParticipantImportDefinition.query.count() == len(CRFS)
+
+
+def test__create_base_data__no_participant_import_definitions(client, faker):
+    _create_projects()
+
+    with patch.object(identity.setup, 'crfs', []):
+        create_base_data()
+
+    assert ParticipantImportDefinition.query.count() == 0
+
+
+def _create_projects():
     for instance, study_name, project_id in CRFS:
 
         ri = RedcapInstance.query.filter_by(name=instance['name']).one_or_none()
@@ -852,6 +872,3 @@ def test__create_base_data__creates_all_participant_import_definitions(client, f
 
     db.session.commit()
 
-    create_base_data()
-
-    assert ParticipantImportDefinition.query.count() == len(CRFS)
