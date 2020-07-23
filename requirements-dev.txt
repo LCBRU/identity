@@ -7,4 +7,4 @@ coverage
 pytest-cov
 pickle5
 pytest-integration
-pyfakefs
+pytest-xdist
