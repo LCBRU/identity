@@ -1,14 +1,10 @@
-# -*- coding: utf-8 -*-
-
+import contextlib
 import pytest
-import urllib.parse
-import shutil
 import os
 import re
 from datetime import datetime
-from unittest.mock import patch
 from io import BytesIO
-from flask import url_for, current_app
+from flask import url_for
 from identity.demographics.model import DemographicsRequest, DemographicsRequestColumn
 from identity.database import db
 from tests import login, flash_messages_contains_error
@@ -26,16 +22,6 @@ AWAITING_DEFINE_COLUMNS = 'AWAITING_DEFINE_COLUMNS'
 AWAITING_SUBMISSION = 'AWAITING_SUBMISSION'
 AWAITING_COMPLETION = 'AWAITING_COMPLETION'
 RESULT_CREATED = 'RESULT_CREATED'
-
-
-@pytest.fixture(autouse=True)
-def cleanup_files(client):
-    yield
-
-    shutil.rmtree(
-        current_app.config["FILE_UPLOAD_DIRECTORY"],
-        ignore_errors=True,
-    )
 
 
 def test__ui_demographics_upload_csv(client, faker):
@@ -112,6 +98,8 @@ def _test__ui_demographics_upload(client, faker, content, extension, headers):
         AWAITING_DEFINE_COLUMNS,
     )
 
+    _remove_files(dr)
+
 
 def _test__ui_demographics_upload_error(client, faker, content, extension, headers):
     user = login(client, faker)
@@ -150,6 +138,8 @@ def test__ui_demographics_define_columns_get(client, faker):
         for o in ['', *headers]:
             assert select.find('option', string=o) is not None
 
+    _remove_files(dr)
+
 
 def test__ui_demographics_define_columns_get__not_owner(client, faker):
     user = login(client, faker)
@@ -160,6 +150,8 @@ def test__ui_demographics_define_columns_get__not_owner(client, faker):
     user2 = login(client, faker)
     response = client.get(url_for('ui.demographics_define_columns', id=dr.id, _external=True))
     assert response.status_code == 403
+
+    _remove_files(dr)
 
 
 @pytest.mark.parametrize(
@@ -253,6 +245,8 @@ def test__ui_demographics_define_columns_post(client, faker, uhl_system_number_c
 
         _assert_uploaded_file_on_index(client, dr.filename, dr.id, AWAITING_SUBMISSION)
 
+    _remove_files(dr)
+
 
 def test__ui_demographics_define_columns_post__not_owner(client, faker):
     user = login(client, faker)
@@ -277,6 +271,8 @@ def test__ui_demographics_define_columns_post__not_owner(client, faker):
 
     assert response.status_code == 403
 
+    _remove_files(dr)
+
 
 def test__ui_demographics_define_columns_update(client, faker):
     user = login(client, faker)
@@ -298,6 +294,8 @@ def test__ui_demographics_define_columns_update(client, faker):
 
     _assert_uploaded_file_on_index(client, dr.filename, dr.id, AWAITING_SUBMISSION)
 
+    _remove_files(dr)
+
 
 def test__ui_demographics_submit_get(client, faker):
     user = login(client, faker)
@@ -307,6 +305,8 @@ def test__ui_demographics_submit_get(client, faker):
 
     response = client.get(url_for('ui.demographics_submit', id=dr.id, _external=True))
     assert response.status_code == 200
+
+    _remove_files(dr)
 
 
 def test__ui_demographics_submit_get__not_owner(client, faker):
@@ -319,6 +319,8 @@ def test__ui_demographics_submit_get__not_owner(client, faker):
     user2 = login(client, faker)
     response = client.get(url_for('ui.demographics_submit', id=dr.id, _external=True))
     assert response.status_code == 403
+
+    _remove_files(dr)
 
 
 def test__ui_demographics_submit_post(client, faker):
@@ -334,6 +336,8 @@ def test__ui_demographics_submit_post(client, faker):
 
     _assert_uploaded_file_on_index(client, dr.filename, dr.id, AWAITING_COMPLETION)
 
+    _remove_files(dr)
+
 
 def test__ui_demographics_submit_post__not_owner(client, faker):
     user = login(client, faker)
@@ -344,6 +348,8 @@ def test__ui_demographics_submit_post__not_owner(client, faker):
     user2 = login(client, faker)
     response = do_submit(client, dr.id)
     assert response.status_code == 403
+
+    _remove_files(dr)
 
 
 def test__ui_demographics_no_result_created(client, faker):
@@ -356,6 +362,8 @@ def test__ui_demographics_no_result_created(client, faker):
 
     response = client.get(url_for('ui.demographics_download_result', id=dr.id, _external=True))
     assert response.status_code == 404
+
+    _remove_files(dr)
 
 
 def test__ui_demographics_result_created__download(client, faker):
@@ -391,6 +399,8 @@ def test__ui_demographics_result_created__download(client, faker):
     response = client.get(url_for('ui.demographics_download_result', id=dr.id, _external=True))
     assert response.status_code == 403
 
+    _remove_files(dr)
+
 
 def test__ui_demographics_delete_get(client, faker):
     user = login(client, faker)
@@ -406,6 +416,8 @@ def test__ui_demographics_delete_get(client, faker):
     user = login(client, faker)
     response = client.get(url_for('ui.demographics_delete', id=dr.id, _external=True))
     assert response.status_code == 403
+
+    _remove_files(dr)
 
 
 def test__ui_demographics_delete_post(client, faker):
@@ -427,6 +439,8 @@ def test__ui_demographics_delete_post(client, faker):
 
     _assert_file_not_on_index(client, dr.filename)
 
+    _remove_files(dr)
+
 
 def test__ui_demographics_delete_post__not_owner(client, faker):
     user = login(client, faker)
@@ -439,6 +453,8 @@ def test__ui_demographics_delete_post__not_owner(client, faker):
     response = do_delete(client, dr.id)
 
     assert response.status_code == 403
+
+    _remove_files(dr)
 
 
 def test__ui_demographics_define_columns_get_404(client, faker):
@@ -501,6 +517,7 @@ def test__ui_demographics_define_columns_get_submitted(client, faker):
     assert response.location == url_for('ui.demographics', _external=True)
     assert flash_messages_contains_error(client)
 
+    _remove_files(dr)
 
 
 def test__ui_demographics_define_columns_post_submitted(client, faker):
@@ -515,6 +532,8 @@ def test__ui_demographics_define_columns_post_submitted(client, faker):
     assert response.location == url_for('ui.demographics', _external=True)
     assert flash_messages_contains_error(client)
 
+    _remove_files(dr)
+
 
 def test__ui_demographics_define_columns_get_deleted(client, faker):
     user = login(client, faker)
@@ -527,6 +546,7 @@ def test__ui_demographics_define_columns_get_deleted(client, faker):
     assert response.location == url_for('ui.demographics', _external=True)
     assert flash_messages_contains_error(client)
 
+    _remove_files(dr)
 
 
 def test__ui_demographics_define_columns_post_deleted(client, faker):
@@ -540,6 +560,8 @@ def test__ui_demographics_define_columns_post_deleted(client, faker):
     assert response.location == url_for('ui.demographics', _external=True)
     assert flash_messages_contains_error(client)
 
+    _remove_files(dr)
+
 
 def test__ui_demographics_submit_get_submitted(client, faker):
     user = login(client, faker)
@@ -551,6 +573,8 @@ def test__ui_demographics_submit_get_submitted(client, faker):
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
     assert flash_messages_contains_error(client)
+
+    _remove_files(dr)
 
 
 def test__ui_demographics_submit_post_submitted(client, faker):
@@ -564,6 +588,8 @@ def test__ui_demographics_submit_post_submitted(client, faker):
     assert response.location == url_for('ui.demographics', _external=True)
     assert flash_messages_contains_error(client)
 
+    _remove_files(dr)
+
 
 def test__ui_demographics_submit_get_deleted(client, faker):
     user = login(client, faker)
@@ -575,6 +601,8 @@ def test__ui_demographics_submit_get_deleted(client, faker):
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
     assert flash_messages_contains_error(client)
+
+    _remove_files(dr)
 
 
 def test__ui_demographics_submit_post_deleted(client, faker):
@@ -588,6 +616,8 @@ def test__ui_demographics_submit_post_deleted(client, faker):
     assert response.location == url_for('ui.demographics', _external=True)
     assert flash_messages_contains_error(client)
 
+    _remove_files(dr)
+
 
 def test__ui_delete_get_deleted(client, faker):
     user = login(client, faker)
@@ -600,6 +630,8 @@ def test__ui_delete_get_deleted(client, faker):
     assert response.location == url_for('ui.demographics', _external=True)
     assert flash_messages_contains_error(client)
 
+    _remove_files(dr)
+
 
 def test__ui_delete_post_deleted(client, faker):
     user = login(client, faker)
@@ -611,6 +643,8 @@ def test__ui_delete_post_deleted(client, faker):
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
     assert flash_messages_contains_error(client)
+
+    _remove_files(dr)
 
 
 def _assert_uploaded_file_on_index(client, filename, id, status):
@@ -641,3 +675,9 @@ def _assert_file_not_on_index(client, filename):
     response = client.get(url_for('ui.demographics'))
 
     assert response.soup.find('h1', string=filename) is None
+
+
+def _remove_files(dr):
+    with contextlib.suppress(FileNotFoundError):
+        os.remove(dr.filepath)
+        os.remove(dr.result_filepath)

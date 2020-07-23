@@ -5,7 +5,7 @@ import pytest
 from openpyxl import Workbook
 from datetime import datetime
 from io import BytesIO
-from flask import url_for, current_app
+from flask import url_for
 from identity.demographics.model import DemographicsRequest, DemographicsRequestColumn
 from unittest.mock import patch
 from identity.demographics import (

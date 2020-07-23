@@ -123,6 +123,7 @@ def demographics():
 
         except Exception as e:
             db.session.rollback()
+            os.unlink(d.filepath)
             log_exception(e)
             flash('File contents are invalid', 'error')
 

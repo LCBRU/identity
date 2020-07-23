@@ -1,3 +1,5 @@
+import contextlib
+import os
 import pytest
 from unittest.mock import MagicMock
 from identity.services.validators import parse_date
@@ -99,6 +101,8 @@ def test__spine_lookup__nhs_number(client, faker, mock_get_spine_parameters, moc
         assert w.scope == f'scope {i}'
         assert w.message == f'message {i}'
 
+    _remove_files(dr)
+
 
 @pytest.mark.parametrize(
     "warning_count",
@@ -164,6 +168,8 @@ def test__spine_lookup__search(client, faker, mock_get_spine_parameters, mock_ge
         assert w.scope == f'scope {i}'
         assert w.message == f'message {i}'
 
+    _remove_files(dr)
+
 
 def test__spine_lookup__search_no_gender(client, faker, mock_get_spine_parameters, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search):
     u = login(client, faker)
@@ -186,6 +192,8 @@ def test__spine_lookup__search_no_gender(client, faker, mock_get_spine_parameter
 
     mock_get_demographics_from_search.assert_not_called()
     mock_get_demographics_from_nhs_number.assert_not_called()
+
+    _remove_files(dr)
 
 
 def test__spine_lookup__no_parameters(client, faker, mock_get_spine_parameters, mock_get_demographics_from_nhs_number, mock_get_demographics_from_search):
@@ -212,6 +220,8 @@ def test__spine_lookup__no_parameters(client, faker, mock_get_spine_parameters, 
     assert drd.messages[0].source == 'validation'
     assert drd.messages[0].scope == 'request'
     assert drd.messages[0].message == 'Not enough values to perform Spine lookup'
+
+    _remove_files(dr)
 
 
 @pytest.mark.parametrize(
@@ -249,3 +259,11 @@ def test__spine_lookup__spine_exception(client, faker, mock_get_spine_parameters
     assert drd.messages[0].type == message_type
     assert drd.messages[0].source == 'spine'
     assert drd.messages[0].scope == 'request'
+
+    _remove_files(dr)
+
+
+def _remove_files(dr):
+    with contextlib.suppress(FileNotFoundError):
+        os.remove(dr.filepath)
+        os.remove(dr.result_filepath)
