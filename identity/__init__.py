@@ -1,3 +1,4 @@
+from logging import FileHandler
 import os
 import traceback
 import logging
@@ -17,13 +18,29 @@ from .utils import ReverseProxied
 from .celery import init_celery, celery
 from .config import BaseConfig
 from .redcap import init_redcap
-
+import logging
 
 def create_app(config=BaseConfig):
     app = Flask(__name__)
     app.wsgi_app = ReverseProxied(app.wsgi_app)
     app.config.from_object(config)
     app.config.from_pyfile("application.cfg", silent=True)
+
+    info_handler = FileHandler('info.log')
+    info_handler.setLevel(logging.INFO)
+    info_handler.setFormatter(logging.Formatter(
+        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+    ))
+
+    app.logger.addHandler(info_handler)
+
+    error_handler = FileHandler('error.log')
+    error_handler.setLevel(logging.ERROR)
+    error_handler.setFormatter(logging.Formatter(
+        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+    ))
+
+    app.logger.addHandler(error_handler)
 
     app.logger.info('Flask app created')
 

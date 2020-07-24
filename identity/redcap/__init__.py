@@ -16,6 +16,7 @@ from identity.model.id import (
 )
 from identity.security import get_system_user
 from identity.utils import log_exception
+import multiprocessing
 
 
 def init_redcap(app):
@@ -39,20 +40,23 @@ def setup_import_tasks(sender, **kwargs):
         import_participants.s(),
     )
 
+lock = multiprocessing.Lock()
 
 @celery.task
 def import_project_details():
-    current_app.logger.info('Importing REDCap projects')
+    current_app.logger.warn('REDCap project import: waiting for lock')
+    with lock:
+        current_app.logger.info('Importing REDCap projects')
 
-    for instance in RedcapInstance.query.all():
-        try:    
-            _load_instance_projects(instance)
-        except Exception as e:
-            log_exception(e)
+        for instance in RedcapInstance.query.all():
+            try:    
+                _load_instance_projects(instance)
+            except Exception as e:
+                log_exception(e)
 
-    db.session.commit()
+        db.session.commit()
 
-    current_app.logger.info('Importing REDCap projects - COMPLETED')
+        current_app.logger.info('Importing REDCap projects - COMPLETED')
 
 
 def _load_instance_projects(instance):
@@ -93,23 +97,25 @@ def _load_instance_projects(instance):
 @celery.task
 def import_participants():
 
-    current_app.logger.info('Importing REDCap particiapnts')
+    current_app.logger.warn('REDCap participant import: waiting for lock')
+    with lock:
+        current_app.logger.warn('Importing REDCap particiapnts')
 
-    system_user = get_system_user()
+        system_user = get_system_user()
 
-    for pid in ParticipantImportDefinition.query.all():
-        try:
-            _load_participants(pid, system_user)
-        except Exception as e:
-            log_exception(e)
-    
-    db.session.commit()
+        for pid in ParticipantImportDefinition.query.all():
+            try:
+                _load_participants(pid, system_user)
+            except Exception as e:
+                log_exception(e)
+        
+        db.session.commit()
 
-    current_app.logger.info('Importing REDCap particiapnts - Done')
+        current_app.logger.warn('Importing REDCap particiapnts - Done')
 
 
 def _load_participants(pid, system_user):
-    current_app.logger.info(f'Importing Participants: study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}".')
+    current_app.logger.info(f'Importing Participants: pidid="{pid.id}" study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}".')
 
     max_timestamp, = db.session.query(func.max(EcrfDetail.ecrf_timestamp)).filter_by(participant_import_definition_id=pid.id).one()
     current_app.logger.info(f'previous timestamp: {max_timestamp}')

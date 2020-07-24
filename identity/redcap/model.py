@@ -196,10 +196,13 @@ class ParticipantImportDefinition(db.Model):
         ]))
 
     def get_query(self):
-        group_concat_cols = ", ".join(f"GROUP_CONCAT(DISTINCT CASE WHEN field_name = '{f}' THEN VALUE ELSE NULL END) AS {f}" for f in self._get_fields())
+        group_concat_cols = ", ".join(
+            f"GROUP_CONCAT(DISTINCT CASE WHEN field_name = '{f}' THEN VALUE ELSE NULL END) AS {f}"
+            for f in self._get_fields() if f not in ['record', 'last_update_timestamp', 'project_id']
+        )
 
         if len(group_concat_cols) > 0:
-            group_concat_cols + ','
+            group_concat_cols += ','
 
         ins = ", ".join((f"'{f}'" for f in self._get_fields()))
 
@@ -237,14 +240,14 @@ class ParticipantImportDefinition(db.Model):
 
     def fill_ecrf(self, participant_details, existing_ecrf):
         if existing_ecrf is None:
-            current_app.logger.info(f'Creating ecrf for participant "{participant_details["record"]}"')
+            current_app.logger.debug(f'Creating ecrf for participant "{participant_details["record"]}"')
             result = EcrfDetail(
                 participant_import_definition_id=self.id,
                 ecrf_participant_identifier=participant_details['record'],
             )
             result.identifier_source = EcrfParticipantIdentifierSource(study_id=self.study_id)
         else:
-            current_app.logger.info(f'Updating ecrf for participant: {participant_details["record"]}')
+            current_app.logger.debug(f'Updating ecrf for participant: {participant_details["record"]}')
             result = existing_ecrf
 
         return self._fill_ecrf_details(participant_details, result)
