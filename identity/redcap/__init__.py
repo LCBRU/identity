@@ -44,7 +44,7 @@ lock = multiprocessing.Lock()
 
 @celery.task
 def import_project_details():
-    current_app.logger.warn('REDCap project import: waiting for lock')
+    current_app.logger.warning('REDCap project import: waiting for lock')
     with lock:
         current_app.logger.info('Importing REDCap projects')
 
@@ -99,9 +99,9 @@ def _load_instance_projects(instance):
 @celery.task
 def import_participants():
 
-    current_app.logger.warn('REDCap participant import: waiting for lock')
+    current_app.logger.warning('REDCap participant import: waiting for lock')
     with lock:
-        current_app.logger.warn('Importing REDCap particiapnts')
+        current_app.logger.warning('Importing REDCap particiapnts')
 
         system_user = get_system_user()
 
@@ -113,7 +113,7 @@ def import_participants():
         
         db.session.commit()
 
-        current_app.logger.warn('Importing REDCap particiapnts - Done')
+        current_app.logger.warning('Importing REDCap particiapnts - Done')
 
 
 def _load_participants(pid, system_user):
