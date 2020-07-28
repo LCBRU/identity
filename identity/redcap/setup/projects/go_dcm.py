@@ -15,14 +15,7 @@ crfs.append({
     ],
 
     'recruitment_date_column_name': 'date_of_visit',
-    'first_name_column_name': '',
-    'last_name_column_name': '',
-    'postcode_column_name': '',
     'birth_date_column_name': 'dob',
-
-    'withdrawal_date_column_name': '',
-    'withdrawn_from_study_column_name': '',
-    'withdrawn_from_study_values': '',
 
     **SEX_MAP_0F1M_GENDER,
 
@@ -30,20 +23,8 @@ crfs.append({
 
     **STANDARD_WITHDRAWAL,
 
-    'post_withdrawal_keep_samples_column_name': '',
-    'post_withdrawal_keep_samples_values': [],
-
-    'post_withdrawal_keep_data_column_name': '',
-    'post_withdrawal_keep_data_values': [],
-
-    'brc_opt_out_column_name': '',
-    'brc_opt_out_values': [],
-
     'excluded_from_analysis_column_name': 'inc_in_eos_analysis',
     'excluded_from_analysis_values': ['1'],
-
-    'excluded_from_study_column_name': '',
-    'excluded_from_study_values': [],
 
     'identity_map': {
         ParticipantIdentifierTypeName.GO_DCM_ID: 'record',

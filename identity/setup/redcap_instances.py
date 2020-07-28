@@ -31,18 +31,12 @@ class REDCapInstanceDetail():
         'base_url': 'https://redcap.lcbru.le.ac.uk',
         'version': '7.2.2',
     }
-    UOL_RECHARGE = {
-        'name': 'UoL recharge',
-        'database_name': 'uol_recharge_redcap',
-        'base_url': 'https://recharge.lbrc.le.ac.uk',
-        'version': '7.6.1',
-    }
-    UOL_EDEN = {
-        'name': 'UoL eden',
-        'database_name': 'uol_eden_redcap',
-        'base_url': 'https://eden.lbrc.le.ac.uk/',
-        'version': '7.6.1',
-    }
+    # NATIONAL = {
+    #     'name': 'National',
+    #     'database_name': 'redcap_national',
+    #     'base_url': 'https://brc.uhl-tr.nhs.uk/',
+    #     'version': '9.1.15',
+    # }
 
     def all_instances(self):
         return [getattr(self, f) for f in dir(self) if not callable(getattr(self,f)) and not f.startswith('__')]

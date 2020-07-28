@@ -141,31 +141,6 @@ CRFS = [
         44,
     ),
     (
-        REDCapInstanceDetail.UOL_RECHARGE,
-        StudyName.RECHARGE,
-        13,
-    ),
-    (
-        REDCapInstanceDetail.UOL_RECHARGE,
-        StudyName.RECHARGE,
-        14,
-    ),
-    (
-        REDCapInstanceDetail.UOL_RECHARGE,
-        StudyName.RECHARGE,
-        15,
-    ),
-    (
-        REDCapInstanceDetail.UOL_RECHARGE,
-        StudyName.RECHARGE,
-        17,
-    ),
-    (
-        REDCapInstanceDetail.UOL_RECHARGE,
-        StudyName.RECHARGE,
-        18,
-    ),
-    (
         REDCapInstanceDetail.UHL_LIVE,
         StudyName.RAPID_NSTEMI,
         79,

@@ -19,7 +19,7 @@ crfs.append({
 
     'withdrawal_date_column_name': 'wthdrwl_date',
     'withdrawn_from_study_column_name': 'wthdrwl_date',
-    'withdrawn_from_study_values': '<isnotnull>',
+    'withdrawn_from_study_values': ['<isnotnull>'],
 
     **SEX_MAP_0F1M_GENDER,
 

@@ -71,6 +71,8 @@ def _load_instance_projects(instance):
                 project_id,
                 app_title
             FROM redcap_projects
+            WHERE date_deleted IS NULL
+                AND status = 1
             """)):
 
             rp = RedcapProject.query.filter_by(project_id=p['project_id'], redcap_instance_id=instance.id).one_or_none()

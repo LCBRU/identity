@@ -36,18 +36,6 @@ from identity.setup import create_base_data
             'https://redcap.lcbru.le.ac.uk',
             '7.2.2',
         ),
-        (
-            'UoL recharge',
-            'uol_recharge_redcap',
-            'https://recharge.lbrc.le.ac.uk',
-            '7.6.1',
-        ),
-        (
-            'UoL eden',
-            'uol_eden_redcap',
-            'https://eden.lbrc.le.ac.uk/',
-            '7.6.1',
-        ),
     ],
 )
 def test__setup__redcap_instance(client, faker, instance,  database_name, base_url, version):
