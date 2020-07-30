@@ -1,6 +1,7 @@
 from datetime import datetime
 from celery.schedules import crontab
 from flask import current_app
+from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import text
 from sqlalchemy import func
 from identity.celery import celery
@@ -40,7 +41,21 @@ def setup_import_tasks(sender, **kwargs):
         import_participants.s(),
     )
 
+
 lock = multiprocessing.Lock()
+
+
+@celery.task
+def import_participants():
+    current_app.logger.warning('REDCap participant import: waiting for lock')
+    with lock:
+        current_app.logger.warning('Importing REDCap particiapnts')
+
+        p = ParticipantImporter()
+        p.run()
+
+        current_app.logger.warning('Importing REDCap particiapnts - Done')
+
 
 @celery.task
 def import_project_details():
@@ -48,96 +63,104 @@ def import_project_details():
     with lock:
         current_app.logger.info('Importing REDCap projects')
 
-        for instance in RedcapInstance.query.all():
-            try:    
-                _load_instance_projects(instance)
-            except Exception as e:
-                log_exception(e)
-
-        db.session.commit()
+        p = ProjectImporter()
+        p.run()
 
         current_app.logger.info('Importing REDCap projects - COMPLETED')
 
 
-def _load_instance_projects(instance):
+class ProjectImporter():
+    def run(self):
+        for instance in RedcapInstance.query.all():
+            try:    
+                self._load_instance_projects(instance)
+            except Exception as e:
+                log_exception(e)
 
-    system_user = get_system_user()
+        db.session.commit()
 
-    with redcap_engine(instance.database_name) as conn:
-        current_app.logger.info(f'importing projects from REDCap instance: {instance.name}')
-
-        for p in conn.execute(text("""
-            SELECT
-                project_id,
-                app_title
-            FROM redcap_projects
-            WHERE date_deleted IS NULL
-                AND status = 1
-            """)):
-
-            rp = RedcapProject.query.filter_by(project_id=p['project_id'], redcap_instance_id=instance.id).one_or_none()
-
-            if rp is None:
-                current_app.logger.info(f'Adding project \'{p["app_title"]}\' for instance \'{instance.name}\' ')
-
-                rp = RedcapProject(
-                    name=p['app_title'],
-                    project_id=p['project_id'],
-                    redcap_instance=instance,
-                    last_updated_by_user=system_user,
-                )
-                db.session.add(rp)
-            elif rp.name != p['app_title']:
-                current_app.logger.info(f'Updating project \'{p["app_title"]}\' for instance \'{instance.name}\' ')
-
-                rp.name = p['app_title']
-                rp.last_updated_by_user = system_user
-                rp.last_updated_datetime = datetime.utcnow()
-                db.session.add(rp)
-
-
-@celery.task
-def import_participants():
-
-    current_app.logger.warning('REDCap participant import: waiting for lock')
-    with lock:
-        current_app.logger.warning('Importing REDCap particiapnts')
+    def _load_instance_projects(self, instance):
 
         system_user = get_system_user()
 
-        for pid in ParticipantImportDefinition.query.all():
-            try:
-                _load_participants(pid, system_user)
-            except Exception as e:
-                log_exception(e)
+        with redcap_engine(instance.database_name) as conn:
+            current_app.logger.info(f'importing projects from REDCap instance: {instance.name}')
+
+            for p in conn.execute(text("""
+                SELECT
+                    project_id,
+                    app_title
+                FROM redcap_projects
+                WHERE date_deleted IS NULL
+                    AND status = 1
+                """)):
+
+                rp = RedcapProject.query.filter_by(project_id=p['project_id'], redcap_instance_id=instance.id).one_or_none()
+
+                if rp is None:
+                    current_app.logger.info(f'Adding project \'{p["app_title"]}\' for instance \'{instance.name}\' ')
+
+                    rp = RedcapProject(
+                        name=p['app_title'],
+                        project_id=p['project_id'],
+                        redcap_instance=instance,
+                        last_updated_by_user=system_user,
+                    )
+                    db.session.add(rp)
+                elif rp.name != p['app_title']:
+                    current_app.logger.info(f'Updating project \'{p["app_title"]}\' for instance \'{instance.name}\' ')
+
+                    rp.name = p['app_title']
+                    rp.last_updated_by_user = system_user
+                    rp.last_updated_datetime = datetime.utcnow()
+                    db.session.add(rp)
+
+
+class ParticipantImporter():
+
+    def __init__(self):
+        self.user = get_system_user()
+        self.id_types = {pt.name: pt.id for pt in ParticipantIdentifierType.query.all()}    
+        self.id_cache = {}
+
+    def run(self):
+        timestamps = self.get_max_timestamps()
+
+        for ri in RedcapInstance.query.options(
+            joinedload(RedcapInstance.projects).
+            joinedload(RedcapProject.participant_import_definitions).
+            joinedload(ParticipantImportDefinition.study)
+        ).all():
+            with redcap_engine(ri.database_name) as conn:
+
+                new_time_stamps = get_new_timestamps(conn)
+
+                for rp in ri.projects:
+                    for pid in rp.participant_import_definitions:
+                        try:
+                            ts = timestamps.get(pid.id, 0)
+
+                            if new_time_stamps.get(pid.redcap_project.project_id, -1) > ts:
+                                self._load_participants(pid, conn, ts)
+
+                        except Exception as e:
+                            log_exception(e)
         
         db.session.commit()
 
-        current_app.logger.warning('Importing REDCap particiapnts - Done')
 
+    def _load_participants(self, pid, conn, max_timestamp):
+        current_app.logger.info(f'Importing Participants: pidid="{pid.id}" study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}".')
 
-def _load_participants(pid, system_user):
-    current_app.logger.info(f'Importing Participants: pidid="{pid.id}" study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}".')
-
-    max_timestamp, = db.session.query(func.max(EcrfDetail.ecrf_timestamp)).filter_by(participant_import_definition_id=pid.id).one()
-    current_app.logger.info(f'previous timestamp: {max_timestamp}')
-
-    with redcap_engine(pid.redcap_project.redcap_instance.database_name) as conn:
-        type_ids = {pt.name: pt.id for pt in ParticipantIdentifierType.query.all()}    
         ecrfs = []
-        all_ids = {}
 
         participants = conn.execute(
             text(pid.get_query()),
-            timestamp=max_timestamp or 0,
+            timestamp=max_timestamp,
             project_id=pid.redcap_project.project_id,
         )
 
-        rows = 0
-
         for participant in participants:
-            rows += 1
-
             ecrf = pid.fill_ecrf(
                 participant_details=participant,
                 existing_ecrf=EcrfDetail.query.filter_by(
@@ -147,44 +170,70 @@ def _load_participants(pid, system_user):
             )
 
             ecrf.ecrf_timestamp=participant['last_update_timestamp']
-            ecrf.last_updated_by_user_id=system_user.id
+            ecrf.last_updated_by_user_id=self.user.id
             ecrf.last_updated_datetime=datetime.utcnow()
 
-            ecrf.identifier_source.last_updated_by_user_id=system_user.id
+            ecrf.identifier_source.last_updated_by_user_id=self.user.id
             ecrf.identifier_source.last_updated_datetime=datetime.utcnow()
 
-            add_identifiers(ecrf, pid, all_ids, participant, type_ids, system_user)
+            self.add_identifiers(ecrf, pid, participant)
             
             ecrfs.append(ecrf)
-            
-        db.session.add_all(ecrfs)
+                
+            db.session.add_all(ecrfs)
 
-    current_app.logger.info(f'Importing Participants: study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}". Imported {rows} records')
+        current_app.logger.info(f'Importing Participants: study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}". Imported {len(ecrfs)} records')
 
 
-def add_identifiers(ecrf, pid, all_ids, participant, type_ids, system_user):
+    def add_identifiers(self, ecrf, pid, participant):
 
-    ecrf.identifier_source.identifiers.clear()
+        ecrf.identifier_source.identifiers.clear()
 
-    for id in pid.extract_identifiers(participant):
+        for id in pid.extract_identifiers(participant):
+            ecrf.identifier_source.identifiers.add(self.get_or_create_id(id))
 
+    
+    def get_or_create_id(self, id):
         idkey = frozenset(id.items())
 
-        if idkey in all_ids:
-            i = all_ids[idkey]
+        if idkey in self.id_cache:
+            i = self.id_cache[idkey]
         else:
             i = ParticipantIdentifier.query.filter_by(
-                participant_identifier_type_id=type_ids[id['type']],
+                participant_identifier_type_id=self.id_types[id['type']],
                 identifier=id['identifier'],
             ).one_or_none()
 
             if i is None:
                 i = ParticipantIdentifier(
-                    participant_identifier_type_id=type_ids[id['type']],
+                    participant_identifier_type_id=self.id_types[id['type']],
                     identifier=id['identifier'],
-                    last_updated_by_user_id=system_user.id,
+                    last_updated_by_user_id=self.user.id,
                 )
             
-            all_ids[idkey] = i
+            self.id_cache[idkey] = i
         
-        ecrf.identifier_source.identifiers.add(i)
+        return i
+            
+
+    def get_max_timestamps(self):
+        return {x[0]: x[1] for x in db.session.query(
+                EcrfDetail.participant_import_definition_id,
+                func.max(EcrfDetail.ecrf_timestamp),
+            ).group_by(EcrfDetail.participant_import_definition_id).all()}
+
+
+def get_new_timestamps(conn):
+    return {r['project_id']: r['ts'] for r in conn.execute('''
+        SELECT
+            project_id,
+            MAX(COALESCE(ts, 0)) AS ts
+        FROM redcap_log_event
+        WHERE event NOT IN ('DATA_EXPORT', 'DELETE')
+            # Ignore events caused by the data import from
+            # the mobile app
+            AND page NOT IN ('DataImportController:index')
+            AND object_type = 'redcap_data'
+        GROUP BY pk, project_id
+    ''')}
+

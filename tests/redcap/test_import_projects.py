@@ -1,94 +1,74 @@
 from datetime import datetime
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 from identity.database import db
-from identity.redcap import (RedcapProject, _load_instance_projects,
-                             import_project_details)
+from identity.redcap import (ProjectImporter, RedcapProject, import_project_details)
 from identity.redcap.model import RedcapInstance
 from identity.security import get_system_user
 
 
-def test__import_project_details__calls_all_instances(client, faker):
-    calls = [call(i) for i in RedcapInstance.query.all()]
-    
-    with patch('identity.redcap._load_instance_projects') as mock__load_instance_projects:
+def _run_import(records):
+    out = ProjectImporter()
 
-        import_project_details()
+    with patch('identity.redcap.redcap_engine') as mock__redcap_engine:
 
-        mock__load_instance_projects.assert_has_calls(calls)
+        mock__redcap_engine.return_value.__enter__.return_value.execute.side_effect = records
+
+        before = datetime.utcnow()
+        
+        out.run()
+
+        db.session.commit()
+
+        after = datetime.utcnow()        
+
+    return RedcapProject.query.filter(RedcapProject.last_updated_datetime.between(before, after)).all()
+
+
+def test__project_importer__no_projects(client, faker):
+    actual = _run_import([])
+    assert len(actual) == 0
 
 
 def test__load_instance_projects__creates_project_details(client, faker):
-    i = RedcapInstance.query.first()
+    actual = _run_import([
+        [{'project_id': 1, 'app_title': 'Hello'}],
+    ])
+    assert len(actual) == 1
 
-    with patch('identity.redcap.redcap_engine') as mock__redcap_engine:
-
-        mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [
-            {'project_id': 1, 'app_title': 'Hello'},
-        ]
-
-        before = datetime.utcnow()
-        
-        _load_instance_projects(i)
-        db.session.commit()
-
-        after = datetime.utcnow()        
-
-    actual = RedcapProject.query.filter(RedcapProject.last_updated_datetime.between(before, after)).one_or_none()
-    assert actual is not None
-    assert actual.project_id == 1
-    assert actual.name == 'Hello'
-    assert actual.redcap_instance_id == i.id
+    assert actual[0].project_id == 1
+    assert actual[0].name == 'Hello'
 
 
 def test__load_instance_projects__multiple_projects(client, faker):
-    i = RedcapInstance.query.first()
-
-    with patch('identity.redcap.redcap_engine') as mock__redcap_engine:
-
-        mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [
+    actual = _run_import([
+        [
             {'project_id': 1, 'app_title': 'Hello'},
             {'project_id': 2, 'app_title': 'Goodbye'},
-        ]
+        ],
+    ])
+    assert len(actual) == 2
 
-        before = datetime.utcnow()
-        
-        _load_instance_projects(i)
-        db.session.commit()
 
-        after = datetime.utcnow()        
-
-    RedcapProject.query.filter(RedcapProject.last_updated_datetime.between(before, after)).count() == 2
+def test__load_instance_projects__same_project_different_instances(client, faker):
+    actual = _run_import([
+        [{'project_id': 1, 'app_title': 'Hello'}],
+        [{'project_id': 1, 'app_title': 'Goodbye'}],
+    ])
+    assert len(actual) == 2
 
 
 def test__load_instance_projects__updates_existing(client, faker):
-    i = RedcapInstance.query.first()
+    # Setup
+    _run_import([
+        [{'project_id': 1, 'app_title': 'Hello'}],
+    ])
 
-    existing = RedcapProject(
-        name='Hello',
-        project_id=1,
-        redcap_instance=i,
-        last_updated_by_user=get_system_user(),
-    )
+    # Update
+    actual = _run_import([
+        [{'project_id': 1, 'app_title': 'Goodbye'}],
+    ])
 
-    db.session.add(existing)
-    db.session.commit()
-
-    with patch('identity.redcap.redcap_engine') as mock__redcap_engine:
-
-        mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [
-            {'project_id': 1, 'app_title': 'Goodbye'},
-        ]
-
-        before = datetime.utcnow()
-        
-        _load_instance_projects(i)
-        db.session.commit()
-
-        after = datetime.utcnow()        
-
-    actual = RedcapProject.query.filter(RedcapProject.last_updated_datetime.between(before, after)).one_or_none()
-    assert actual is not None
-    assert actual.project_id == 1
-    assert actual.name == 'Goodbye'
-    assert actual.redcap_instance_id == i.id
+    len(actual) == 1
+    assert actual[0].project_id == 1
+    assert actual[0].name == 'Goodbye'

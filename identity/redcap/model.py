@@ -52,7 +52,7 @@ class ParticipantImportDefinition(db.Model):
     study = db.relationship(Study)
 
     redcap_project_id = db.Column(db.Integer, db.ForeignKey(RedcapProject.id))
-    redcap_project = db.relationship(RedcapProject)
+    redcap_project = db.relationship(RedcapProject, backref=db.backref("participant_import_definitions"))
 
     recruitment_date_column_name = db.Column(db.String(100))
     first_name_column_name = db.Column(db.String(100))
