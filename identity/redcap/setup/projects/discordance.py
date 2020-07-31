@@ -29,7 +29,7 @@ crfs.append({
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.DISCORDANCE,
-            'projects': [28],
+            'projects': [85],
         },
     ],
 

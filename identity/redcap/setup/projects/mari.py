@@ -10,7 +10,7 @@ crfs.append({
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.MARI,
-            'projects': [28],
+            'projects': [52],
         },
         {
             'instance': REDCapInstanceDetail.UOL_CRF,

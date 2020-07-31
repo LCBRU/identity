@@ -26,7 +26,7 @@ crfs.append({
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.BRICCS_CT,
-            'projects': [28],
+            'projects': [81],
         },
     ],
 

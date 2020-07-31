@@ -211,31 +211,31 @@ class ParticipantImportDefinition(db.Model):
 
         return f"""
             SELECT
-                rd.project_id,
-                rd.record,
+                rl.project_id,
+                rl.pk AS record,
                 {group_concat_cols}
                 rl.last_update_timestamp AS last_update_timestamp
-            FROM redcap_data rd
-            JOIN (
+            FROM (
                 SELECT
                     pk,
                     project_id,
                     MAX(COALESCE(ts, 0)) AS last_update_timestamp
                 FROM redcap_log_event
-                WHERE event NOT IN ('DATA_EXPORT', 'DELETE')
+		        WHERE event IN ('INSERT', 'UPDATE')
                     # Ignore events caused by the data import from
                     # the mobile app
                     AND page NOT IN ('DataImportController:index')
                     AND project_id = :project_id
                     AND object_type = 'redcap_data'
                     AND ts > :timestamp
+                    AND LENGTH(RTRIM(LTRIM(COALESCE(pk, '')))) > 0
                 GROUP BY pk, project_id
-            ) rl ON rl.project_id = rd.project_id
+            ) rl
+            LEFT JOIN redcap_data rd
+				ON rl.project_id = rd.project_id
                 AND rl.pk = rd.record
-            WHERE rd.project_id = :project_id
-                AND LENGTH(RTRIM(LTRIM(COALESCE(rd.record, '')))) > 0
                 {ins}
-            GROUP BY rd.record, rd.project_id
+            GROUP BY rl.pk, rl.project_id
         """
 
     def fill_ecrf(self, participant_details, existing_ecrf):

@@ -120,39 +120,37 @@ class ParticipantImporter():
 
     def __init__(self):
         self.user = get_system_user()
-        self.id_types = {pt.name: pt.id for pt in ParticipantIdentifierType.query.all()}    
-        self.id_cache = {}
+        self.id_types = {pt.name: pt.id for pt in ParticipantIdentifierType.query.all()}
 
     def run(self):
         timestamps = self.get_max_timestamps()
 
-        for ri in RedcapInstance.query.options(
-            joinedload(RedcapInstance.projects).
-            joinedload(RedcapProject.participant_import_definitions).
-            joinedload(ParticipantImportDefinition.study)
-        ).all():
+        for ri in RedcapInstance.query.all():
             with redcap_engine(ri.database_name) as conn:
 
                 new_time_stamps = get_new_timestamps(conn)
 
-                for rp in ri.projects:
-                    for pid in rp.participant_import_definitions:
-                        try:
-                            ts = timestamps.get(pid.id, 0)
+                for pid in ParticipantImportDefinition.query.join(ParticipantImportDefinition.redcap_project).filter(RedcapProject.redcap_instance_id==ri.id).all():
+                    try:
+                        ts = timestamps.get(pid.id, 0)
+                        new_ts = new_time_stamps.get(pid.redcap_project.project_id, -1)
 
-                            if new_time_stamps.get(pid.redcap_project.project_id, -1) > ts:
-                                self._load_participants(pid, conn, ts)
+                        if new_ts > ts:
+                            current_app.logger.info(f'Existing timestamps {ts}; New timestamp {new_ts}')
 
-                        except Exception as e:
-                            log_exception(e)
-        
-        db.session.commit()
+                            self._load_participants(pid, conn, ts)
+
+                        db.session.commit()
+
+                    except Exception as e:
+                        log_exception(e)
 
 
     def _load_participants(self, pid, conn, max_timestamp):
         current_app.logger.info(f'Importing Participants: pidid="{pid.id}" study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}".')
 
         ecrfs = []
+        id_cache = {}
 
         participants = conn.execute(
             text(pid.get_query()),
@@ -176,28 +174,28 @@ class ParticipantImporter():
             ecrf.identifier_source.last_updated_by_user_id=self.user.id
             ecrf.identifier_source.last_updated_datetime=datetime.utcnow()
 
-            self.add_identifiers(ecrf, pid, participant)
+            self.add_identifiers(ecrf, pid, participant, id_cache)
             
             ecrfs.append(ecrf)
                 
-            db.session.add_all(ecrfs)
+        db.session.add_all(ecrfs)
 
         current_app.logger.info(f'Importing Participants: study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}". Imported {len(ecrfs)} records')
 
 
-    def add_identifiers(self, ecrf, pid, participant):
+    def add_identifiers(self, ecrf, pid, participant, id_cache):
 
         ecrf.identifier_source.identifiers.clear()
 
         for id in pid.extract_identifiers(participant):
-            ecrf.identifier_source.identifiers.add(self.get_or_create_id(id))
+            ecrf.identifier_source.identifiers.add(self.get_or_create_id(id, id_cache))
 
     
-    def get_or_create_id(self, id):
+    def get_or_create_id(self, id, id_cache):
         idkey = frozenset(id.items())
 
-        if idkey in self.id_cache:
-            i = self.id_cache[idkey]
+        if idkey in id_cache:
+            i = id_cache[idkey]
         else:
             i = ParticipantIdentifier.query.filter_by(
                 participant_identifier_type_id=self.id_types[id['type']],
@@ -211,7 +209,7 @@ class ParticipantImporter():
                     last_updated_by_user_id=self.user.id,
                 )
             
-            self.id_cache[idkey] = i
+            id_cache[idkey] = i
         
         return i
             
@@ -229,11 +227,11 @@ def get_new_timestamps(conn):
             project_id,
             MAX(COALESCE(ts, 0)) AS ts
         FROM redcap_log_event
-        WHERE event NOT IN ('DATA_EXPORT', 'DELETE')
+        WHERE event IN ('INSERT', 'UPDATE')
             # Ignore events caused by the data import from
             # the mobile app
             AND page NOT IN ('DataImportController:index')
             AND object_type = 'redcap_data'
-        GROUP BY pk, project_id
+        GROUP BY project_id
     ''')}
 
