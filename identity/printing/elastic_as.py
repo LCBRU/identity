@@ -16,8 +16,8 @@ from .printing_methods import (
 )
 
 
-ID_TYPE_PARTICIPANT = "EasSa"
-ID_TYPE_SAMPLE = "EasPt"
+ID_TYPE_PARTICIPANT = "EasPt"
+ID_TYPE_SAMPLE = "EasSa"
 
 
 class ElasticAsIdSpecification(StudyIdSpecification):
