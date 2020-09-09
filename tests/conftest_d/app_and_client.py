@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import json
 import pytest
 import datetime
@@ -70,11 +68,6 @@ def app(faker):
     create_base_data()
 
     yield app
-
-    # shutil.rmtree(
-    #     app.config["FILE_UPLOAD_DIRECTORY"],
-    #     ignore_errors=True,
-    # )
 
     context.pop()
 

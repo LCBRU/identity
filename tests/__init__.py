@@ -1,3 +1,5 @@
+from pydoc import cli
+from unittest.mock import patch
 from bs4 import BeautifulSoup
 from identity.database import db
 from identity.security import login_user, init_users
@@ -18,7 +20,15 @@ def login(client, faker):
     # Some stuff is created on first request, so do that
     client.get("/")
 
+    # Login for access to functions directly
     login_user(u)
+
+    # Login for access by flask client
+    with patch('identity.model.security.ldap') as mock:
+        client.post('/login', data=dict(
+            username=u.username,
+            password='a little bit further'
+        ), follow_redirects=True)
 
     return u
 

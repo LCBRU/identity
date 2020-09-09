@@ -93,7 +93,7 @@ CRFS = [
     (
         REDCapInstanceDetail.UHL_LIVE,
         StudyName.CAE,
-        28,
+        97,
     ),
     (
         REDCapInstanceDetail.UHL_LIVE,
@@ -318,7 +318,7 @@ CRFS = [
     (
         REDCapInstanceDetail.UHL_LIVE,
         StudyName.MARI,
-        28,
+        52,
     ),
     (
         REDCapInstanceDetail.UOL_CRF,
@@ -578,7 +578,7 @@ CRFS = [
     (
         REDCapInstanceDetail.UHL_LIVE,
         StudyName.DISCORDANCE,
-        28,
+        85,
     ),
     (
         REDCapInstanceDetail.UHL_LIVE,
@@ -668,7 +668,7 @@ CRFS = [
     (
         REDCapInstanceDetail.UHL_LIVE,
         StudyName.BRICCS_CT,
-        28,
+        81,
     ),
     (
         REDCapInstanceDetail.UHL_LIVE,
