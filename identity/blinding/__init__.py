@@ -85,6 +85,7 @@ BLINDING_SETS = {
             'Echo': 'xEasEcho',
             'ECG': 'xEasECG',
             'Vicorder': 'xEasV',
+            'FW':'xEasFw',
         },
     },
 }
