@@ -61,7 +61,7 @@ def import_ids():
     load_legacy_briccs_ids(system)
     load_legacy_bioresource_ids(system)
     load_legacy_pseudorandom_ids(system)
-    load_legacy_blind_ids(system)
+    # load_legacy_blind_ids(system)
 
 
 def load_legacy_briccs_ids(admin):
