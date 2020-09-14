@@ -347,13 +347,14 @@ def create_blinding_sets(user):
             
             current_app.logger.info(f'Creating Blinding Type "{type_name}"')
         
-            blinding_type = BlindingType(
-                name=type_name,
-                blinding_set=blinding_set,
-                pseudo_random_id_provider=pseudo_random_id_provider,
-            )
+            if BlindingType.query.filter_by(name=type_name, pseudo_random_id_provider=pseudo_random_id_provider).count() == 0:
+                blinding_type = BlindingType(
+                    name=type_name,
+                    blinding_set=blinding_set,
+                    pseudo_random_id_provider=pseudo_random_id_provider,
+                )
 
-            db.session.add(blinding_type)
+                db.session.add(blinding_type)
 
     db.session.commit()
 
