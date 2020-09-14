@@ -318,7 +318,9 @@ def create_blinding_sets(user):
 
     for blinding_set_name, bs in BLINDING_SETS.items():
 
-        if BlindingSet.query.filter_by(name=blinding_set_name).count() == 0:
+        blinding_set = BlindingSet.query.filter_by(name=blinding_set_name).one_or_none()
+
+        if blinding_set is None:
 
             current_app.logger.info(f'Creating Blinding Set "{blinding_set_name}"')
 
@@ -326,32 +328,32 @@ def create_blinding_sets(user):
             blinding_set = BlindingSet(name=blinding_set_name, study=study)
             db.session.add(blinding_set)
 
-            for type_name, pseudo_random_id_provider_prefix in bs['types'].items():
-                pseudo_random_id_provider = PseudoRandomIdProvider.query.filter_by(
-                    prefix=pseudo_random_id_provider_prefix
-                ).first()
+        for type_name, pseudo_random_id_provider_prefix in bs['types'].items():
+            pseudo_random_id_provider = PseudoRandomIdProvider.query.filter_by(
+                prefix=pseudo_random_id_provider_prefix
+            ).first()
 
-                if not pseudo_random_id_provider:
-                    prid_name='{}: {}'.format(blinding_set_name, type_name)
+            if not pseudo_random_id_provider:
+                prid_name='{}: {}'.format(blinding_set_name, type_name)
 
-                    current_app.logger.info(f'Creating Pseudorandom ID Provider "{prid_name}"')
-            
-                    pseudo_random_id_provider = PseudoRandomIdProvider(
-                        name=prid_name,
-                        prefix=pseudo_random_id_provider_prefix,
-                        last_updated_by_user=user,
-                    )
-                    db.session.add(pseudo_random_id_provider)
-                
-                current_app.logger.info(f'Creating Blinding Type "{type_name}"')
-            
-                blinding_type = BlindingType(
-                    name=type_name,
-                    blinding_set=blinding_set,
-                    pseudo_random_id_provider=pseudo_random_id_provider,
+                current_app.logger.info(f'Creating Pseudorandom ID Provider "{prid_name}"')
+        
+                pseudo_random_id_provider = PseudoRandomIdProvider(
+                    name=prid_name,
+                    prefix=pseudo_random_id_provider_prefix,
+                    last_updated_by_user=user,
                 )
+                db.session.add(pseudo_random_id_provider)
+            
+            current_app.logger.info(f'Creating Blinding Type "{type_name}"')
+        
+            blinding_type = BlindingType(
+                name=type_name,
+                blinding_set=blinding_set,
+                pseudo_random_id_provider=pseudo_random_id_provider,
+            )
 
-                db.session.add(blinding_type)
+            db.session.add(blinding_type)
 
     db.session.commit()
 
