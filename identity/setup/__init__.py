@@ -344,6 +344,7 @@ def create_blinding_sets(user):
                     last_updated_by_user=user,
                 )
                 db.session.add(pseudo_random_id_provider)
+                db.session.flush()
             
             current_app.logger.info(f'Creating Blinding Type "{type_name}"')
         
@@ -356,6 +357,7 @@ def create_blinding_sets(user):
 
                 db.session.add(blinding_type)
 
+    db.session.flush()
     db.session.commit()
 
 
