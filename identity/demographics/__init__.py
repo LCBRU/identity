@@ -240,8 +240,8 @@ def process_demographics_request_data(request_id):
             dr.lookup_completed_datetime = datetime.utcnow()
             db.session.add(dr)
         else:
-            if not drd.has_error:
-                spine_lookup(drd)
+            # if not drd.has_error:
+            spine_lookup(drd)
     
             drd.processed_datetime = datetime.utcnow()
 
