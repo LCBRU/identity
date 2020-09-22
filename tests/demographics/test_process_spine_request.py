@@ -95,7 +95,7 @@ def test__process_demographics_request_data__data_has_error(client, faker, mock_
 
     process_demographics_request_data(dr.id)
 
-    mock_spine_lookup.assert_not_called()
+    mock_spine_lookup.assert_called_once_with(dr.data[0])
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
     mock_log_exception.assert_not_called()
 
