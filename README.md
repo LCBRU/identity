@@ -22,8 +22,11 @@ git clone git@github.com:LCBRU/identity.git
 Go to the `identity` directory and type the command:
 
 ```bash
+sudo apt install sqlite3
 sudo apt-get install libldap2-dev
 sudo apt-get install libsasl2-dev
+sudo apt-get install unixodbc unixodbc-dev
+sudo apt-get install python3-pyodbc
 
 pip install -r requirements.txt
 ```
@@ -33,8 +36,8 @@ pip install -r requirements.txt
 Staying in the `identity` directory and type the command:
 
 ```bash
-./manage_dev.py version_control
-./manage_dev.py upgrade
+./manage.py version_control
+./manage.py upgrade
 ```
 
 4. Run the application

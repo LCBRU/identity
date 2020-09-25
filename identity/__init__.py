@@ -24,7 +24,6 @@ def create_app(config=BaseConfig):
     app = Flask(__name__)
     app.wsgi_app = ReverseProxied(app.wsgi_app)
     app.config.from_object(config)
-    app.config.from_pyfile("application.cfg", silent=True)
 
     info_handler = FileHandler('info.log')
     info_handler.setLevel(logging.INFO)
@@ -44,8 +43,10 @@ def create_app(config=BaseConfig):
 
     app.logger.info('Flask app created')
 
+    print(f'LOG LEVEL = {app.config["LOG_LEVEL"]}')
+    
     with app.app_context():
-        app.logger.setLevel(logging.INFO)
+        app.logger.setLevel(app.config['LOG_LEVEL'])
         db.init_app(app)
         init_mail(app)
         init_template_filters(app)

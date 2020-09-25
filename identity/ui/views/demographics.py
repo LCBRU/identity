@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from functools import wraps
 from flask import (
-    render_template,
+    current_app, render_template,
     redirect,
     url_for,
     flash,
@@ -56,7 +56,11 @@ def demographics():
 
     if current_user.is_admin:
         search_form = DemographicsAdminSearchForm(formdata=request.args)
-        search_form.owner_user_id.choices = sorted([(0, 'All')] + [(u.id, u.full_name) for u in User.query.all()], key=lambda u: u[1])
+
+        submitter_ids = DemographicsRequest.query.with_entities(DemographicsRequest.owner_user_id.distinct()).filter(DemographicsRequest.owner_user_id != current_user.id).subquery()
+        submitters = sorted(User.query.filter(User.id.in_(submitter_ids)).all(), key=lambda u: u.full_name)
+
+        search_form.owner_user_id.choices = [(current_user.id, current_user.full_name)] + [(u.id, u.full_name) for u in submitters] + [(0, 'All')]
     else:
         search_form = DemographicsSearchForm(formdata=request.args)
 
@@ -73,8 +77,10 @@ def demographics():
 
 
     if current_user.is_admin:
-        if search_form.owner_user_id.data:
-            q = q.filter(DemographicsRequest.owner_user_id == search_form.owner_user_id.data)
+        owner_id = search_form.owner_user_id.data or current_user.id
+
+        if owner_id > 0:
+            q = q.filter(DemographicsRequest.owner_user_id == owner_id)
     else:
         q = q.filter(DemographicsRequest.owner == current_user)
 

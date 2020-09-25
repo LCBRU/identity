@@ -6,6 +6,7 @@ load_dotenv()
 
 
 class BaseConfig(object):
+    LOG_LEVEL = os.getenv("LOG_LEVEL", "WARNING")
     TESTING = os.getenv("TESTING", "False") == 'True'
 
     IMPORT_OLD_IDS = os.getenv("IMPORT_OLD_IDS", "True") == 'True'
