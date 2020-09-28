@@ -71,11 +71,11 @@ class GoDcmPack(LabelPack):
         substudy_sst_set = LabelSet(
             bag_context=bag_context,
             sample_context=sample_context,
-            title='GO-DCM Substudy SST Bag',
-            version='1.0',
+            title='GO-DCM Substudy EDTA 2 Bag',
+            version='1.1',
             on_ice=False,
         )
-        substudy_sst_set.add_sample(name='SST', volume='4.9')
+        substudy_sst_set.add_sample(name='EDTA', volume='2.7')
         substudy_sst_set.print()
 
         substudy_edta_set = LabelSet(
