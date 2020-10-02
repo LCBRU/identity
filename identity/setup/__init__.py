@@ -199,10 +199,8 @@ def load_legacy_pseudorandom_ids(admin):
 def load_legacy_blind_ids(admin):
     current_app.logger.info(f'Loading Blind IDs')
 
-    for bt in BlindingType.query.all():
+    for bt in BlindingType.query.filter_by(deleted = False).all():
         
-        print(f'{bt.name}: {bt.id}')
-
         if len(bt.blindings) == 0:
             current_app.logger.info(f'Loading Blind IDs of type {bt.name}')
 
