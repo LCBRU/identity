@@ -61,7 +61,7 @@ def import_ids():
     load_legacy_briccs_ids(system)
     load_legacy_bioresource_ids(system)
     load_legacy_pseudorandom_ids(system)
-    # load_legacy_blind_ids(system)
+    load_legacy_blind_ids(system)
 
 
 def load_legacy_briccs_ids(admin):
@@ -201,6 +201,8 @@ def load_legacy_blind_ids(admin):
 
     for bt in BlindingType.query.all():
         
+        print(f'{bt.name}: {bt.id}')
+
         if len(bt.blindings) == 0:
             current_app.logger.info(f'Loading Blind IDs of type {bt.name}')
 
@@ -216,6 +218,7 @@ def load_legacy_blind_ids(admin):
                     ;"""), study=bt.blinding_set.study.name, blind_id_type=bt.name)
 
                 for row in rs:
+
                     pseudo_random_id = PseudoRandomId.query.filter_by(full_code=row['blind_id']).first()
 
                     blinding = Blinding(

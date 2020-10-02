@@ -25,7 +25,7 @@ def upgrade(migrate_engine):
         Column("type", NVARCHAR(100)),
         Column("source", NVARCHAR(100)),
         Column("scope", NVARCHAR(100)),
-        Column("message", NVARCHAR(500)),
+        Column("message", NVARCHAR(1000)),
         Column("created_datetime", DateTime),
     )
     t.create()
