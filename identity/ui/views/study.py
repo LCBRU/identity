@@ -8,6 +8,7 @@ from flask import (
     current_app,
     abort,
     session,
+    Markup,
 )
 from flask_login import current_user
 from .. import blueprint, db
@@ -35,13 +36,13 @@ def blinding(id):
         db.session.add_all(ids)
         db.session.commit()
 
-        blinding_info = {
-            'blinding_set_name': blinding_set.name,
-            'unblind_id': blinding_form.id.data,
-            'blind_ids': { id.blinding_type.name:id.pseudo_random_id.full_code for id in ids },
-        }
-
-        session['blinding_info'] = blinding_info
+        flash(
+            Markup(
+                f'<strong>Blind IDs created for ID \'{blinding_form.id.data}\'</strong>'
+                '<dl>' +
+                ''.join([f'<dt>{id.blinding_type.name}</dt><dd>{id.pseudo_random_id.full_code}</dd>' for id in ids]) +
+                '</dl>'
+            ),'success')
 
     return redirect(url_for("ui.study", id=study.id))
 
@@ -85,7 +86,6 @@ def study(id, page=1):
     study = Study.query.get_or_404(id)
     blinding_form = None
     unblinding_form = None
-    blinding_info = session.pop('blinding_info', None)
 
     if study.blinding_sets:
         blinding_form = BlindingForm()
@@ -103,6 +103,5 @@ def study(id, page=1):
         study=study,
         blinding_form=blinding_form,
         unblinding_form=unblinding_form,
-        blinding_info=blinding_info,
         participants=participants,
     )
