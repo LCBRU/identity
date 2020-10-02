@@ -10,6 +10,18 @@ class Study(db.Model):
     def __str__(self):
         return self.name or ""
 
+    def get_blind_ids(self, unblind_id, user):
+        result = []
+
+        for bs in self.blinding_sets:
+            for bt in [t for t in bs.blinding_types if not t.deleted]:
+                blind_id = bt.get_blind_id(unblind_id, user)
+                if blind_id:
+                    result.append(blind_id)
+
+        return result
+
+
 
 class StudyParticipant(db.Model):
     id = db.Column(db.Integer, primary_key=True)

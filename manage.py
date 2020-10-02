@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 # Load environment variables from '.env' file.
 load_dotenv()
 
-import os
 from migrate.versioning.shell import main
 from identity.config import BaseConfig
 
