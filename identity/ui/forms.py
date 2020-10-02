@@ -56,7 +56,6 @@ class ConfirmForm(FlashingForm):
 
 class BlindingForm(FlashingForm):
     id = StringField("ID", validators=[DataRequired(), Length(max=100)])
-    blinding_set_id = SelectField('Set', coerce=int)
 
 
 class UnblindingForm(FlashingForm):

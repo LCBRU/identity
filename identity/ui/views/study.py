@@ -1,13 +1,8 @@
-import traceback
-import time
 from flask import (
     render_template,
     redirect,
     url_for,
     flash,
-    current_app,
-    abort,
-    session,
     Markup,
 )
 from flask_login import current_user
@@ -23,15 +18,11 @@ from ..decorators import assert_study_user
 @assert_study_user()
 def blinding(id):
     study = Study.query.get_or_404(id)
-    form = BlindingForm()
 
     blinding_form = BlindingForm()
-    blinding_form.blinding_set_id.choices = [(s.id, s.name) for s in sorted(study.blinding_sets, key=lambda s: s.name)]
 
     if blinding_form.validate_on_submit():        
-        blinding_set = BlindingSet.query.get_or_404(blinding_form.blinding_set_id.data)
-
-        ids = blinding_set.get_blind_ids(blinding_form.id.data, current_user)
+        ids = study.get_blind_ids(blinding_form.id.data, current_user)
 
         db.session.add_all(ids)
         db.session.commit()
@@ -89,7 +80,6 @@ def study(id, page=1):
 
     if study.blinding_sets:
         blinding_form = BlindingForm()
-        blinding_form.blinding_set_id.choices = [(s.id, s.name) for s in sorted(study.blinding_sets, key=lambda s: s.name)]
         unblinding_form = UnblindingForm()
 
     participants = StudyParticipant.query.filter_by(study_id=id).paginate(
