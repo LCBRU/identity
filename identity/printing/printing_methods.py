@@ -401,13 +401,13 @@ def bar_code_centred_x(id, label_width):
 def print_notes_label(
     label_context,
     study_a,
-    study_b,
     chief_investigator,
     chief_investigator_email,
     study_sponsor,
     iras_id,
     version,
     participant_id,
+    study_b='',
 ):
     y = _POS_TITLE_TOP
 

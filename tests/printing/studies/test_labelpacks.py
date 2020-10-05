@@ -11,6 +11,7 @@ from identity.printing.briccs import BriccsPack, BriccsKetteringPack, BriccsSamp
 from identity.printing.cae import CaePack
 from identity.printing.cardiomet import CardiometPack
 from identity.printing.cia import CiaPack
+from identity.printing.cmr_vs_ctffr import CmrVsCtffrPack
 from identity.printing.discordance import DiscordancePack
 from identity.printing.elastic_as import ElasticAsPack
 from identity.printing.fast import FastPack
@@ -91,6 +92,7 @@ def assert_id_saved(pack, id, user):
         (CaePack, True),
         (CardiometPack, True),
         (CiaPack, True),
+        (CmrVsCtffrPack, True),
         (DiscordancePack, True),
         (ElasticAsPack, True),
         (FastPack, True),

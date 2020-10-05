@@ -7,6 +7,7 @@ from .briccs import *
 from .cae import *
 from .cardiomet import *
 from .cia import *
+from .cmr_vs_ctffr import *
 from .discordance import *
 from .elastic_as import *
 from .fast import *

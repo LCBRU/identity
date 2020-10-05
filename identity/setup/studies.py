@@ -14,6 +14,7 @@ class StudyName():
     CHABLIS = 'CHABLIS'
     CIA = 'CIA'
     CMR_Guide = 'CMR Guide'
+    CMR_vs_CTFFR = 'CMR vs CT-FFR'
     COHERE = 'COHERE'
     COPD_COVID_19 = 'COPD_COVID_19'
     COPD_INTROL = 'COPD INTROL'
