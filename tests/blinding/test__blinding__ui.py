@@ -25,7 +25,7 @@ from identity.database import db
         ('SCAD'),
     ],
 )
-def test__ui_blinding_blinding(client, faker, blinding_set_name):
+def test__ui_blinding__blinding(client, faker, blinding_set_name):
     user = login(client, faker)
     add_all_studies(user)
 
