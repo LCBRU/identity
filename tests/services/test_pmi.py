@@ -15,7 +15,7 @@ def test__get_pmi_from_nhs_number__one(client, faker, mock_pmi_engine):
 
     actual = get_pmi_from_nhs_number(expected['nhs_number'])
 
-    mock_pmi_engine.return_value.__enter__.return_value.execute.assert_called_once()
+    assert mock_pmi_engine.return_value.__enter__.return_value.execute.called
 
     assert actual.nhs_number == expected['nhs_number']
     assert actual.uhl_system_number == expected['uhl_system_number']
@@ -43,7 +43,7 @@ def test__get_pmi_from_nhs_number__multiple(client, faker, mock_pmi_engine):
     with pytest.raises(Exception):
         get_pmi_from_nhs_number(faker.nhs_number())
 
-    mock_pmi_engine.return_value.__enter__.return_value.execute.assert_called_once()
+    assert mock_pmi_engine.return_value.__enter__.return_value.execute.called
 
 
 def test__get_pmi_from_uhl_system_number__one(client, faker, mock_pmi_engine):
@@ -85,7 +85,7 @@ def test__get_pmi_from_uhl_system_number__multiple(client, faker, mock_pmi_engin
 
 def test__get_pmi__nhs_found(client, faker, mock_pmi_engine):
     expected = PmiData(**faker.pmi_details(1))
-    mock_pmi_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[faker.pmi_details(1)], []]
+    mock_pmi_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[faker.pmi_details(1)], [faker.pmi_details(1)], []]
 
     actual = get_pmi(nhs_number=expected.nhs_number, uhl_system_number=expected.uhl_system_number)
 
@@ -103,7 +103,7 @@ def test__get_pmi__uhl_found(client, faker, mock_pmi_engine):
 
 def test__get_pmi__neither_found(client, faker, mock_pmi_engine):
     expected = PmiData(**faker.pmi_details(1))
-    mock_pmi_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[], []]
+    mock_pmi_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[], [], []]
 
     actual = get_pmi(nhs_number=expected.nhs_number, uhl_system_number=expected.uhl_system_number)
 
@@ -128,7 +128,7 @@ def test__get_pmi__uhl_multiple(client, faker, mock_pmi_engine):
 
 def test__get_pmi__differ(client, faker, mock_pmi_engine):
     expected = PmiData(**faker.pmi_details(1))
-    mock_pmi_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[faker.pmi_details(1)], [faker.pmi_details(2)]]
+    mock_pmi_engine.return_value.__enter__.return_value.execute.return_value.fetchall.side_effect = [[faker.pmi_details(1)], [faker.pmi_details(2)], [faker.pmi_details(3)]]
 
     with pytest.raises(PmiException):
         get_pmi(nhs_number=expected.nhs_number, uhl_system_number=expected.uhl_system_number)

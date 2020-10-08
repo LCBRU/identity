@@ -50,11 +50,56 @@ def get_pmi(nhs_number=None, uhl_system_number=None):
 
 
 def get_pmi_from_nhs_number(nhs_number):
-    return _get_pmi_details_from(nhs_number, 'UHL_PMI_QUERY_BY_NHS_NUMBER')
+    if not nhs_number:
+        return None
+
+    with pmi_engine() as conn:
+        system_numbers = conn.execute(text("""
+            SELECT
+                main_pat_id as uhl_system_number
+            FROM [dbo].[UHL_PMI_QUERY_BY_NHS_NUMBER](:id)
+            """), id=id).fetchall()
+
+        pmi_records = {}
+
+        for s in system_numbers:
+            p = get_pmi_from_uhl_system_number(s['uhl_system_number'])
+
+            if p and p.uhl_system_number is not None:
+                pmi_records[p.uhl_system_number] = p
+
+        if len(pmi_records) > 1:
+            raise Exception(f"More than one participant found with id='{id}' in the UHL PMI")
+
+        if len(pmi_records.values()) == 1:
+            return next(iter(pmi_records.values()))
 
 
-def get_pmi_from_uhl_system_number(nhs_number):
-    return _get_pmi_details_from(nhs_number, 'UHL_PMI_QUERY_BY_ID')
+def get_pmi_from_uhl_system_number(uhl_system_number):
+    if not uhl_system_number:
+        return None
+
+    with pmi_engine() as conn:
+        pmi_records = conn.execute(text("""
+            SELECT
+                nhs_number,
+                main_pat_id as uhl_system_number,
+                last_name as family_name,
+                first_name as given_name,
+                gender,
+                dob as date_of_birth,
+                date_of_death,
+                postcode
+            FROM [dbo].[UHL_PMI_QUERY_BY_ID](:id)
+            """), id=id).fetchall()
+
+        if len(pmi_records) > 1:
+            raise Exception(f"More than one participant found with id='{id}' in the UHL PMI")
+
+        if len(pmi_records) == 1 and pmi_records[0]['uhl_system_number'] is not None:
+            pmi_record = pmi_records[0]
+
+            return PmiData(**pmi_record)
 
 
 def _get_pmi_details_from(id, function):
@@ -72,7 +117,7 @@ def _get_pmi_details_from(id, function):
                 dob as date_of_birth,
                 date_of_death,
                 postcode
-            FROM [dbo].[{function}](:id)
+            FROM [dbo].[UHL_PMI_QUERY_BY_ID](:id)
             """), id=id).fetchall()
 
         if len(pmi_records) > 1:
