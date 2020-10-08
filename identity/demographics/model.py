@@ -184,11 +184,11 @@ class DemographicsRequest(db.Model):
             return 'Awaiting Submission'
         elif not self.data_extracted:
             return f'Extracting Data'
-        elif not self.pmi_data_pre_completed:
+        elif not self.pmi_data_pre_completed and not self.skip_pmi:
             return f'Fetching PMI details {self.prepmi_count} of {self.data_count} before spine lookup'
         elif not self.lookup_completed:
             return f'Fetching Demographics {self.fetched_count} of {self.data_count}'
-        elif not self.pmi_data_post_completed:
+        elif not self.pmi_data_post_completed and not self.skip_pmi:
             return f'Fetching PMI details {self.postpmi_count} of {self.data_count} after spine lookup'
         elif not self.result_created:
             return 'Processing Demographics'
