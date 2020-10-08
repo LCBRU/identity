@@ -58,7 +58,7 @@ def get_pmi_from_nhs_number(nhs_number):
             SELECT
                 main_pat_id as uhl_system_number
             FROM [dbo].[UHL_PMI_QUERY_BY_NHS_NUMBER](:id)
-            """), id=id).fetchall()
+            """), id=nhs_number).fetchall()
 
         pmi_records = {}
 
@@ -69,7 +69,7 @@ def get_pmi_from_nhs_number(nhs_number):
                 pmi_records[p.uhl_system_number] = p
 
         if len(pmi_records) > 1:
-            raise Exception(f"More than one participant found with id='{id}' in the UHL PMI")
+            raise Exception(f"More than one participant found with id='{nhs_number}' in the UHL PMI")
 
         if len(pmi_records.values()) == 1:
             return next(iter(pmi_records.values()))
@@ -91,10 +91,10 @@ def get_pmi_from_uhl_system_number(uhl_system_number):
                 date_of_death,
                 postcode
             FROM [dbo].[UHL_PMI_QUERY_BY_ID](:id)
-            """), id=id).fetchall()
+            """), id=uhl_system_number).fetchall()
 
         if len(pmi_records) > 1:
-            raise Exception(f"More than one participant found with id='{id}' in the UHL PMI")
+            raise Exception(f"More than one participant found with id='{uhl_system_number}' in the UHL PMI")
 
         if len(pmi_records) == 1 and pmi_records[0]['uhl_system_number'] is not None:
             pmi_record = pmi_records[0]
