@@ -67,7 +67,9 @@
                                 <span class="input-group-text fas fa-question-circle"></span>
                             </span>
                         </div>
-
+                        <div class="input-group mb-2">
+                            {{ formhelper.render_field(form.skip_pmi) }}
+                        </div>
                         {{ formhelper.render_button_bar(submit_label="Upload") }}
                     </form>
                 </div>

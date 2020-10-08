@@ -52,11 +52,11 @@ def schedule_lookup_tasks(demographics_request_id):
 
         if not dr.data_extracted:
             extract_data.delay(demographics_request_id)
-        elif not dr.pmi_data_pre_completed:
+        elif not dr.pmi_data_pre_completed and not dr.skip_pmi:
             extract_pre_pmi_details.delay(demographics_request_id)
         elif not dr.lookup_completed:
             process_demographics_request_data.delay(demographics_request_id)
-        elif not dr.pmi_data_post_completed:
+        elif not dr.pmi_data_post_completed and not dr.skip_pmi:
             extract_post_pmi_details.delay(demographics_request_id)
         elif not dr.result_created_datetime:
             produce_demographics_result.delay(demographics_request_id)

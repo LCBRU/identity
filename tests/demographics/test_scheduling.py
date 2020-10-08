@@ -179,6 +179,33 @@ def test__schedule_lookup_tasks__extracted(
     _remove_files(dr)
 
 
+def test__schedule_lookup_tasks__extracted__skip_pmi(
+    client,
+    faker,
+    mock_process_demographics_request_data,
+    mock_extract_data,
+    mock_produce_demographics_result,
+    mock_extract_pre_pmi_details,
+    mock_extract_post_pmi_details,
+    mock_log_exception,
+):
+
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u, skip_pmi=True)
+    dr = dth.get_demographics_request__pre_pmi_lookup()
+
+    schedule_lookup_tasks(dr.id)
+
+    mock_extract_data.delay.assert_not_called()
+    mock_extract_pre_pmi_details.delay.assert_not_called()
+    mock_process_demographics_request_data.delay.assert_called_once_with(dr.id)
+    mock_extract_post_pmi_details.delay.assert_not_called()
+    mock_produce_demographics_result.delay.assert_not_called()
+    mock_log_exception.assert_not_called()
+
+    _remove_files(dr)
+
+
 def test__schedule_lookup_tasks__got_pre_pmi(
     client,
     faker,
@@ -228,6 +255,33 @@ def test__schedule_lookup_tasks__spine_looked_up(
     mock_process_demographics_request_data.delay.assert_not_called()
     mock_extract_post_pmi_details.delay.assert_called_once_with(dr.id)
     mock_produce_demographics_result.delay.assert_not_called()
+    mock_log_exception.assert_not_called()
+
+    _remove_files(dr)
+
+
+def test__schedule_lookup_tasks__spine_looked_up__skip_pmi(
+    client,
+    faker,
+    mock_process_demographics_request_data,
+    mock_extract_data,
+    mock_produce_demographics_result,
+    mock_extract_pre_pmi_details,
+    mock_extract_post_pmi_details,
+    mock_log_exception,
+):
+
+    u = login(client, faker)
+    dth = DemographicsTestHelper(faker=faker, user=u, skip_pmi=True)
+    dr = dth.get_demographics_request__post_pmi_lookup()
+
+    schedule_lookup_tasks(dr.id)
+
+    mock_extract_data.delay.assert_not_called()
+    mock_extract_pre_pmi_details.delay.assert_not_called()
+    mock_process_demographics_request_data.delay.assert_not_called()
+    mock_extract_post_pmi_details.delay.assert_not_called()
+    mock_produce_demographics_result.delay.assert_called_once_with(dr.id)
     mock_log_exception.assert_not_called()
 
     _remove_files(dr)

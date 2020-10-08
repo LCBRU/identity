@@ -72,7 +72,33 @@ def test__ui_demographics_upload_xslx_invalid(client, faker):
     )
 
 
-def _test__ui_demographics_upload(client, faker, content, extension, headers):
+def test__ui_demographics_upload_csv__skip_pmi(client, faker):
+    headers = faker.column_headers(10)
+
+    _test__ui_demographics_upload(
+        client,
+        faker,
+        content=faker.csv_string(headers=headers).encode('utf-8'),
+        extension='csv',
+        headers=headers,
+        skip_pmi=True,
+    )
+
+
+def test__ui_demographics_upload_xslx__skip_pmi(client, faker):
+    headers = faker.column_headers(10)
+
+    _test__ui_demographics_upload(
+        client,
+        faker,
+        content=faker.xslx_data(headers=headers),
+        extension='xlsx',
+        headers=headers,
+        skip_pmi=True,
+    )
+
+
+def _test__ui_demographics_upload(client, faker, content, extension, headers, skip_pmi=False):
     user = login(client, faker)
 
     filename = faker.file_name(extension=extension)
@@ -84,9 +110,12 @@ def _test__ui_demographics_upload(client, faker, content, extension, headers):
         )
     }
 
+    if skip_pmi:
+        data['skip_pmi'] = 'True'
+
     response = do_upload(client, data)
 
-    dr = assert_uploaded_file(user, filename, content, headers)
+    dr = assert_uploaded_file(user, filename, content, headers, skip_pmi)
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics_define_columns', id=dr.id, _external=True)

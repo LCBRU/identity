@@ -4,7 +4,6 @@ import contextlib
 import os
 import pytest
 import datetime
-from dateutil.parser import parse
 from identity.demographics.model import (
     DemographicsRequest,
 )

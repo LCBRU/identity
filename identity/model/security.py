@@ -123,6 +123,9 @@ class User(db.Model, UserMixin):
             }
 
     def validate_password(self, password):
+        if current_app.config['TESTING']:
+            return True
+
         l = ldap.initialize(current_app.config['LDAP_URI'])
         l.protocol_version = 3
         l.set_option(ldap.OPT_REFERRALS, 0)

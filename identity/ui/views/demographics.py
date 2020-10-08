@@ -96,18 +96,21 @@ def demographics():
                 owner=current_user,
                 last_updated_by_user=current_user,
                 filename=form.upload.data.filename,
+                skip_pmi=form.skip_pmi.data,
             )
         elif file_extension == '.xlsx':
             d = DemographicsRequestXlsx(
                 owner=current_user,
                 last_updated_by_user=current_user,
                 filename=form.upload.data.filename,
+                skip_pmi=form.skip_pmi.data,
             )
         elif file_extension == '.xls':
             d = DemographicsRequestExcel97(
                 owner=current_user,
                 last_updated_by_user=current_user,
                 filename=form.upload.data.filename,
+                skip_pmi=form.skip_pmi.data,
             )
 
         db.session.add(d)

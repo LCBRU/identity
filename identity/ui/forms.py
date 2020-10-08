@@ -72,6 +72,7 @@ class DemographicsLookupForm(FlashingForm):
         ],
         validators=[FileRequired()]
     )
+    skip_pmi = BooleanField('Skip PMI')
 
 class DemographicsDefineColumnsForm(FlashingForm):
     uhl_system_number_column_id = SelectField('UHL System Number', coerce=int)

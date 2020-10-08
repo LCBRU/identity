@@ -61,6 +61,7 @@ class DemographicsRequest(db.Model):
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User, foreign_keys=[last_updated_by_user_id])
     column_definition = db.relationship("DemographicsRequestColumnDefinition", uselist=False, back_populates="demographics_request")
+    skip_pmi = db.Column(db.Boolean, default=False)
 
     __mapper_args__ = {
         "polymorphic_on": extension,

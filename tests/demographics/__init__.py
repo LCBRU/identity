@@ -127,7 +127,7 @@ def mock_extract_post_pmi_details(app):
         yield mock
 
 
-def assert_uploaded_file(user, filename, content, headers):
+def assert_uploaded_file(user, filename, content, headers, skip_pmi):
     dr = DemographicsRequest.query.filter(
         DemographicsRequest.filename == filename
         and DemographicsRequest.owner == user
@@ -135,6 +135,7 @@ def assert_uploaded_file(user, filename, content, headers):
 
     assert dr
     assert len(dr.columns) == len(headers)
+    assert dr.skip_pmi == skip_pmi
 
     for h in headers:
         assert DemographicsRequestColumn.query.filter(
@@ -268,7 +269,7 @@ def do_upload_data(client, faker, data, extension='csv'):
 
 class DemographicsTestHelper():
 
-    def __init__(self, faker, user, extension='csv', row_count=1, include_data_errors=False, column_headings=None, find_pre_pmi_details=True, find_post_pmi_details=True):
+    def __init__(self, faker, user, extension='csv', row_count=1, include_data_errors=False, column_headings=None, find_pre_pmi_details=True, find_post_pmi_details=True, skip_pmi=False):
         self._faker = faker
         self._user = user
         self._extension = extension
@@ -277,6 +278,7 @@ class DemographicsTestHelper():
         self._filename = self._faker.file_name(extension=self._extension)
         self._find_pre_pmi_details = find_pre_pmi_details
         self._find_post_pmi_details = find_post_pmi_details
+        self._skip_pmi = skip_pmi
 
         if column_headings is None:
             self._column_headings = ['uhl_system_number', 'nhs_number', 'family_name', 'given_name', 'gender', 'date_of_birth', 'postcode']
@@ -482,6 +484,7 @@ class DemographicsTestHelper():
             owner=self._user,
             last_updated_by_user=self._user,
             filename=self._filename,
+            skip_pmi=self._skip_pmi,
         )
 
         db.session.add(result)
@@ -507,6 +510,7 @@ class DemographicsTestHelper():
             owner=self._user,
             last_updated_by_user=self._user,
             filename=self._filename,
+            skip_pmi=self._skip_pmi,
         )
 
         db.session.add(result)
@@ -539,6 +543,7 @@ class DemographicsTestHelper():
             owner=self._user,
             last_updated_by_user=self._user,
             filename=self._filename,
+            skip_pmi=self._skip_pmi,
         )
 
         db.session.add(result)

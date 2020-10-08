@@ -109,3 +109,4 @@ database.sqlite3
 upload/
 .vscode
 celerybeat.pid
+identity/tests
