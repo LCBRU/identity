@@ -47,8 +47,8 @@ class BaseConfig(object):
     FILE_UPLOAD_DIRECTORY = os.environ["FILE_UPLOAD_DIRECTORY"]
 
     # Celery Settings
-    broker_url=os.environ["BROKER_URL"]
-    result_backend=os.environ["CELERY_RESULT_BACKEND"]
+    BROKER_URL=os.environ["BROKER_URL"]
+    CELERY_RESULT_BACKEND=os.environ["CELERY_RESULT_BACKEND"]
     CELERY_RATE_LIMIT=os.environ["CELERY_RATE_LIMIT"]
     CELERY_REDIRECT_STDOUTS_LEVEL=os.environ["CELERY_REDIRECT_STDOUTS_LEVEL"]
     CELERY_DEFAULT_QUEUE=os.environ["CELERY_DEFAULT_QUEUE"]
@@ -83,7 +83,7 @@ class TestConfig(BaseConfig):
     SQLALCHEMY_ECHO = False
     PRINTING_SET_SLEEP=0
     FILE_UPLOAD_DIRECTORY = os.path.join(BaseConfig.BASE_DIR, "tests", "file_uploads")
-    broker_url=os.environ["BROKER_URL"] + '/test'
+    BROKER_URL=os.environ["BROKER_URL"] + '/test'
 
 
 class TestConfigCRSF(TestConfig):
