@@ -120,7 +120,7 @@ class ParticipantImporter():
 
     def __init__(self):
         self.user = get_system_user()
-        self.id_types = {pt.name: pt.id for pt in ParticipantIdentifierType.query.all()}
+        self.id_types = {pt.name.lower(): pt.id for pt in ParticipantIdentifierType.query.all()}
 
     def run(self):
         timestamps = self.get_max_timestamps()
@@ -198,13 +198,13 @@ class ParticipantImporter():
             i = id_cache[idkey]
         else:
             i = ParticipantIdentifier.query.filter_by(
-                participant_identifier_type_id=self.id_types[id['type']],
+                participant_identifier_type_id=self.id_types[id['type'].lower()],
                 identifier=id['identifier'],
             ).one_or_none()
 
             if i is None:
                 i = ParticipantIdentifier(
-                    participant_identifier_type_id=self.id_types[id['type']],
+                    participant_identifier_type_id=self.id_types[id['type'].lower()],
                     identifier=id['identifier'],
                     last_updated_by_user_id=self.user.id,
                 )
