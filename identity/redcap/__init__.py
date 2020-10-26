@@ -33,13 +33,13 @@ def setup_import_tasks(sender, **kwargs):
         ),
         import_project_details.s(),
     )
-    # sender.add_periodic_task(
-    #     crontab(
-    #         minute=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_MINUTE'],
-    #         hour=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_HOUR'],
-    #     ),
-    #     import_participants.s(),
-    # )
+    sender.add_periodic_task(
+        crontab(
+            minute=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_MINUTE'],
+            hour=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_HOUR'],
+        ),
+        import_participants.s(),
+    )
 
 
 lock = multiprocessing.Lock()
@@ -177,7 +177,7 @@ class ParticipantImporter():
             self.add_identifiers(ecrf, pid, participant, id_cache)
             
             ecrfs.append(ecrf)
-                
+
         db.session.add_all(ecrfs)
 
         current_app.logger.info(f'Importing Participants: study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}". Imported {len(ecrfs)} records')
