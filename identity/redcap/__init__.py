@@ -33,13 +33,13 @@ def setup_import_tasks(sender, **kwargs):
         ),
         import_project_details.s(),
     )
-    # sender.add_periodic_task(
-    #     crontab(
-    #         minute=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_MINUTE'],
-    #         hour=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_HOUR'],
-    #     ),
-    #     import_participants.s(),
-    # )
+    sender.add_periodic_task(
+        crontab(
+            minute=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_MINUTE'],
+            hour=current_app.config['REDCAP_PARTICIPANTS_SCHEDULE_HOUR'],
+        ),
+        import_participants.s(),
+    )
 
 
 lock = multiprocessing.Lock()
@@ -124,6 +124,7 @@ class ParticipantImporter():
 
     def run(self):
         timestamps = self.get_max_timestamps()
+        id_cache = {}
 
         for ri in RedcapInstance.query.all():
             with redcap_engine(ri.database_name) as conn:
@@ -138,7 +139,7 @@ class ParticipantImporter():
                         if new_ts > ts:
                             current_app.logger.info(f'Existing timestamps {ts}; New timestamp {new_ts}')
 
-                            self._load_participants(pid, conn, ts)
+                            self._load_participants(pid, conn, ts, id_cache)
 
                         db.session.commit()
 
@@ -146,11 +147,10 @@ class ParticipantImporter():
                         log_exception(e)
 
 
-    def _load_participants(self, pid, conn, max_timestamp):
+    def _load_participants(self, pid, conn, max_timestamp, id_cache):
         current_app.logger.info(f'Importing Participants: pidid="{pid.id}" study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}".')
 
         ecrfs = []
-        id_cache = {}
 
         participants = conn.execute(
             text(pid.get_query()),
@@ -192,7 +192,7 @@ class ParticipantImporter():
 
     
     def get_or_create_id(self, id, id_cache):
-        idkey = frozenset(id.items())
+        idkey = frozenset([id['type'].lower(), id['identifier'].lower()])
 
         if idkey in id_cache:
             i = id_cache[idkey]
