@@ -2,15 +2,15 @@ from datetime import datetime
 from unittest.mock import patch
 
 from identity.database import db
-from identity.redcap import (ProjectImporter, RedcapProject, import_project_details)
-from identity.redcap.model import RedcapInstance
+from identity.etl import (ProjectImporter, RedcapProject, import_project_details)
+from identity.etl.model import RedcapInstance
 from identity.security import get_system_user
 
 
 def _run_import(records):
     out = ProjectImporter()
 
-    with patch('identity.redcap.redcap_engine') as mock__redcap_engine:
+    with patch('identity.etl.redcap_engine') as mock__redcap_engine:
 
         mock__redcap_engine.return_value.__enter__.return_value.execute.side_effect = records
 

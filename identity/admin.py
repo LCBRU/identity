@@ -12,7 +12,7 @@ from identity.model.security import (
 from wtforms.validators import Required, ValidationError
 from identity.model import Study
 from identity.api.model import ApiKey
-from identity.redcap.model import (
+from identity.etl.model import (
     RedcapInstance,
     RedcapProject,
     ParticipantImportDefinition,
