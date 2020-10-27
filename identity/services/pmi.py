@@ -1,6 +1,5 @@
 import typing
 import datetime
-from flask import current_app
 from sqlalchemy.sql import text
 from identity.database import pmi_engine
 

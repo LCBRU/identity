@@ -22,21 +22,35 @@ class RedcapInstance(db.Model):
         return self.name
 
 
-class RedcapProject(db.Model):
+class EcrfSource(db.Model):
+    __tablename__ = 'ecrf_source'
+
     id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(100), nullable=False)
     name = db.Column(db.String(100))
-    project_id = db.Column(db.Integer, nullable=False)
-    redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
-    redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
     last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)
 
-    def __repr__(self):
-        return f'<Project: "{self.name}" from instance "{self.redcap_instance.name}">'
+    __mapper_args__ = {
+        'polymorphic_identity':'ecrf_source',
+        'polymorphic_on':type,
+    }
 
     def __str__(self):
         return self.name
+
+
+class RedcapProject(EcrfSource):
+
+    __tablename__ = 'redcap_project'
+    __mapper_args__ = {
+        'polymorphic_identity':'redcap_project',
+    }
+
+    project_id = db.Column(db.Integer, nullable=False)
+    redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
+    redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
 
     def get_link(self, record_id):
         return "/".join(map(lambda x: str(x).rstrip('/'), [
@@ -86,6 +100,9 @@ class RedcapProject(db.Model):
                 {ins}
             GROUP BY rl.pk, rl.project_id
         """
+
+    def __repr__(self):
+        return f'<Project: "{self.name}" from instance "{self.redcap_instance.name}">'
 
 
 class ParticipantImportDefinition(db.Model):
