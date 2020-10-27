@@ -9,7 +9,7 @@ def upgrade(migrate_engine):
             from ecrf_source es 
             where es.redcap_project_id = redcap_project.id
         )
-    );
+    ;
 
     """)
 
