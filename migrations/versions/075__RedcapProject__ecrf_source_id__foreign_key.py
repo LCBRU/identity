@@ -22,6 +22,8 @@ def upgrade(migrate_engine):
 
 
 def downgrade(migrate_engine):
+    meta.bind = migrate_engine
+
     t = Table("redcap_project", meta, autoload=True)
     e = Table("ecrf_source", meta, autoload=True)
 
