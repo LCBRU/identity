@@ -44,6 +44,49 @@ class RedcapProject(db.Model):
             f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
         ))
 
+    def get_query(self, pid):
+        group_concat_cols = ", ".join(
+            f"GROUP_CONCAT(DISTINCT CASE WHEN field_name = '{f}' THEN VALUE ELSE NULL END) AS {f}"
+            for f in pid.get_fields() if f not in ['record', 'last_update_timestamp', 'project_id']
+        )
+
+        if len(group_concat_cols) > 0:
+            group_concat_cols += ','
+
+        ins = ", ".join((f"'{f}'" for f in pid.get_fields()))
+
+        if len(ins) > 0:
+            ins = f'AND rd.field_name IN ({ins})'
+
+        return f"""
+            SELECT
+                rl.project_id,
+                rl.pk AS record,
+                {group_concat_cols}
+                rl.last_update_timestamp AS last_update_timestamp
+            FROM (
+                SELECT
+                    pk,
+                    project_id,
+                    MAX(COALESCE(ts, 0)) AS last_update_timestamp
+                FROM redcap_log_event
+		        WHERE event IN ('INSERT', 'UPDATE')
+                    # Ignore events caused by the data import from
+                    # the mobile app
+                    AND page NOT IN ('DataImportController:index')
+                    AND project_id = :project_id
+                    AND object_type = 'redcap_data'
+                    AND ts > :timestamp
+                    AND LENGTH(RTRIM(LTRIM(COALESCE(pk, '')))) > 0
+                GROUP BY pk, project_id
+            ) rl
+            LEFT JOIN redcap_data rd
+				ON rl.project_id = rd.project_id
+                AND rl.pk = rd.record
+                {ins}
+            GROUP BY rl.pk, rl.project_id
+        """
+
 
 class ParticipantImportDefinition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -176,7 +219,7 @@ class ParticipantImportDefinition(db.Model):
         else:
             self.identities_map = ','.join([f'{k}:{v}' for k, v in map.items()])
 
-    def _get_fields(self):
+    def get_fields(self):
         return filter(None, set([
             self.recruitment_date_column_name,
             self.first_name_column_name,
@@ -196,47 +239,7 @@ class ParticipantImportDefinition(db.Model):
         ]))
 
     def get_query(self):
-        group_concat_cols = ", ".join(
-            f"GROUP_CONCAT(DISTINCT CASE WHEN field_name = '{f}' THEN VALUE ELSE NULL END) AS {f}"
-            for f in self._get_fields() if f not in ['record', 'last_update_timestamp', 'project_id']
-        )
-
-        if len(group_concat_cols) > 0:
-            group_concat_cols += ','
-
-        ins = ", ".join((f"'{f}'" for f in self._get_fields()))
-
-        if len(ins) > 0:
-            ins = f'AND rd.field_name IN ({ins})'
-
-        return f"""
-            SELECT
-                rl.project_id,
-                rl.pk AS record,
-                {group_concat_cols}
-                rl.last_update_timestamp AS last_update_timestamp
-            FROM (
-                SELECT
-                    pk,
-                    project_id,
-                    MAX(COALESCE(ts, 0)) AS last_update_timestamp
-                FROM redcap_log_event
-		        WHERE event IN ('INSERT', 'UPDATE')
-                    # Ignore events caused by the data import from
-                    # the mobile app
-                    AND page NOT IN ('DataImportController:index')
-                    AND project_id = :project_id
-                    AND object_type = 'redcap_data'
-                    AND ts > :timestamp
-                    AND LENGTH(RTRIM(LTRIM(COALESCE(pk, '')))) > 0
-                GROUP BY pk, project_id
-            ) rl
-            LEFT JOIN redcap_data rd
-				ON rl.project_id = rd.project_id
-                AND rl.pk = rd.record
-                {ins}
-            GROUP BY rl.pk, rl.project_id
-        """
+        return self.redcap_project.get_query(self)
 
     def fill_ecrf(self, participant_details, existing_ecrf):
         if existing_ecrf is None:
