@@ -7,7 +7,6 @@ from sqlalchemy import (
     DateTime,
     NVARCHAR,
 )
-from sqlalchemy.schema import ForeignKeyConstraint
 
 meta = MetaData()
 
