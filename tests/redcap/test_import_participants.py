@@ -94,10 +94,10 @@ def _get_participant_import_definition(*args, **kwargs):
 
 
 def _run_import_test(record, expected, new_timestamps=None):
-    with patch('identity.etl.redcap_engine') as mock__redcap_engine, patch('identity.etl.get_new_timestamps') as mock__get_new_timestamps:
+    with patch('identity.etl.redcap_engine') as mock__redcap_engine, patch('identity.etl.model.RedcapInstance.get_newest_timestamps') as mock__get_newest_timestamps:
 
         mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [record]
-        mock__get_new_timestamps.return_value = new_timestamps or {1: 10}
+        mock__get_newest_timestamps.return_value = new_timestamps or {1: 10}
 
         before = datetime.utcnow()
         
