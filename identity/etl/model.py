@@ -2,7 +2,7 @@ from sqlalchemy import func
 from identity.services.validators import parse_date_or_none
 from flask import current_app
 from identity.model.id import ParticipantIdentifierSource
-from identity.database import db
+from identity.database import db, redcap_engine
 from datetime import datetime
 from identity.database import db
 from identity.model import Study
@@ -21,6 +21,21 @@ class RedcapInstance(db.Model):
 
     def __str__(self):
         return self.name
+
+    def get_newest_timestamps(self):
+        with redcap_engine(self.database_name) as conn:
+            return {r['project_id']: r['ts'] for r in conn.execute('''
+                SELECT
+                    project_id,
+                    MAX(COALESCE(ts, 0)) AS ts
+                FROM redcap_log_event
+                WHERE event IN ('INSERT', 'UPDATE')
+                    # Ignore events caused by the data import from
+                    # the mobile app
+                    AND page NOT IN ('DataImportController:index')
+                    AND object_type = 'redcap_data'
+                GROUP BY project_id
+            ''')}
 
 
 class EcrfSource(db.Model):

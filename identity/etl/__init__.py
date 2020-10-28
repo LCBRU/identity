@@ -126,9 +126,9 @@ class ParticipantImporter():
         id_cache = {}
 
         for ri in RedcapInstance.query.all():
-            with redcap_engine(ri.database_name) as conn:
+            new_time_stamps = ri.get_newest_timestamps()
 
-                new_time_stamps = get_new_timestamps(conn)
+            with redcap_engine(ri.database_name) as conn:
 
                 for pid in ParticipantImportDefinition.query.join(ParticipantImportDefinition.redcap_project).filter(RedcapProject.redcap_instance_id==ri.id).all():
                     try:
@@ -211,19 +211,3 @@ class ParticipantImporter():
             id_cache[idkey] = i
         
         return i
-
-
-def get_new_timestamps(conn):
-    return {r['project_id']: r['ts'] for r in conn.execute('''
-        SELECT
-            project_id,
-            MAX(COALESCE(ts, 0)) AS ts
-        FROM redcap_log_event
-        WHERE event IN ('INSERT', 'UPDATE')
-            # Ignore events caused by the data import from
-            # the mobile app
-            AND page NOT IN ('DataImportController:index')
-            AND object_type = 'redcap_data'
-        GROUP BY project_id
-    ''')}
-
