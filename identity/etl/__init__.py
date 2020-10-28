@@ -48,12 +48,14 @@ lock = multiprocessing.Lock()
 def import_participants():
     current_app.logger.warning('REDCap participant import: waiting for lock')
     with lock:
+        start = datetime.utcnow()
         current_app.logger.warning('Importing REDCap particiapnts')
 
         p = ParticipantImporter()
         p.run()
 
-        current_app.logger.warning('Importing REDCap particiapnts - Done')
+        duration = datetime.utcnow() - start
+        current_app.logger.warning(f'Importing REDCap particiapnts - Done in {duration}')
 
 
 @celery.task
@@ -125,25 +127,40 @@ class ParticipantImporter():
         timestamps = EcrfDetail.get_max_timestamps()
         id_cache = {}
 
-        for ri in RedcapInstance.query.all():
-            new_time_stamps = ri.get_newest_timestamps()
+        for pid in ParticipantImportDefinition.query.all():
+            try:
+                ts = timestamps.get(pid.id, 0)
+                new_ts = pid.redcap_project.get_newest_timestamp()
 
-            with redcap_engine(ri.database_name) as conn:
+                if new_ts > ts:
+                    current_app.logger.info(f'Existing timestamps {ts}; New timestamp {new_ts}')
 
-                for pid in ParticipantImportDefinition.query.join(ParticipantImportDefinition.redcap_project).filter(RedcapProject.redcap_instance_id==ri.id).all():
-                    try:
-                        ts = timestamps.get(pid.id, 0)
-                        new_ts = new_time_stamps.get(pid.redcap_project.project_id, -1)
+                    with redcap_engine(pid.redcap_project.redcap_instance.database_name) as conn:
+                        self._load_participants(pid, conn, ts, id_cache)
 
-                        if new_ts > ts:
-                            current_app.logger.info(f'Existing timestamps {ts}; New timestamp {new_ts}')
+                db.session.commit()
 
-                            self._load_participants(pid, conn, ts, id_cache)
+            except Exception as e:
+                log_exception(e)
 
-                        db.session.commit()
 
-                    except Exception as e:
-                        log_exception(e)
+        # for ri in RedcapInstance.query.all():
+        #     with redcap_engine(ri.database_name) as conn:
+
+        #         for pid in ParticipantImportDefinition.query.join(ParticipantImportDefinition.redcap_project).filter(RedcapProject.redcap_instance_id==ri.id).all():
+        #             try:
+        #                 ts = timestamps.get(pid.id, 0)
+        #                 new_ts = pid.redcap_project.get_newest_timestamp()
+
+        #                 if new_ts > ts:
+        #                     current_app.logger.info(f'Existing timestamps {ts}; New timestamp {new_ts}')
+
+        #                     self._load_participants(pid, conn, ts, id_cache)
+
+        #                 db.session.commit()
+
+        #             except Exception as e:
+        #                 log_exception(e)
 
 
     def _load_participants(self, pid, conn, max_timestamp, id_cache):

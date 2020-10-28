@@ -1,4 +1,6 @@
 from sqlalchemy import func
+from sqlalchemy.sql import text
+from memoization import cached
 from identity.services.validators import parse_date_or_none
 from flask import current_app
 from identity.model.id import ParticipantIdentifierSource
@@ -7,35 +9,6 @@ from datetime import datetime
 from identity.database import db
 from identity.model import Study
 from identity.model.security import User
-
-
-class RedcapInstance(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    database_name = db.Column(db.String(100), nullable=False)
-    base_url = db.Column(db.String(500), nullable=False)
-    version = db.Column(db.String(10), nullable=False)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
-
-    def __str__(self):
-        return self.name
-
-    def get_newest_timestamps(self):
-        with redcap_engine(self.database_name) as conn:
-            return {r['project_id']: r['ts'] for r in conn.execute('''
-                SELECT
-                    project_id,
-                    MAX(COALESCE(ts, 0)) AS ts
-                FROM redcap_log_event
-                WHERE event IN ('INSERT', 'UPDATE')
-                    # Ignore events caused by the data import from
-                    # the mobile app
-                    AND page NOT IN ('DataImportController:index')
-                    AND object_type = 'redcap_data'
-                GROUP BY project_id
-            ''')}
 
 
 class EcrfSource(db.Model):
@@ -57,6 +30,36 @@ class EcrfSource(db.Model):
         return self.name
 
 
+class RedcapInstance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    database_name = db.Column(db.String(100), nullable=False)
+    base_url = db.Column(db.String(500), nullable=False)
+    version = db.Column(db.String(10), nullable=False)
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    def __str__(self):
+        return self.name
+
+    @cached(ttl=30)
+    def get_newest_timestamps(self):
+        with redcap_engine(self.database_name) as conn:
+            return {r['project_id']: r['ts'] for r in conn.execute('''
+                SELECT
+                    project_id,
+                    MAX(COALESCE(ts, 0)) AS ts
+                FROM redcap_log_event
+                WHERE event IN ('INSERT', 'UPDATE')
+                    # Ignore events caused by the data import from
+                    # the mobile app
+                    AND page NOT IN ('DataImportController:index')
+                    AND object_type = 'redcap_data'
+                GROUP BY project_id
+            ''')}
+
+
 class RedcapProject(EcrfSource):
 
     __tablename__ = 'redcap_project'
@@ -74,6 +77,9 @@ class RedcapProject(EcrfSource):
             self.redcap_instance.base_url,
             f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
         ))
+
+    def get_newest_timestamp(self):
+        return self.redcap_instance.get_newest_timestamps().get(self.project_id, -1)
 
     def get_query(self, pid):
         group_concat_cols = ", ".join(
