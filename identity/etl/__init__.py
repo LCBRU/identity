@@ -1,7 +1,6 @@
 from datetime import datetime
 from celery.schedules import crontab
 from flask import current_app
-from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import text
 from sqlalchemy import func
 from identity.celery import celery
@@ -123,7 +122,7 @@ class ParticipantImporter():
         self.id_types = {pt.name.lower(): pt.id for pt in ParticipantIdentifierType.query.all()}
 
     def run(self):
-        timestamps = self.get_max_timestamps()
+        timestamps = EcrfDetail.get_max_timestamps()
         id_cache = {}
 
         for ri in RedcapInstance.query.all():
@@ -212,13 +211,6 @@ class ParticipantImporter():
             id_cache[idkey] = i
         
         return i
-            
-
-    def get_max_timestamps(self):
-        return {x[0]: x[1] for x in db.session.query(
-                EcrfDetail.participant_import_definition_id,
-                func.max(EcrfDetail.ecrf_timestamp),
-            ).group_by(EcrfDetail.participant_import_definition_id).all()}
 
 
 def get_new_timestamps(conn):

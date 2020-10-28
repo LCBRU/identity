@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from identity.services.validators import parse_date_or_none
 from flask import current_app
 from identity.model.id import ParticipantIdentifierSource
@@ -363,6 +364,13 @@ class EcrfDetail(db.Model):
 
     def __str__(self):
         return self.ecrf_participant_identifier
+
+    @staticmethod
+    def get_max_timestamps():
+        return {x[0]: x[1] for x in db.session.query(
+                EcrfDetail.participant_import_definition_id,
+                func.max(EcrfDetail.ecrf_timestamp),
+            ).group_by(EcrfDetail.participant_import_definition_id).all()}
 
 
 class EcrfParticipantIdentifierSource(ParticipantIdentifierSource):
