@@ -49,7 +49,9 @@ class RedcapProject(EcrfSource):
         'polymorphic_identity':'redcap_project',
     }
 
-    project_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
+    id = db.Column(db.Integer, db.ForeignKey(EcrfSource.id), primary_key=True)
+    project_id = db.Column(db.Integer, nullable=False)
+    redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
     redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
 
     def get_link(self, record_id):

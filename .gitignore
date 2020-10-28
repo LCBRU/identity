@@ -106,6 +106,7 @@ live.env
 .mypy_cache/
 
 database.sqlite3
+database.sqlite3-journal
 upload/
 .vscode
 celerybeat.pid
