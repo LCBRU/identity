@@ -124,19 +124,14 @@ class ParticipantImporter():
         self.id_types = {pt.name.lower(): pt.id for pt in ParticipantIdentifierType.query.all()}
 
     def run(self):
-        timestamps = EcrfDetail.get_max_timestamps()
         id_cache = {}
 
         for pid in ParticipantImportDefinition.query.all():
             try:
-                ts = timestamps.get(pid.id, 0)
                 new_ts = pid.redcap_project.get_newest_timestamp()
 
-                if new_ts > ts:
-                    current_app.logger.info(f'Existing timestamps {ts}; New timestamp {new_ts}')
-
-                    with redcap_engine(pid.redcap_project.redcap_instance.database_name) as conn:
-                        self._load_participants(pid, conn, ts, id_cache)
+                if new_ts > pid.latest_timestamp:
+                    self._load_participants(pid, id_cache)
 
                 db.session.commit()
 
@@ -144,55 +139,37 @@ class ParticipantImporter():
                 log_exception(e)
 
 
-        # for ri in RedcapInstance.query.all():
-        #     with redcap_engine(ri.database_name) as conn:
-
-        #         for pid in ParticipantImportDefinition.query.join(ParticipantImportDefinition.redcap_project).filter(RedcapProject.redcap_instance_id==ri.id).all():
-        #             try:
-        #                 ts = timestamps.get(pid.id, 0)
-        #                 new_ts = pid.redcap_project.get_newest_timestamp()
-
-        #                 if new_ts > ts:
-        #                     current_app.logger.info(f'Existing timestamps {ts}; New timestamp {new_ts}')
-
-        #                     self._load_participants(pid, conn, ts, id_cache)
-
-        #                 db.session.commit()
-
-        #             except Exception as e:
-        #                 log_exception(e)
-
-
-    def _load_participants(self, pid, conn, max_timestamp, id_cache):
+    def _load_participants(self, pid, id_cache):
         current_app.logger.info(f'Importing Participants: pidid="{pid.id}" study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}".')
 
         ecrfs = []
 
-        participants = conn.execute(
-            text(pid.get_query()),
-            timestamp=max_timestamp,
-            project_id=pid.redcap_project.project_id,
-        )
-
-        for participant in participants:
-            ecrf = pid.fill_ecrf(
-                participant_details=participant,
-                existing_ecrf=EcrfDetail.query.filter_by(
-                    participant_import_definition_id=pid.id,
-                    ecrf_participant_identifier=participant['record']
-                ).one_or_none(),
+        with redcap_engine(pid.redcap_project.redcap_instance.database_name) as conn:
+            participants = conn.execute(
+                text(pid.get_query()),
+                timestamp=pid.latest_timestamp,
+                project_id=pid.redcap_project.project_id,
             )
 
-            ecrf.ecrf_timestamp=participant['last_update_timestamp']
-            ecrf.last_updated_by_user_id=self.user.id
-            ecrf.last_updated_datetime=datetime.utcnow()
+            for participant in participants:
+                ecrf = pid.fill_ecrf(
+                    participant_details=participant,
+                    existing_ecrf=EcrfDetail.query.filter_by(
+                        participant_import_definition_id=pid.id,
+                        ecrf_participant_identifier=participant['record']
+                    ).one_or_none(),
+                )
 
-            ecrf.identifier_source.last_updated_by_user_id=self.user.id
-            ecrf.identifier_source.last_updated_datetime=datetime.utcnow()
+                ecrf.ecrf_timestamp=participant['last_update_timestamp']
+                ecrf.last_updated_by_user_id=self.user.id
+                ecrf.last_updated_datetime=datetime.utcnow()
 
-            self.add_identifiers(ecrf, pid, participant, id_cache)
-            
-            ecrfs.append(ecrf)
+                ecrf.identifier_source.last_updated_by_user_id=self.user.id
+                ecrf.identifier_source.last_updated_datetime=datetime.utcnow()
+
+                self.add_identifiers(ecrf, pid, participant, id_cache)
+                
+                ecrfs.append(ecrf)
 
         db.session.add_all(ecrfs)
 

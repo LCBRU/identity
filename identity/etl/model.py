@@ -1,5 +1,4 @@
-from sqlalchemy import func
-from sqlalchemy.sql import text
+from sqlalchemy import func, select
 from memoization import cached
 from identity.services.validators import parse_date_or_none
 from flask import current_app
@@ -9,6 +8,7 @@ from datetime import datetime
 from identity.database import db
 from identity.model import Study
 from identity.model.security import User
+from sqlalchemy.orm import column_property
 
 
 class EcrfSource(db.Model):
@@ -28,6 +28,39 @@ class EcrfSource(db.Model):
 
     def __str__(self):
         return self.name
+
+
+class EcrfDetail(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    participant_import_definition_id = db.Column(db.Integer, db.ForeignKey('participant_import_definition.id'), nullable=False)
+    participant_import_definition = db.relationship('ParticipantImportDefinition', backref=db.backref("ecrfs"))
+
+    ecrf_participant_identifier = db.Column(db.String(100))
+    recruitment_date = db.Column(db.Date)
+    first_name = db.Column(db.String(100))
+    last_name = db.Column(db.String(100))
+    sex = db.Column(db.String(1))
+    postcode = db.Column(db.String(10))
+    birth_date = db.Column(db.Date)
+    complete_or_expected = db.Column(db.Boolean)
+    withdrawal_date = db.Column(db.Date)
+    withdrawn_from_study = db.Column(db.Boolean)
+    post_withdrawal_keep_samples = db.Column(db.Boolean)
+    post_withdrawal_keep_data = db.Column(db.Boolean)
+    brc_opt_out = db.Column(db.Boolean)
+    excluded_from_analysis = db.Column(db.Boolean)
+    excluded_from_study = db.Column(db.Boolean)
+    ecrf_timestamp = db.Column(db.BigInteger)
+
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
+
+    identifier_source = db.relationship("EcrfParticipantIdentifierSource", back_populates="ecrf_detail", uselist=False)
+
+    def __str__(self):
+        return self.ecrf_participant_identifier
 
 
 class RedcapInstance(db.Model):
@@ -71,7 +104,7 @@ class RedcapProject(EcrfSource):
     project_id = db.Column(db.Integer, nullable=False)
     redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
     redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
-
+    
     def get_link(self, record_id):
         return "/".join(map(lambda x: str(x).rstrip('/'), [
             self.redcap_instance.base_url,
@@ -173,6 +206,14 @@ class ParticipantImportDefinition(db.Model):
     last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)
+
+    _latest_timestamp = column_property(
+        select([func.max(EcrfDetail.ecrf_timestamp)]).where(EcrfDetail.participant_import_definition_id==id)
+    )
+
+    @property
+    def latest_timestamp(self):
+        return self._latest_timestamp or 0
 
     def _parse_list_string(self, value):
         if value is None or len(value.strip()) == 0:
@@ -353,46 +394,6 @@ class EcrfRecord():
             return True
 
         return value in value_array
-
-
-class EcrfDetail(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-
-    participant_import_definition_id = db.Column(db.Integer, db.ForeignKey(ParticipantImportDefinition.id), nullable=False)
-    participant_import_definition = db.relationship(ParticipantImportDefinition, backref=db.backref("ecrfs"))
-
-    ecrf_participant_identifier = db.Column(db.String(100))
-    recruitment_date = db.Column(db.Date)
-    first_name = db.Column(db.String(100))
-    last_name = db.Column(db.String(100))
-    sex = db.Column(db.String(1))
-    postcode = db.Column(db.String(10))
-    birth_date = db.Column(db.Date)
-    complete_or_expected = db.Column(db.Boolean)
-    withdrawal_date = db.Column(db.Date)
-    withdrawn_from_study = db.Column(db.Boolean)
-    post_withdrawal_keep_samples = db.Column(db.Boolean)
-    post_withdrawal_keep_data = db.Column(db.Boolean)
-    brc_opt_out = db.Column(db.Boolean)
-    excluded_from_analysis = db.Column(db.Boolean)
-    excluded_from_study = db.Column(db.Boolean)
-    ecrf_timestamp = db.Column(db.BigInteger)
-
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
-
-    identifier_source = db.relationship("EcrfParticipantIdentifierSource", back_populates="ecrf_detail", uselist=False)
-
-    def __str__(self):
-        return self.ecrf_participant_identifier
-
-    @staticmethod
-    def get_max_timestamps():
-        return {x[0]: x[1] for x in db.session.query(
-                EcrfDetail.participant_import_definition_id,
-                func.max(EcrfDetail.ecrf_timestamp),
-            ).group_by(EcrfDetail.participant_import_definition_id).all()}
 
 
 class EcrfParticipantIdentifierSource(ParticipantIdentifierSource):
