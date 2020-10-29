@@ -1,4 +1,4 @@
-from identity.etl.model import RedcapInstance
+from identity.ecrfs.model import RedcapInstance
 import pytest
 from identity.setup import create_base_data
 

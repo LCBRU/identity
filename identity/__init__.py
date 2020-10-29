@@ -17,7 +17,7 @@ from .setup import import_ids, create_base_data
 from .utils import ReverseProxied
 from .celery import init_celery, celery
 from .config import BaseConfig
-from .etl import init_redcap
+from .ecrfs import init_redcap
 import logging
 
 def create_app(config=BaseConfig):

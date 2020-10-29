@@ -5,7 +5,7 @@ from identity.database import db
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.model import Study
 from identity.setup.studies import StudyName
-from identity.etl.model import ParticipantImportDefinition, RedcapInstance, RedcapProject
+from identity.ecrfs.model import ParticipantImportDefinition, RedcapInstance, RedcapProject
 from identity.setup import create_base_data
 
 

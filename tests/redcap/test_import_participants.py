@@ -7,8 +7,8 @@ import pytest
 
 from identity.database import db
 from identity.model import Study
-from identity.etl import import_participants
-from identity.etl.model import (EcrfDetail, ParticipantImportDefinition,
+from identity.ecrfs import import_participants
+from identity.ecrfs.model import (EcrfDetail, ParticipantImportDefinition,
                                    RedcapInstance, RedcapProject)
 from identity.services.validators import parse_date
 from identity.setup.participant_identifier_types import \
@@ -94,7 +94,7 @@ def _get_participant_import_definition(*args, **kwargs):
 
 
 def _run_import_test(record, expected, new_timestamps=None):
-    with patch('identity.etl.redcap_engine') as mock__redcap_engine, patch('identity.etl.model.RedcapInstance.get_newest_timestamps') as mock__get_newest_timestamps:
+    with patch('identity.ecrfs.redcap_engine') as mock__redcap_engine, patch('identity.ecrfs.model.RedcapInstance.get_newest_timestamps') as mock__get_newest_timestamps:
 
         mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [record]
         mock__get_newest_timestamps.return_value = new_timestamps or {1: 10}
