@@ -165,7 +165,7 @@ class ParticipantImporter():
 
         db.session.add_all(ecrfs)
 
-        current_app.logger.info(f'Importing Participants: study="{pid.study.name}"; redcap instance="{pid.redcap_project.redcap_instance.name}"; project="{pid.redcap_project.name}". Imported {len(ecrfs)} records')
+        current_app.logger.info(f'Importing Participants: study="{pid.study.name}"; redcap instance="{pid.ecrf_source.name}". Imported {len(ecrfs)} records')
 
 
     def add_identifiers(self, ecrf, pid, participant, id_cache):
