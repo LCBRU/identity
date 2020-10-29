@@ -85,7 +85,7 @@ def _get_participant_import_definition(*args, **kwargs):
     s = Study.query.first()
     p = RedcapProject(name='fred', project_id=1, redcap_instance_id=r.id)
 
-    pid = ParticipantImportDefinition(redcap_project=p, study=s, **kwargs)
+    pid = ParticipantImportDefinition(ecrf_source=p, study=s, **kwargs)
 
     db.session.add(pid)
     db.session.commit()
@@ -94,7 +94,7 @@ def _get_participant_import_definition(*args, **kwargs):
 
 
 def _run_import_test(record, expected, new_timestamps=None):
-    with patch('identity.ecrfs.redcap_engine') as mock__redcap_engine, patch('identity.ecrfs.model.RedcapInstance.get_newest_timestamps') as mock__get_newest_timestamps:
+    with patch('identity.ecrfs.model.redcap_engine') as mock__redcap_engine, patch('identity.ecrfs.model.RedcapInstance.get_newest_timestamps') as mock__get_newest_timestamps:
 
         mock__redcap_engine.return_value.__enter__.return_value.execute.return_value = [record]
         mock__get_newest_timestamps.return_value = new_timestamps or {1: 10}

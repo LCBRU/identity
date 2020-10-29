@@ -401,12 +401,12 @@ def create_partipipant_import_definitions(user):
                 if rp is None:
                     continue
                 
-                pid = ParticipantImportDefinition.query.filter_by(study_id=study.id, redcap_project_id=rp.id).one_or_none()
+                pid = ParticipantImportDefinition.query.filter_by(study_id=study.id, ecrf_source_id=rp.id).one_or_none()
 
                 if pid is None:
                     pid = ParticipantImportDefinition(
                         study_id=study.id,
-                        redcap_project_id=rp.id,
+                        ecrf_source_id=rp.id,
                         last_updated_by_user_id=user.id,
                     )
 

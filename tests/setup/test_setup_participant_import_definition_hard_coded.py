@@ -810,7 +810,7 @@ def test__create_base_data__creates_participant_import_definitions(client, faker
 
     assert ParticipantImportDefinition.query.filter_by(
         study_id=s.id,
-        redcap_project_id=rp.id,
+        ecrf_source_id=rp.id,
     ).one_or_none() is not None
 
 

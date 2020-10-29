@@ -190,7 +190,7 @@ def _test__create_base_data__participant_import_definitions(definition):
     for p in projects:
         actual = ParticipantImportDefinition.query.filter_by(
             study_id=p['study_id'],
-            redcap_project_id=p['redcap_project_id'],
+            ecrf_source_id=p['redcap_project_id'],
         ).one_or_none()
 
         assert actual is not None
