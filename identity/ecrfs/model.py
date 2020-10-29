@@ -339,9 +339,6 @@ class ParticipantImportDefinition(db.Model):
             *self.identities_map_dictionary.values(),
         ]))
 
-    def get_query(self):
-        return self.ecrf_source.get_query(self)
-
     def fill_ecrf(self, participant_details, existing_ecrf):
         if existing_ecrf is None:
             current_app.logger.debug(f'Creating ecrf for participant "{participant_details["record"]}"')
