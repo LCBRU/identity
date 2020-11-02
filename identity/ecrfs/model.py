@@ -181,6 +181,36 @@ class RedcapProject(EcrfSource):
         return f'<Project: "{self.name}" from instance "{self.redcap_instance.name}">'
 
 
+class CustomEcrfSource(EcrfSource):
+
+    __tablename__ = 'custom_ecrf_source'
+    __mapper_args__ = {
+        'polymorphic_identity':'custom',
+    }
+
+    id = db.Column(db.Integer, db.ForeignKey(EcrfSource.id), primary_key=True)
+    database_name = db.Column(db.String(100), nullable=False)
+    data_query = db.Column(db.UnicodeText(), nullable=False)
+    most_recent_timestamp_query = db.Column(db.UnicodeText(), nullable=False)
+    link = db.Column(db.String(500), nullable=False)
+    
+    def get_link(self, record_id):
+        return self.link.format(record_id=record_id)
+
+    def get_newest_timestamp(self):
+        return self.redcap_instance.get_newest_timestamps().get(self.project_id, -1)
+
+    def get_participants(self, pid):
+        with redcap_engine(self.database_name) as conn:
+            return conn.execute(
+                text(self.data_query),
+                timestamp=pid.latest_timestamp
+            )
+
+    def __repr__(self):
+        return f'<Custom Ecrf Source: "{self.name}"">'
+
+
 class ParticipantImportDefinition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
