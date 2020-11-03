@@ -30,8 +30,7 @@ class EcrfSource(db.Model):
     def __str__(self):
         return self.name
 
-    @property
-    def database_name(self):
+    def has_new_data(self, existing_timestamp):
         raise NotImplementedError()
 
     def get_participants(self, pid):
@@ -113,20 +112,16 @@ class RedcapProject(EcrfSource):
     redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
     redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
     
-    @property
-    def database_name(self):
-        return self.redcap_instance.database_name
-
     def get_link(self, record_id):
         return "/".join(map(lambda x: str(x).rstrip('/'), [
             self.redcap_instance.base_url,
             f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
         ))
 
-    def get_newest_timestamp(self):
-        return self.redcap_instance.get_newest_timestamps().get(self.project_id, -1)
+    def has_new_data(self, existing_timestamp):
+        return self.redcap_instance.get_newest_timestamps().get(self.project_id, -1) > existing_timestamp
 
-    def get_query(self, pid):
+    def _get_query(self, pid):
         group_concat_cols = ", ".join(
             f"GROUP_CONCAT(DISTINCT CASE WHEN field_name = '{f}' THEN VALUE ELSE NULL END) AS {f}"
             for f in pid.get_fields() if f not in ['record', 'last_update_timestamp', 'project_id']
@@ -172,7 +167,7 @@ class RedcapProject(EcrfSource):
     def get_participants(self, pid):
         with redcap_engine(self.redcap_instance.database_name) as conn:
             return conn.execute(
-                text(self.get_query(pid)),
+                text(self._get_query(pid)),
                 timestamp=pid.latest_timestamp,
                 project_id=self.project_id,
             )
@@ -197,8 +192,8 @@ class CustomEcrfSource(EcrfSource):
     def get_link(self, record_id):
         return self.link.format(record_id=record_id)
 
-    def get_newest_timestamp(self):
-        return self.redcap_instance.get_newest_timestamps().get(self.project_id, -1)
+    def has_new_data(self, existing_timestamp):
+        return False
 
     def get_participants(self, pid):
         with redcap_engine(self.database_name) as conn:

@@ -127,9 +127,7 @@ class ParticipantImporter():
 
         for pid in ParticipantImportDefinition.query.all():
             try:
-                new_ts = pid.ecrf_source.get_newest_timestamp()
-
-                if new_ts > pid.latest_timestamp:
+                if pid.ecrf_source.has_new_data(pid.latest_timestamp):
                     self._load_participants(pid, id_cache)
 
                 db.session.commit()
