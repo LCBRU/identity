@@ -33,27 +33,24 @@ class EcrfDefinition():
         self.excluded_from_study_values = definition.get('excluded_from_study_values', None)
         self.identity_map = definition.get('identity_map', None)
 
+    def get_ecrf_sources(self, crf_definition):
+        pass
+
     def get_partipipant_import_definitions(self, user):
         results = []
 
         for c in self.crfs:
 
             study = Study.query.filter_by(name=c['study']).one_or_none()
-            ri = RedcapInstance.query.filter_by(name=c['instance']['name']).one_or_none()
 
-            for project in c['projects']:
+            for source in self.get_ecrf_sources(c):
 
-                rp = RedcapProject.query.filter_by(redcap_instance_id=ri.id, project_id=project).one_or_none()
-
-                if rp is None:
-                    continue
-                
-                pid = ParticipantImportDefinition.query.filter_by(study_id=study.id, ecrf_source_id=rp.id).one_or_none()
+                pid = ParticipantImportDefinition.query.filter_by(study_id=study.id, ecrf_source_id=source.id).one_or_none()
 
                 if pid is None:
                     pid = ParticipantImportDefinition(
                         study_id=study.id,
-                        ecrf_source_id=rp.id,
+                        ecrf_source_id=source.id,
                         last_updated_by_user_id=user.id,
                     )
 
@@ -82,6 +79,22 @@ class EcrfDefinition():
                 pid.set_identities_map_dictionary(self.identity_map)
 
                 results.append(pid)
+        
+        return results
+
+
+class RedCapEcrfDefinition(EcrfDefinition):
+
+    def get_ecrf_sources(self, crf_definition):
+        results = []
+
+        ri = RedcapInstance.query.filter_by(name=crf_definition['instance']['name']).one_or_none()
+
+        for project in crf_definition['projects']:
+            rp = RedcapProject.query.filter_by(redcap_instance_id=ri.id, project_id=project).one_or_none()
+
+            if rp is not None:
+                results.append(rp)
         
         return results
 

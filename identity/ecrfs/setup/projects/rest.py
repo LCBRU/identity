@@ -2,10 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.ecrfs.setup.standard import SEX_MAP_0F1M_SEX, SEX_MAP_0M1F_SEX
-from identity.ecrfs.setup import crfs, EcrfDefinition
+from identity.ecrfs.setup import crfs, RedCapEcrfDefinition
 
 crfs.extend([
-    EcrfDefinition({
+    RedCapEcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,
@@ -32,7 +32,7 @@ crfs.extend([
         ParticipantIdentifierTypeName.REST_ID: 'record',
     }
     }),
-    EcrfDefinition({
+    RedCapEcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,

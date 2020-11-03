@@ -3,11 +3,11 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.ecrfs.setup.standard import SEX_MAP_0F1M_GENDER, STANDARD_WITHDRAWAL
-from identity.ecrfs.setup import crfs, EcrfDefinition
+from identity.ecrfs.setup import crfs, RedCapEcrfDefinition
 
 
 crfs.extend([
-    EcrfDefinition({
+    RedCapEcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -34,7 +34,7 @@ crfs.extend([
         ParticipantIdentifierTypeName.SCAD_LOCAL_ID: 'scad_local_id',
     }
     }),
-    EcrfDefinition({
+    RedCapEcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -63,7 +63,7 @@ crfs.extend([
         ParticipantIdentifierTypeName.SCAD_REG_ID: 'scadreg_id',
     }
     }),
-    EcrfDefinition({
+    RedCapEcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -84,7 +84,7 @@ crfs.extend([
         ParticipantIdentifierTypeName.SCAD_REG_ID: 'record_id',
     }
     }),
-    EcrfDefinition({
+    RedCapEcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,
@@ -105,7 +105,7 @@ crfs.extend([
     }
     }),
 
-    EcrfDefinition({
+    RedCapEcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,

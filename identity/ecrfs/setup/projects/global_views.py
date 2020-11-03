@@ -1,10 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.ecrfs.setup import crfs, EcrfDefinition
+from identity.ecrfs.setup import crfs, RedCapEcrfDefinition
 
 crfs.extend([
-    EcrfDefinition({
+    RedCapEcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,

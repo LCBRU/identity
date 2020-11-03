@@ -1,5 +1,5 @@
 from datetime import datetime
-from identity.ecrfs.setup import EcrfDefinition
+from identity.ecrfs.setup import RedCapEcrfDefinition
 from identity.model import Study
 from identity.model.sex import SexName
 from identity.security import get_system_user
@@ -74,11 +74,11 @@ def test__create_base_data__no_participant_import_definitions(client, faker):
 
 
 def test__create_base_data__an_example_participant_import_definitions(client, faker):
-    _test__create_base_data__participant_import_definitions(EcrfDefinition(EXAMPLE_DEFINITION))
+    _test__create_base_data__participant_import_definitions(RedCapEcrfDefinition(EXAMPLE_DEFINITION))
 
 
 def test__create_base_data__participant_import_definitions__multiple_projects(client, faker):
-    definition = EcrfDefinition(EXAMPLE_DEFINITION)
+    definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     definition.crfs = [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -91,7 +91,7 @@ def test__create_base_data__participant_import_definitions__multiple_projects(cl
 
 
 def test__create_base_data__participant_import_definitions__multiple_instances(client, faker):
-    definition = EcrfDefinition(EXAMPLE_DEFINITION)
+    definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     definition.crfs = [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -109,7 +109,7 @@ def test__create_base_data__participant_import_definitions__multiple_instances(c
 
 
 def test__create_base_data__participant_import_definitions__multiple_studies(client, faker):
-    definition = EcrfDefinition(EXAMPLE_DEFINITION)
+    definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     definition.crfs = [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -161,7 +161,7 @@ MAP_COLUMN_NAMES = [
 
 @pytest.mark.parametrize("column_name", COLUMN_NAMES)
 def test__create_base_data__participant_import_definitions__empty_column_name(client, faker, column_name):
-    definition = EcrfDefinition(EXAMPLE_DEFINITION)
+    definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     setattr(definition, column_name, '')
 
     _test__create_base_data__participant_import_definitions(definition)
@@ -169,7 +169,7 @@ def test__create_base_data__participant_import_definitions__empty_column_name(cl
 
 @pytest.mark.parametrize("column_name", [*COLUMN_NAMES, *LIST_COLUMN_NAMES, *MAP_COLUMN_NAMES])
 def test__create_base_data__participant_import_definitions__none_column_name(client, faker, column_name):
-    definition = EcrfDefinition(EXAMPLE_DEFINITION)
+    definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     setattr(definition, column_name, None)
 
     _test__create_base_data__participant_import_definitions(definition)
