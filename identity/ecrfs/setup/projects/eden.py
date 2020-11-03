@@ -2,11 +2,11 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.ecrfs.setup.standard import SEX_MAP_0F1M, SEX_MAP_0F1M_GENDER
-from identity.ecrfs.setup import crfs
+from identity.ecrfs.setup import redcap_crfs
 
 # Need to check with Sue
 
-crfs.append({
+redcap_crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -25,7 +25,7 @@ crfs.append({
 })
 
 
-crfs.append({
+redcap_crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_HSCN,

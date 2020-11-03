@@ -3,10 +3,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.ecrfs.setup.standard import SEX_MAP_0F1M_GENDER, STANDARD_WITHDRAWAL
-from identity.ecrfs.setup import crfs
+from identity.ecrfs.setup import redcap_crfs
 
 
-crfs.append({
+redcap_crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -35,7 +35,7 @@ crfs.append({
 })
 
 
-crfs.append({
+redcap_crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -66,7 +66,7 @@ crfs.append({
 })
 
 
-crfs.append({
+redcap_crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -89,7 +89,7 @@ crfs.append({
 })
 
 
-crfs.append({
+redcap_crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,
@@ -111,7 +111,7 @@ crfs.append({
 })
 
 
-crfs.append({
+redcap_crfs.append({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,

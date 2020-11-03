@@ -33,7 +33,7 @@ from identity.blinding.model import (
     BlindingType,
     Blinding,
 )
-from identity.ecrfs.setup import crfs
+from identity.ecrfs.setup import redcap_crfs
 
 
 PSEUDORANDOM_ID_PROVIDERS = {}
@@ -389,7 +389,7 @@ def create_redcap_instances(user):
 def create_partipipant_import_definitions(user):
     current_app.logger.info(f'Creating particpant import definitions')
 
-    for p in crfs:
+    for p in redcap_crfs:
         for c in p['crfs']:
             study = Study.query.filter_by(name=c['study']).one_or_none()
             ri = RedcapInstance.query.filter_by(name=c['instance']['name']).one_or_none()
