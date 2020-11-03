@@ -48,13 +48,13 @@ def import_participants():
     current_app.logger.warning('REDCap participant import: waiting for lock')
     with lock:
         start = datetime.utcnow()
-        current_app.logger.warning('Importing REDCap particiapnts')
+        current_app.logger.info('Importing REDCap particiapnts')
 
         p = ParticipantImporter()
         p.run()
 
         duration = datetime.utcnow() - start
-        current_app.logger.warning(f'Importing REDCap particiapnts - Done in {duration}')
+        current_app.logger.info(f'Importing REDCap particiapnts - Done in {duration}')
 
 
 @celery.task
