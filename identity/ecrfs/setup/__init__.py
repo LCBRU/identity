@@ -1,10 +1,9 @@
-from flask import current_app
 from identity.ecrfs.model import ParticipantImportDefinition, RedcapInstance, RedcapProject
 from identity.model import Study
 
 
-redcap_crfs = []
 crfs = []
+
 
 class EcrfDefinition():
 

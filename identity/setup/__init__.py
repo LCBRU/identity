@@ -33,7 +33,7 @@ from identity.blinding.model import (
     BlindingType,
     Blinding,
 )
-from identity.ecrfs.setup import redcap_crfs, crfs
+from identity.ecrfs.setup import crfs
 
 
 PSEUDORANDOM_ID_PROVIDERS = {}
