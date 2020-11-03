@@ -1,4 +1,5 @@
 from datetime import datetime
+from identity.ecrfs.setup import EcrfDefinition
 from identity.model import Study
 from identity.model.sex import SexName
 from identity.security import get_system_user
@@ -73,12 +74,12 @@ def test__create_base_data__no_participant_import_definitions(client, faker):
 
 
 def test__create_base_data__an_example_participant_import_definitions(client, faker):
-    _test__create_base_data__participant_import_definitions(EXAMPLE_DEFINITION)
+    _test__create_base_data__participant_import_definitions(EcrfDefinition(EXAMPLE_DEFINITION))
 
 
 def test__create_base_data__participant_import_definitions__multiple_projects(client, faker):
-    definition = EXAMPLE_DEFINITION.copy()
-    definition['crfs'] = [
+    definition = EcrfDefinition(EXAMPLE_DEFINITION)
+    definition.crfs = [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.MARI,
@@ -90,8 +91,8 @@ def test__create_base_data__participant_import_definitions__multiple_projects(cl
 
 
 def test__create_base_data__participant_import_definitions__multiple_instances(client, faker):
-    definition = EXAMPLE_DEFINITION.copy()
-    definition['crfs'] = [
+    definition = EcrfDefinition(EXAMPLE_DEFINITION)
+    definition.crfs = [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.MARI,
@@ -108,8 +109,8 @@ def test__create_base_data__participant_import_definitions__multiple_instances(c
 
 
 def test__create_base_data__participant_import_definitions__multiple_studies(client, faker):
-    definition = EXAMPLE_DEFINITION.copy()
-    definition['crfs'] = [
+    definition = EcrfDefinition(EXAMPLE_DEFINITION)
+    definition.crfs = [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
             'study': StudyName.MARI,
@@ -140,43 +141,42 @@ COLUMN_NAMES = [
     ('brc_opt_out_column_name'),
     ('excluded_from_analysis_column_name'),
     ('excluded_from_study_column_name'),
+]
+
+
+LIST_COLUMN_NAMES = [
     ('complete_or_expected_values'),
     ('post_withdrawal_keep_samples_values'),
     ('post_withdrawal_keep_data_values'),
     ('brc_opt_out_values'),
     ('excluded_from_analysis_values'),
     ('excluded_from_study_values'),
+]
+
+
+MAP_COLUMN_NAMES = [
     ('sex_column_map'),
     ('identity_map'),
 ]
 
-
 @pytest.mark.parametrize("column_name", COLUMN_NAMES)
 def test__create_base_data__participant_import_definitions__empty_column_name(client, faker, column_name):
-    definition = EXAMPLE_DEFINITION.copy()
-    definition[column_name] = ''
+    definition = EcrfDefinition(EXAMPLE_DEFINITION)
+    setattr(definition, column_name, '')
 
     _test__create_base_data__participant_import_definitions(definition)
 
 
-@pytest.mark.parametrize("column_name", COLUMN_NAMES)
+@pytest.mark.parametrize("column_name", [*COLUMN_NAMES, *LIST_COLUMN_NAMES, *MAP_COLUMN_NAMES])
 def test__create_base_data__participant_import_definitions__none_column_name(client, faker, column_name):
-    definition = EXAMPLE_DEFINITION.copy()
-    definition[column_name] = None
-
-    _test__create_base_data__participant_import_definitions(definition)
-
-
-@pytest.mark.parametrize("column_name", COLUMN_NAMES)
-def test__create_base_data__participant_import_definitions__missing_column_name(client, faker, column_name):
-    definition = EXAMPLE_DEFINITION.copy()
-    del definition[column_name]
+    definition = EcrfDefinition(EXAMPLE_DEFINITION)
+    setattr(definition, column_name, None)
 
     _test__create_base_data__participant_import_definitions(definition)
 
 
 def _test__create_base_data__participant_import_definitions(definition):
-    projects = _create_projects(definition['crfs'])
+    projects = _create_projects(definition.crfs)
 
     before = datetime.utcnow()
     
@@ -194,52 +194,31 @@ def _test__create_base_data__participant_import_definitions(definition):
         ).one_or_none()
 
         assert actual is not None
-        assert actual.first_name_column_name == _get_definition_column_name(definition, 'first_name_column_name')
-        assert actual.last_name_column_name == _get_definition_column_name(definition, 'last_name_column_name')
-        assert actual.postcode_column_name == _get_definition_column_name(definition, 'postcode_column_name')
-        assert actual.birth_date_column_name == _get_definition_column_name(definition, 'birth_date_column_name')
-        assert actual.withdrawal_date_column_name == _get_definition_column_name(definition, 'withdrawal_date_column_name')
-        assert actual.withdrawn_from_study_column_name == _get_definition_column_name(definition, 'withdrawn_from_study_column_name')
-        assert actual.withdrawn_from_study_values_list == _get_definition_list(definition, 'withdrawn_from_study_values')
-        assert actual.sex_column_name == _get_definition_column_name(definition, 'sex_column_name')
-        assert actual.sex_column_map_dictionary == _get_definition_map(definition, 'sex_column_map')
-        assert actual.complete_or_expected_column_name == _get_definition_column_name(definition, 'complete_or_expected_column_name')
-        assert actual.complete_or_expected_values_list == _get_definition_list(definition, 'complete_or_expected_values')
-        assert actual.post_withdrawal_keep_samples_column_name == _get_definition_column_name(definition, 'post_withdrawal_keep_samples_column_name')
-        assert actual.post_withdrawal_keep_samples_values_list == _get_definition_list(definition, 'post_withdrawal_keep_samples_values')
-        assert actual.post_withdrawal_keep_data_column_name == _get_definition_column_name(definition, 'post_withdrawal_keep_data_column_name')
-        assert actual.post_withdrawal_keep_data_values_list == _get_definition_list(definition, 'post_withdrawal_keep_data_values')
-        assert actual.brc_opt_out_column_name == _get_definition_column_name(definition, 'brc_opt_out_column_name')
-        assert actual.brc_opt_out_values_list == _get_definition_list(definition, 'brc_opt_out_values')
-        assert actual.excluded_from_analysis_column_name == _get_definition_column_name(definition, 'excluded_from_analysis_column_name')
-        assert actual.excluded_from_analysis_values_list == _get_definition_list(definition, 'excluded_from_analysis_values')
-        assert actual.excluded_from_study_column_name == _get_definition_column_name(definition, 'excluded_from_study_column_name')
-        assert actual.excluded_from_study_values_list == _get_definition_list(definition, 'excluded_from_study_values')
-        assert actual.identities_map_dictionary == _get_definition_map(definition, 'identity_map')
+        assert actual.first_name_column_name == definition.first_name_column_name
+        assert actual.last_name_column_name == definition.last_name_column_name
+        assert actual.postcode_column_name == definition.postcode_column_name
+        assert actual.birth_date_column_name == definition.birth_date_column_name
+        assert actual.withdrawal_date_column_name == definition.withdrawal_date_column_name
+        assert actual.withdrawn_from_study_column_name == definition.withdrawn_from_study_column_name
+        assert actual.withdrawn_from_study_values_list == definition.withdrawn_from_study_values
+        assert actual.sex_column_name == definition.sex_column_name
+        assert actual.sex_column_map_dictionary == (definition.sex_column_map or {})
+        assert actual.complete_or_expected_column_name == definition.complete_or_expected_column_name
+        assert actual.complete_or_expected_values_list == (definition.complete_or_expected_values or [])
+        assert actual.post_withdrawal_keep_samples_column_name == definition.post_withdrawal_keep_samples_column_name
+        assert actual.post_withdrawal_keep_samples_values_list == (definition.post_withdrawal_keep_samples_values or [])
+        assert actual.post_withdrawal_keep_data_column_name == definition.post_withdrawal_keep_data_column_name
+        assert actual.post_withdrawal_keep_data_values_list == (definition.post_withdrawal_keep_data_values or [])
+        assert actual.brc_opt_out_column_name == definition.brc_opt_out_column_name
+        assert actual.brc_opt_out_values_list == (definition.brc_opt_out_values or [])
+        assert actual.excluded_from_analysis_column_name == definition.excluded_from_analysis_column_name
+        assert actual.excluded_from_analysis_values_list == (definition.excluded_from_analysis_values or [])
+        assert actual.excluded_from_study_column_name == definition.excluded_from_study_column_name
+        assert actual.excluded_from_study_values_list == (definition.excluded_from_study_values or [])
+        assert actual.identities_map_dictionary == (definition.identity_map or {})
 
         assert before < actual.last_updated_datetime < after
         assert actual.last_updated_by_user_id == get_system_user().id
-
-
-def _get_definition_column_name(definition, column_name):
-    if column_name in definition and definition[column_name]:
-        return definition[column_name]
-    else:
-        return None
-
-
-def _get_definition_list(definition, column_name):
-    if column_name in definition and definition[column_name]:
-        return definition[column_name]
-    else:
-        return []
-
-
-def _get_definition_map(definition, column_name):
-    if column_name in definition and definition[column_name]:
-        return definition[column_name]
-    else:
-        return {}
 
 
 def _create_projects(crfs):
