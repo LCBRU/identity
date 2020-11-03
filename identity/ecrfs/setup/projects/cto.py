@@ -2,10 +2,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.ecrfs.setup.standard import SEX_MAP_0F1M_SEX
-from identity.ecrfs.setup import redcap_crfs
+from identity.ecrfs.setup import crfs, EcrfDefinition
 
-
-redcap_crfs.append({
+crfs.extend([
+    EcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -30,4 +30,4 @@ redcap_crfs.append({
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 'hospital_num',
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_num',
     }
-})
+})])

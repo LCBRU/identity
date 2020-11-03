@@ -33,7 +33,7 @@ from identity.blinding.model import (
     BlindingType,
     Blinding,
 )
-from identity.ecrfs.setup import redcap_crfs
+from identity.ecrfs.setup import redcap_crfs, crfs
 
 
 PSEUDORANDOM_ID_PROVIDERS = {}
@@ -389,59 +389,7 @@ def create_redcap_instances(user):
 def create_partipipant_import_definitions(user):
     current_app.logger.info(f'Creating particpant import definitions')
 
-    for p in redcap_crfs:
-        for c in p['crfs']:
-            study = Study.query.filter_by(name=c['study']).one_or_none()
-            ri = RedcapInstance.query.filter_by(name=c['instance']['name']).one_or_none()
-
-            for project in c['projects']:
-
-                rp = RedcapProject.query.filter_by(redcap_instance_id=ri.id, project_id=project).one_or_none()
-
-                if rp is None:
-                    continue
-                
-                pid = ParticipantImportDefinition.query.filter_by(study_id=study.id, ecrf_source_id=rp.id).one_or_none()
-
-                if pid is None:
-                    pid = ParticipantImportDefinition(
-                        study_id=study.id,
-                        ecrf_source_id=rp.id,
-                        last_updated_by_user_id=user.id,
-                    )
-
-                pid.recruitment_date_column_name = _get_definition_for_column_name(p, 'recruitment_date_column_name')
-                pid.first_name_column_name = _get_definition_for_column_name(p, 'first_name_column_name')
-                pid.last_name_column_name = _get_definition_for_column_name(p, 'last_name_column_name')
-                pid.postcode_column_name = _get_definition_for_column_name(p, 'postcode_column_name')
-                pid.birth_date_column_name = _get_definition_for_column_name(p, 'birth_date_column_name')
-                pid.withdrawal_date_column_name = _get_definition_for_column_name(p, 'withdrawal_date_column_name')
-                pid.withdrawn_from_study_column_name = _get_definition_for_column_name(p, 'withdrawn_from_study_column_name')
-                pid.set_withdrawn_from_study_values_list(_get_definition_for_column_name(p, 'withdrawn_from_study_values'))
-                pid.sex_column_name = _get_definition_for_column_name(p, 'sex_column_name')
-                pid.set_sex_column_map_dictionary(_get_definition_for_column_name(p, 'sex_column_map'))
-                pid.complete_or_expected_column_name = _get_definition_for_column_name(p, 'complete_or_expected_column_name')
-                pid.set_complete_or_expected_values_list(_get_definition_for_column_name(p, 'complete_or_expected_values'))
-                pid.post_withdrawal_keep_samples_column_name = _get_definition_for_column_name(p, 'post_withdrawal_keep_samples_column_name')
-                pid.set_post_withdrawal_keep_samples_values_list(_get_definition_for_column_name(p, 'post_withdrawal_keep_samples_values'))
-                pid.post_withdrawal_keep_data_column_name = _get_definition_for_column_name(p, 'post_withdrawal_keep_data_column_name')
-                pid.set_post_withdrawal_keep_data_values_list(_get_definition_for_column_name(p, 'post_withdrawal_keep_data_values'))
-                pid.brc_opt_out_column_name = _get_definition_for_column_name(p, 'brc_opt_out_column_name')
-                pid.set_brc_opt_out_values_list(_get_definition_for_column_name(p, 'brc_opt_out_values'))
-                pid.excluded_from_analysis_column_name = _get_definition_for_column_name(p, 'excluded_from_analysis_column_name')
-                pid.set_excluded_from_analysis_values_list(_get_definition_for_column_name(p, 'excluded_from_analysis_values'))
-                pid.excluded_from_study_column_name = _get_definition_for_column_name(p, 'excluded_from_study_column_name')
-                pid.set_excluded_from_study_values_list(_get_definition_for_column_name(p, 'excluded_from_study_values'))
-                pid.set_identities_map_dictionary(_get_definition_for_column_name(p, 'identity_map'))
-
-                db.session.add(pid)
+    for c in crfs:
+        db.session.add_all(c.get_partipipant_import_definitions(user))
     
     db.session.commit()
-
-
-def _get_definition_for_column_name(definition, column_name):
-    if column_name in definition and definition[column_name]:
-        return definition[column_name]
-    else:
-        return None
-

@@ -2,10 +2,10 @@ from identity.ecrfs.setup.standard import SEX_MAP_MMFF
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.ecrfs.setup import redcap_crfs
+from identity.ecrfs.setup import crfs, EcrfDefinition
 
-
-redcap_crfs.append({
+crfs.extend([
+    EcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,
@@ -27,4 +27,4 @@ redcap_crfs.append({
         ParticipantIdentifierTypeName.CHI_NUMBER: 'chi_num',
         ParticipantIdentifierTypeName.HC_NUMBER: 'hc_num',
     }
-})
+})])

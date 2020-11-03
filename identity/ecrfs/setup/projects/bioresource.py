@@ -2,27 +2,28 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.ecrfs.setup.standard import SEX_MAP_1M2F_GENDER, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.ecrfs.setup import redcap_crfs
+from identity.ecrfs.setup import crfs, EcrfDefinition
 
 
-redcap_crfs.append({
-    'crfs': [
-        {
-            'instance': REDCapInstanceDetail.UHL_LIVE,
-            'study': StudyName.Bioresource,
-            'projects': [9],
-        },
-    ],
+crfs.extend([
+    EcrfDefinition({
+        'crfs': [
+            {
+                'instance': REDCapInstanceDetail.UHL_LIVE,
+                'study': StudyName.Bioresource,
+                'projects': [9],
+            },
+        ],
 
-    'recruitment_date_column_name': 'date_of_sig',
-    'birth_date_column_name': 'date_of_birth',
+        'recruitment_date_column_name': 'date_of_sig',
+        'birth_date_column_name': 'date_of_birth',
 
-    **SEX_MAP_1M2F_GENDER,
+        **SEX_MAP_1M2F_GENDER,
 
-    **STANDARD_STATUS,
-    **STANDARD_WITHDRAWAL,
+        **STANDARD_STATUS,
+        **STANDARD_WITHDRAWAL,
 
-    'identity_map': {
-        ParticipantIdentifierTypeName.BIORESOURCE_ID: 'record',
-    }
-})
+        'identity_map': {
+            ParticipantIdentifierTypeName.BIORESOURCE_ID: 'record',
+        }
+    })])

@@ -3,9 +3,9 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 
-from identity.ecrfs.setup import redcap_crfs
-
-redcap_crfs.append({
+from identity.ecrfs.setup import crfs, EcrfDefinition
+crfs.extend([
+    EcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -23,4 +23,4 @@ redcap_crfs.append({
     'identity_map': {
         ParticipantIdentifierTypeName.YOGA_ID: 'record',
     }
-})
+})])

@@ -1,10 +1,10 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.ecrfs.setup import redcap_crfs
+from identity.ecrfs.setup import crfs, EcrfDefinition
 
-
-redcap_crfs.append({
+crfs.extend([
+    EcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UHL_LIVE,
@@ -22,4 +22,4 @@ redcap_crfs.append({
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 'record',
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_number',
     }
-})
+})])

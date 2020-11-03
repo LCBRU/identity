@@ -2,10 +2,11 @@ from identity.ecrfs.setup.standard import SEX_MAP_1M2F3I
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
-from identity.ecrfs.setup import redcap_crfs
+from identity.ecrfs.setup import crfs, EcrfDefinition
 
 
-redcap_crfs.append({
+crfs.extend([
+    EcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_INTERNET,
@@ -20,4 +21,4 @@ redcap_crfs.append({
     'identity_map': {
         ParticipantIdentifierTypeName.BME_COVID_ID: 'record',
     }
-})
+})])

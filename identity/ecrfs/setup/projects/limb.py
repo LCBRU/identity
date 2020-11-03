@@ -3,10 +3,10 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.ecrfs.setup.standard import SEX_MAP_0F1M_GENDER, STANDARD_DEMOGRAPHICS, STANDARD_STATUS, STANDARD_WITHDRAWAL
-from identity.ecrfs.setup import redcap_crfs
+from identity.ecrfs.setup import crfs, EcrfDefinition
 
-
-redcap_crfs.append({
+crfs.extend([
+    EcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -23,10 +23,8 @@ redcap_crfs.append({
     'identity_map': {
         ParticipantIdentifierTypeName.LIMB_ID: 'record',
     }
-})
-
-
-redcap_crfs.append({
+    }),
+    EcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -42,10 +40,8 @@ redcap_crfs.append({
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_no',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_no',
     }
-})
-
-
-redcap_crfs.append({
+    }),
+    EcrfDefinition({
     'crfs': [
         {
             'instance': REDCapInstanceDetail.UOL_CRF,
@@ -62,4 +58,4 @@ redcap_crfs.append({
     'identity_map': {
         ParticipantIdentifierTypeName.LIMB_ID: 'record',
     }
-})
+})])
