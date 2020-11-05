@@ -80,6 +80,8 @@ class ParticipantIdentifierTypeName():
     YAKULT_ID = 'yakult_id'
     YOGA_ID = 'yoga_id'
     UHL_NUMBER = 'UHL_NUMBER'
+    CIVICRM_CONTACT_ID = 'CIVICRM_CONTACT_ID'
+    CIVICRM_CASE_ID = 'CIVICRM_CASE_ID'
 
 
     def all_types(self):

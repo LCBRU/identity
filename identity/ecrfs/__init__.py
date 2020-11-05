@@ -175,20 +175,26 @@ class ParticipantImporter():
 
     
     def get_or_create_id(self, id, id_cache):
-        idkey = frozenset([id['type'].lower(), id['identifier'].lower()])
+        identifier = id['identifier']
+        id_type = id['type'].strip().lower()
+
+        if type(identifier) == str:
+            identifier = identifier.strip().lower()
+
+        idkey = frozenset([id_type, identifier])
 
         if idkey in id_cache:
             i = id_cache[idkey]
         else:
             i = ParticipantIdentifier.query.filter_by(
-                participant_identifier_type_id=self.id_types[id['type'].lower()],
-                identifier=id['identifier'],
+                participant_identifier_type_id=self.id_types[id_type],
+                identifier=identifier,
             ).one_or_none()
 
             if i is None:
                 i = ParticipantIdentifier(
-                    participant_identifier_type_id=self.id_types[id['type'].lower()],
-                    identifier=id['identifier'],
+                    participant_identifier_type_id=self.id_types[id_type],
+                    identifier=identifier,
                     last_updated_by_user_id=self.user.id,
                 )
             

@@ -1,3 +1,5 @@
+from identity.string_functions import decode_dictionary_string, decode_list_string, encode_dictionary_string, encode_list_string
+from identity.setup.civicrm_instances import CiviCrmInstanceDetail
 from sqlalchemy import func, select
 from memoization import cached
 from identity.services.validators import parse_date_or_none
@@ -193,7 +195,13 @@ class CustomEcrfSource(EcrfSource):
         return self.link.format(record_id=record_id)
 
     def has_new_data(self, existing_timestamp):
-        return False
+        
+        with redcap_engine(self.database_name) as conn:
+            new_timestamp = conn.scalar(text(self.most_recent_timestamp_query))
+            current_app.logger.info(f'Existing Timestamp: "{existing_timestamp}".')
+            current_app.logger.info(f'New Timestamp: "{new_timestamp}".')
+            # return False
+            return new_timestamp > existing_timestamp
 
     def get_participants(self, pid):
         with redcap_engine(self.database_name) as conn:
@@ -204,6 +212,153 @@ class CustomEcrfSource(EcrfSource):
 
     def __repr__(self):
         return f'<Custom Ecrf Source: "{self.name}"">'
+
+
+class CiviCrmEcrfSource(EcrfSource):
+
+    __tablename__ = 'civicrm_ecrf_source'
+    __mapper_args__ = {
+        'polymorphic_identity':'civicrm',
+    }
+
+    id = db.Column(db.Integer, db.ForeignKey(EcrfSource.id), primary_key=True)
+    case_type_id = db.Column(db.Integer)
+    custom_tables = db.Column(db.String(500))
+   
+    @staticmethod
+    @cached(ttl=30)
+    def get_newest_timestamps():
+        with redcap_engine(CiviCrmInstanceDetail.UHL_LIVE['database_name']) as conn:
+            return {r['case_type_id']: r['ts'] for r in conn.execute(text('''
+                SELECT case_type_id, CONVERT(DATE_FORMAT(MAX(latest_datetime), '%Y%m%d%H%i%S'), UNSIGNED) AS ts
+                FROM (
+                    SELECT cc.case_type_id, MAX(ca.activity_date_time) latest_datetime
+                    FROM civicrm_case cc
+                    JOIN civicrm_case_activity cca
+                        ON cca.case_id = cc.id
+                    JOIN civicrm_activity ca
+                        ON ca.id = cca.activity_id
+                        AND ca.activity_type_id = 16 # Change status
+                    GROUP BY cc.case_type_id
+
+                    UNION
+                    
+                    SELECT cc.case_type_id, MAX(modified_date) latest_datetime
+                    FROM civicrm_case cc
+                    JOIN civicrm_log l
+                        ON l.entity_table = 'civicrm_contact'
+                        AND l.entity_id = cc.id
+                    GROUP BY cc.case_type_id
+                ) x
+                GROUP BY case_type_id
+                ;
+            '''))}
+
+    def get_link(self, record_id):
+        return self.link.format(record_id=record_id)
+
+    def has_new_data(self, existing_timestamp):
+        return existing_timestamp < CiviCrmEcrfSource.get_newest_timestamps()[self.case_type_id]
+
+    @property
+    def get_custom_tables(self):
+        return decode_list_string(self.custom_tables)
+
+    def set_custom_tables(self, value):
+        self.custom_tables = encode_list_string(value)
+
+    def _get_query(self):
+        joins = " ".join(f"LEFT JOIN {t} ON {t}.entity_id = cc.id" for t in self.get_custom_tables)
+        selects = " ".join(f"{t}.*, " for t in self.get_custom_tables)
+
+        return f"""
+            SELECT
+                cc.id AS civicrm_case_id,
+                cc.id AS record,
+                con.id AS civicrm_contact_id,
+                cvci.nhs_number_1,
+                cvci.uhl_s_number_2,
+                cc.start_date AS case_start_date,
+                con.first_name,
+                con.last_name,
+                con.gender_id,
+                con.birth_date,
+                a.postal_code,
+                cc.status_id case_status_id,
+                w.withdrawal_date,
+                {selects}
+                GREATEST(s.latest_datetime, clog.latest_datetime) AS last_update_timestamp
+            FROM civicrm_case cc
+            JOIN civicrm_case_contact ccc
+                ON ccc.case_id = cc.id
+            JOIN civicrm_contact con
+                ON con.id = ccc.contact_id
+                AND con.is_deleted = 0
+            LEFT JOIN civicrm_value_contact_ids_1 cvci
+                ON cvci.entity_id = con.id
+            LEFT JOIN (
+                SELECT
+                    CASE @id <=> contact_id AND @address_row IS NOT NULL 
+                        WHEN TRUE THEN @address_row := @address_row+1 
+                        ELSE @address_row := 0 
+                    END AS rownum,
+                    @id := contact_id AS contact_id,
+                    postal_code
+                FROM civicrm_address ca
+                ORDER BY
+                    ca.contact_id, ca.is_primary DESC, ca.id DESC
+            ) a
+                ON a.contact_id = con.id
+                AND a.rownum = 0
+            LEFT JOIN (
+                SELECT
+                    cca.case_id AS civicrm_case_id,
+                    MIN(ca.activity_date_time) AS withdrawal_date
+                FROM civicrm_case_activity cca
+                JOIN civicrm_activity ca
+                    ON ca.id = cca.activity_id
+                    AND ca.activity_type_id = 16
+                    AND ca.is_deleted = 0
+                    AND ca.is_current_revision = 1
+                AND ca.subject LIKE '% to Withdrawn'
+                GROUP BY cca.case_id
+            ) w ON w.civicrm_case_id = cc.id
+                AND cc.status_id = 8 # withdrawn
+            LEFT JOIN (
+                SELECT
+                    cca.case_id AS civicrm_case_id,
+                    CONVERT(DATE_FORMAT(MAX(ca.activity_date_time), '%Y%m%d%H%i%S'), UNSIGNED) latest_datetime
+                FROM civicrm_case_activity cca
+                JOIN civicrm_activity ca
+                    ON ca.id = cca.activity_id
+                    AND ca.activity_type_id = 16 # case status changed
+                GROUP BY cca.case_id
+            ) s ON s.civicrm_case_id = cc.id
+            LEFT JOIN (
+                SELECT
+                    entity_id AS civicrm_contact_id,
+                    CONVERT(DATE_FORMAT(MAX(modified_date), '%Y%m%d%H%i%S'), UNSIGNED) latest_datetime
+                FROM civicrm_log l
+                WHERE l.entity_table = 'civicrm_contact'
+                GROUP BY entity_id
+            ) clog ON clog.civicrm_contact_id = ccc.contact_id
+            {joins}
+            WHERE cc.case_type_id = :case_type_id
+                AND cc.is_deleted = 0
+                AND GREATEST(s.latest_datetime, clog.latest_datetime) > :timestamp
+            ;
+        """
+
+    def get_participants(self, pid):
+        with redcap_engine(CiviCrmInstanceDetail.UHL_LIVE['database_name']) as conn:
+            return conn.execute(
+                text(self._get_query()),
+                case_type_id=self.case_type_id,
+                timestamp=pid.latest_timestamp
+            )
+
+    def __repr__(self):
+        return f'<CiviCRM Ecrf Source: "{self.name}"">'
 
 
 class ParticipantImportDefinition(db.Model):
@@ -260,90 +415,68 @@ class ParticipantImportDefinition(db.Model):
     def latest_timestamp(self):
         return self._latest_timestamp or 0
 
-    def _parse_list_string(self, value):
-        if value is None or len(value.strip()) == 0:
-            return []
-        else:
-            return [i.strip() for i in value.split(',')]
-
-    def _parse_dictionary_string(self, value):
-        return {k: v for k, v in [i.split(':') for i in self._parse_list_string(value)]}
-
     @property
     def withdrawn_from_study_values_list(self):
-        return self._parse_list_string(self.withdrawn_from_study_values)
+        return decode_list_string(self.withdrawn_from_study_values)
 
     def set_withdrawn_from_study_values_list(self, value):
-        if value:
-            self.withdrawn_from_study_values = ",".join(value)
+        self.withdrawn_from_study_values = encode_list_string(value)
 
     @property
     def complete_or_expected_values_list(self):
-        return self._parse_list_string(self.complete_or_expected_values)
+        return decode_list_string(self.complete_or_expected_values)
 
     def set_complete_or_expected_values_list(self, value):
-        if value:
-            self.complete_or_expected_values = ",".join(value)
+        self.complete_or_expected_values = encode_list_string(value)
 
     @property
     def post_withdrawal_keep_samples_values_list(self):
-        return self._parse_list_string(self.post_withdrawal_keep_samples_values)
+        return decode_list_string(self.post_withdrawal_keep_samples_values)
 
     def set_post_withdrawal_keep_samples_values_list(self, value):
-        if value:
-            self.post_withdrawal_keep_samples_values = ",".join(value)
+        self.post_withdrawal_keep_samples_values = encode_list_string(value)
 
     @property
     def post_withdrawal_keep_data_values_list(self):
-        return self._parse_list_string(self.post_withdrawal_keep_data_values)
+        return decode_list_string(self.post_withdrawal_keep_data_values)
 
     def set_post_withdrawal_keep_data_values_list(self, value):
-        if value:
-            self.post_withdrawal_keep_data_values = ",".join(value)
+        self.post_withdrawal_keep_data_values = encode_list_string(value)
 
     @property
     def brc_opt_out_values_list(self):
-        return self._parse_list_string(self.brc_opt_out_values)
+        return decode_list_string(self.brc_opt_out_values)
 
     def set_brc_opt_out_values_list(self, value):
-        if value:
-            self.brc_opt_out_values = ",".join(value)
+        self.brc_opt_out_values = encode_list_string(value)
 
     @property
     def excluded_from_analysis_values_list(self):
-        return self._parse_list_string(self.excluded_from_analysis_values)
+        return decode_list_string(self.excluded_from_analysis_values)
 
     def set_excluded_from_analysis_values_list(self, value):
-        if value:
-            self.excluded_from_analysis_values = ",".join(value)
+        self.excluded_from_analysis_values = encode_list_string(value)
 
     @property
     def excluded_from_study_values_list(self):
-        return self._parse_list_string(self.excluded_from_study_values)
+        return decode_list_string(self.excluded_from_study_values)
 
     def set_excluded_from_study_values_list(self, value):
-        if value:
-            self.excluded_from_study_values = ",".join(value)
+        self.excluded_from_study_values = encode_list_string(value)
 
     @property
     def sex_column_map_dictionary(self):
-        return self._parse_dictionary_string(self.sex_column_map)
+        return decode_dictionary_string(self.sex_column_map)
 
     def set_sex_column_map_dictionary(self, map):
-        if map is None:
-            self.identities_map = None
-        else:
-            self.sex_column_map = ','.join([f'{k}:{v}' for k, v in map.items()])
+        self.identities_map = encode_dictionary_string(map)
 
     @property
     def identities_map_dictionary(self):
-        return self._parse_dictionary_string(self.identities_map)
+        return decode_dictionary_string(self.identities_map)
 
     def set_identities_map_dictionary(self, map):
-        if map is None:
-            self.identities_map = None
-        else:
-            self.identities_map = ','.join([f'{k}:{v}' for k, v in map.items()])
+        self.identities_map = encode_dictionary_string(map)
 
     def get_fields(self):
         return filter(None, set([
@@ -379,13 +512,15 @@ class ParticipantImportDefinition(db.Model):
         return self._fill_ecrf_details(participant_details, result)
 
     def extract_identifiers(self, participant_details):
+        erec = EcrfRecord(participant_details)
+
         return [
             {
                 'type': type,
-                'identifier': participant_details[field].strip(),
+                'identifier': erec.get(field),
             }
             for type, field in self.identities_map_dictionary.items()
-            if (participant_details[field] or '').strip()
+            if erec.get(field)
         ]
 
     def _fill_ecrf_details(self, record, ecrf):
@@ -417,7 +552,10 @@ class EcrfRecord():
         if len((column_name or '').strip()) == 0 or column_name not in self.record or self.record[column_name] is None:
             return None
         else:
-            return self.record[column_name].strip()
+            if type(self.record[column_name]) == str:
+                return self.record[column_name].strip()
+            else:
+                return self.record[column_name]
 
     def get_parsed_date(self, column_name):
         return parse_date_or_none(self.get(column_name))

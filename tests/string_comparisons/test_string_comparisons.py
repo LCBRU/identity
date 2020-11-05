@@ -1,5 +1,5 @@
 import pytest
-from identity.string_comparisons import levenshtein_distance
+from identity.string_functions import levenshtein_distance
 
 
 @pytest.mark.parametrize(

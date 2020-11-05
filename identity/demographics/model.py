@@ -15,7 +15,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from ..database import db
 from identity.model.security import User
-from identity.string_comparisons import similarity
+from identity.string_functions import similarity
 
 
 # Statuses:
