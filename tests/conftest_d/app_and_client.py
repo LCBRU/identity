@@ -73,6 +73,20 @@ def app(faker):
 
 
 @pytest.yield_fixture(scope="function")
+def app_no_data(faker):
+    app = identity.create_app(TestConfig)
+    app.test_client_class = CustomClient
+    context = app.test_request_context()
+    context.push()
+    db.create_all()
+    init_users()
+
+    yield app
+
+    context.pop()
+
+
+@pytest.yield_fixture(scope="function")
 def client(app):
     client = app.test_client()
 

@@ -472,7 +472,7 @@ class ParticipantImportDefinition(db.Model):
         return decode_dictionary_string(self.sex_column_map)
 
     def set_sex_column_map_dictionary(self, map):
-        self.identities_map = encode_dictionary_string(map)
+        self.sex_column_map = encode_dictionary_string(map)
 
     @property
     def identities_map_dictionary(self):

@@ -5,11 +5,39 @@ from identity.database import db
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.model import Study
 from identity.setup.studies import StudyName
-from identity.ecrfs.model import ParticipantImportDefinition, RedcapInstance, RedcapProject
+from identity.ecrfs.model import CiviCrmEcrfSource, CustomEcrfSource, ParticipantImportDefinition, RedcapInstance, RedcapProject
 from identity.setup import create_base_data
 
 
-CRFS = [
+CIVICRM_CRFS = [
+    (
+        StudyName.BRICCS,
+        6,
+    ),
+    (
+        StudyName.GENVASC,
+        3,
+    ),
+    (
+        StudyName.GRAPHIC,
+        5,
+    ),
+    (
+        StudyName.OMICS_REGISTER,
+        14,
+    ),
+]
+
+
+CUSTOM_CRFS = [
+    (
+        StudyName.BRICCS,
+        'briccs',
+    ),
+]
+
+
+REDCAP_CRFS = [
     (
         REDCapInstanceDetail.UHL_LIVE,
         StudyName.ALLEVIATE,
@@ -793,8 +821,8 @@ CRFS = [
 ]
 
 
-@pytest.mark.parametrize("instance, study_name, project_id", CRFS)
-def test__create_base_data__creates_participant_import_definitions(client, faker, instance, study_name, project_id):
+@pytest.mark.parametrize("instance, study_name, project_id", REDCAP_CRFS)
+def test__create_base_data__creates_participant_import_definitions__redcap(client, faker, instance, study_name, project_id):
     ri = RedcapInstance.query.filter_by(name=instance['name']).one_or_none()
     rp = RedcapProject(
         redcap_instance_id=ri.id,
@@ -814,16 +842,42 @@ def test__create_base_data__creates_participant_import_definitions(client, faker
     ).one_or_none() is not None
 
 
+@pytest.mark.parametrize("study_name, case_type_id", CIVICRM_CRFS)
+def test__create_base_data__creates_participant_import_definitions__civicrm(client, faker, study_name, case_type_id):
+    create_base_data()
+
+    s = Study.query.filter_by(name=study_name).one_or_none()
+    e = CiviCrmEcrfSource.query.filter_by(case_type_id=case_type_id).one_or_none()
+
+    assert ParticipantImportDefinition.query.filter_by(
+        study_id=s.id,
+        ecrf_source_id=e.id,
+    ).one_or_none() is not None
+
+
+@pytest.mark.parametrize("study_name, database", CUSTOM_CRFS)
+def test__create_base_data__creates_participant_import_definitions__custom(client, faker, study_name, database):
+    create_base_data()
+
+    s = Study.query.filter_by(name=study_name).one_or_none()
+    e = CustomEcrfSource.query.filter_by(database_name=database).one_or_none()
+
+    assert ParticipantImportDefinition.query.filter_by(
+        study_id=s.id,
+        ecrf_source_id=e.id,
+    ).one_or_none() is not None
+
+
 def test__create_base_data__creates_all_participant_import_definitions(client, faker):
     _create_projects()
 
     create_base_data()
 
-    assert ParticipantImportDefinition.query.count() == len(CRFS)
+    assert ParticipantImportDefinition.query.count() == len(REDCAP_CRFS) + len(CIVICRM_CRFS) + len(CUSTOM_CRFS)
 
 
 def _create_projects():
-    for instance, study_name, project_id in CRFS:
+    for instance, study_name, project_id in REDCAP_CRFS:
 
         ri = RedcapInstance.query.filter_by(name=instance['name']).one_or_none()
 
