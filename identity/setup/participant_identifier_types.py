@@ -38,6 +38,8 @@ class ParticipantIdentifierTypeName():
     GLOBAL_VIEWS_ID = 'GLOBAL_VIEWS_ID'
     GO_DCM_ID = 'GO_DCM_ID'
     GRAPHIC2_ID = 'GRAPHIC2_ID'
+    GRAPHIC_ID = 'GRAPHIC_ID'
+    GRAPHIC_LAB_ID = 'GRAPHIC_LAB_ID'
     TMAO_ID = 'tmao_id'
     BRAVE_ID = 'BRAVE_ID'
     NHS_NUMBER = 'nhs_number'
@@ -82,6 +84,7 @@ class ParticipantIdentifierTypeName():
     UHL_NUMBER = 'UHL_NUMBER'
     CIVICRM_CONTACT_ID = 'CIVICRM_CONTACT_ID'
     CIVICRM_CASE_ID = 'CIVICRM_CASE_ID'
+    OMICS_REGISTER_ID = 'OMICS_REGISTER_ID'
 
 
     def all_types(self):

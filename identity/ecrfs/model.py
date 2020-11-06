@@ -33,7 +33,13 @@ class EcrfSource(db.Model):
         return self.name
 
     def has_new_data(self, existing_timestamp):
-        raise NotImplementedError()
+        latest_timesheet = self._get_latest_timestamp()
+        
+        if latest_timesheet > existing_timestamp:
+            current_app.logger.info(f'{self.name} has new data - existing timestamp: "{existing_timestamp}"; latest Timestamp: "{latest_timesheet}".')
+            return True
+        else:
+            return False
 
     def get_participants(self, pid):
         raise NotImplementedError()
@@ -120,8 +126,8 @@ class RedcapProject(EcrfSource):
             f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
         ))
 
-    def has_new_data(self, existing_timestamp):
-        return self.redcap_instance.get_newest_timestamps().get(self.project_id, -1) > existing_timestamp
+    def _get_latest_timestamp(self):
+        return self.redcap_instance.get_newest_timestamps().get(self.project_id, -1)
 
     def _get_query(self, pid):
         group_concat_cols = ", ".join(
@@ -194,14 +200,9 @@ class CustomEcrfSource(EcrfSource):
     def get_link(self, record_id):
         return self.link.format(record_id=record_id)
 
-    def has_new_data(self, existing_timestamp):
-        
+    def _get_latest_timestamp(self):
         with redcap_engine(self.database_name) as conn:
-            new_timestamp = conn.scalar(text(self.most_recent_timestamp_query))
-            current_app.logger.info(f'Existing Timestamp: "{existing_timestamp}".')
-            current_app.logger.info(f'New Timestamp: "{new_timestamp}".')
-            # return False
-            return new_timestamp > existing_timestamp
+            return conn.scalar(text(self.most_recent_timestamp_query))
 
     def get_participants(self, pid):
         with redcap_engine(self.database_name) as conn:
@@ -243,11 +244,13 @@ class CiviCrmEcrfSource(EcrfSource):
 
                     UNION
                     
-                    SELECT cc.case_type_id, MAX(modified_date) latest_datetime
+                    SELECT cc.case_type_id, MAX(con.modified_date) latest_datetime
                     FROM civicrm_case cc
-                    JOIN civicrm_log l
-                        ON l.entity_table = 'civicrm_contact'
-                        AND l.entity_id = cc.id
+                    JOIN civicrm_case_contact ccc
+                        ON ccc.case_id = cc.id
+                    JOIN civicrm_contact con
+                        ON con.id = ccc.contact_id
+                        AND con.is_deleted = 0
                     GROUP BY cc.case_type_id
                 ) x
                 GROUP BY case_type_id
@@ -257,8 +260,8 @@ class CiviCrmEcrfSource(EcrfSource):
     def get_link(self, record_id):
         return self.link.format(record_id=record_id)
 
-    def has_new_data(self, existing_timestamp):
-        return existing_timestamp < CiviCrmEcrfSource.get_newest_timestamps()[self.case_type_id]
+    def _get_latest_timestamp(self):
+        return CiviCrmEcrfSource.get_newest_timestamps()[self.case_type_id]
 
     @property
     def get_custom_tables(self):
@@ -287,7 +290,12 @@ class CiviCrmEcrfSource(EcrfSource):
                 cc.status_id case_status_id,
                 w.withdrawal_date,
                 {selects}
-                GREATEST(s.latest_datetime, clog.latest_datetime) AS last_update_timestamp
+                GREATEST(
+                    COALESCE(s.latest_datetime, 0),
+                    COALESCE(CONVERT(DATE_FORMAT(con.modified_date, '%Y%m%d%H%i%S'), UNSIGNED), 0)
+                ) AS last_update_timestamp,
+                s.latest_datetime,
+                con.modified_date
             FROM civicrm_case cc
             JOIN civicrm_case_contact ccc
                 ON ccc.case_id = cc.id
@@ -334,18 +342,13 @@ class CiviCrmEcrfSource(EcrfSource):
                     AND ca.activity_type_id = 16 # case status changed
                 GROUP BY cca.case_id
             ) s ON s.civicrm_case_id = cc.id
-            LEFT JOIN (
-                SELECT
-                    entity_id AS civicrm_contact_id,
-                    CONVERT(DATE_FORMAT(MAX(modified_date), '%Y%m%d%H%i%S'), UNSIGNED) latest_datetime
-                FROM civicrm_log l
-                WHERE l.entity_table = 'civicrm_contact'
-                GROUP BY entity_id
-            ) clog ON clog.civicrm_contact_id = ccc.contact_id
             {joins}
             WHERE cc.case_type_id = :case_type_id
                 AND cc.is_deleted = 0
-                AND GREATEST(s.latest_datetime, clog.latest_datetime) > :timestamp
+                 AND GREATEST(
+                    COALESCE(s.latest_datetime, 0),
+                    COALESCE(CONVERT(DATE_FORMAT(con.modified_date, '%Y%m%d%H%i%S'), UNSIGNED), 0)
+                ) > :timestamp
             ;
         """
 
