@@ -107,6 +107,7 @@ live.env
 
 database.sqlite3
 database.sqlite3-journal
+database.sqlite3*
 upload/
 .vscode
 celerybeat.pid
