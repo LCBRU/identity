@@ -46,7 +46,9 @@ def unblinding(id):
     un_blinding_form = UnblindingForm()
 
     if un_blinding_form.validate_on_submit():
+        print(un_blinding_form.id.data)
         blinding = Blinding.query.join(PseudoRandomId).filter_by(full_code=un_blinding_form.id.data).first()
+        print(blinding)
 
         if blinding is None or blinding.blinding_type.blinding_set.study != study:
             flash(

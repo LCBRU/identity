@@ -201,25 +201,26 @@ def load_legacy_blind_ids(admin):
 
     for bt in BlindingType.query.filter_by(deleted = False).all():
         
-        if len(bt.blindings) == 0:
-            current_app.logger.info(f'Loading Blind IDs of type {bt.name}')
+        current_app.logger.info(f'Loading Blind IDs of type {bt.name}')
 
-            engine = create_engine(current_app.config['LEGACY_PSEUDORANDOM_ID_URI'])
+        engine = create_engine(current_app.config['LEGACY_PSEUDORANDOM_ID_URI'])
 
-            with engine.connect() as con:
+        with engine.connect() as con:
 
-                rs = con.execute(text("""
-                    SELECT unblind_id, blind_id
-                    FROM blind_unblind_xref
-                    WHERE study = :study
-                        AND blind_id_type = :blind_id_type
-                    ;"""), study=bt.blinding_set.study.name, blind_id_type=bt.name)
+            rs = con.execute(text("""
+                SELECT unblind_id, blind_id
+                FROM blind_unblind_xref
+                WHERE study = :study
+                    AND blind_id_type = :blind_id_type
+                ;"""), study=bt.blinding_set.study.name, blind_id_type=bt.name)
 
-                for row in rs:
+            for row in rs:
 
-                    pseudo_random_id = PseudoRandomId.query.filter_by(full_code=row['blind_id']).first()
+                pseudo_random_id = PseudoRandomId.query.filter_by(full_code=row['blind_id']).first()
 
-                    blinding = Blinding(
+                if pseudo_random_id and Blinding.query.filter(Blinding.blinding_type_id == bt.id, Blinding.unblind_id == row['unblind_id']).count() == 0:
+
+                    blinding = Blinding(    
                         unblind_id=row['unblind_id'],
                         blinding_type=bt,
                         blinding_type_id=bt.id,
@@ -233,7 +234,7 @@ def load_legacy_blind_ids(admin):
 
                     db.session.add(blinding)
 
-            engine.dispose()
+        engine.dispose()
 
     db.session.commit()
 
