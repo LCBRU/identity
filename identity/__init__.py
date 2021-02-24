@@ -16,11 +16,11 @@ from .printing import init_printing
 from .setup import import_ids, create_base_data
 from .utils import ReverseProxied
 from .celery import init_celery, celery
-from .config import BaseConfig
+from .config import Config
 from .ecrfs import init_redcap
 import logging
 
-def create_app(config=BaseConfig):
+def create_app(config=Config):
     app = Flask(__name__)
     app.wsgi_app = ReverseProxied(app.wsgi_app)
     app.config.from_object(config)

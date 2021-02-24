@@ -1,30 +1,15 @@
 import os
-from dotenv import load_dotenv
-
-# Load environment variables from '.env' file.
-load_dotenv()
+from lbrc_flask.config import BaseConfig, BaseTestConfig
 
 
-class BaseConfig(object):
+class IdentityConfig():
     LOG_LEVEL = os.getenv("LOG_LEVEL", "WARNING")
-    TESTING = os.getenv("TESTING", "False") == 'True'
 
     IMPORT_OLD_IDS = os.getenv("IMPORT_OLD_IDS", "True") == 'True'
 
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    SQLALCHEMY_ECHO = os.getenv("SQLALCHEMY_ECHO", "False") == 'True'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    WTF_CSRF_ENABLED = True
-    ADMIN_EMAIL_ADDRESSES = os.environ["ADMIN_EMAIL_ADDRESSES"]
     ERROR_EMAIL_SUBJECT = "LBRC identity Error"
-    MAIL_DEFAULT_SENDER = os.environ["MAIL_DEFAULT_SENDER"]
+
     MAIL_DEBUG = os.getenv("MAIL_DEBUG", "False") == 'True'
-    MAIL_SERVER = os.environ["SMTP_SERVER"]
-    LDAP_URI = os.environ["LDAP_URI"]
-    LDAP_USER_SUFFIX = os.environ["LDAP_USER_SUFFIX"]
-    LDAP_USER = os.environ["LDAP_USER"]
-    LDAP_PASSWORD = os.environ["LDAP_PASSWORD"]
-    SECRET_KEY = os.environ["SECRET_KEY"]
 
     PRINTER_CVRC_LAB_SAMPLE = os.environ["PRINTER_CVRC_LAB_SAMPLE"]
     PRINTER_BRU_CRF_SAMPLE = os.environ["PRINTER_BRU_CRF_SAMPLE"]
@@ -41,8 +26,7 @@ class BaseConfig(object):
     LEGACY_BRICCS_ID_URI = os.environ["LEGACY_BRICCS_ID_URI"]
     LEGACY_PSEUDORANDOM_ID_URI = os.environ["LEGACY_PSEUDORANDOM_ID_URI"]
 
-    SQLALCHEMY_DATABASE_URI = os.environ["IDENTITY_DB_URI"]
-    PRINTING_SET_SLEEP=2
+    PRINTING_SET_SLEEP = 2
 
     FILE_UPLOAD_DIRECTORY = os.environ["FILE_UPLOAD_DIRECTORY"]
 
@@ -73,16 +57,14 @@ class BaseConfig(object):
     REDCAP_PARTICIPANTS_SCHEDULE_HOUR=os.environ["REDCAP_PARTICIPANTS_SCHEDULE_HOUR"]
 
 
-class TestConfig(BaseConfig):
+class Config(BaseConfig, IdentityConfig):
+    pass
+
+class TestConfig(BaseTestConfig, IdentityConfig):
     """Configuration for general testing"""
 
-    TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite://"
-    WTF_CSRF_ENABLED = False
-    SMTP_SERVER = None
-    SQLALCHEMY_ECHO = False
     PRINTING_SET_SLEEP=0
-    FILE_UPLOAD_DIRECTORY = os.path.join(BaseConfig.BASE_DIR, "tests", "file_uploads")
+    FILE_UPLOAD_DIRECTORY = '/home/richard/projects/identity/tests/file_uploads'
     BROKER_URL=os.environ["BROKER_URL"] + '/test'
 
 

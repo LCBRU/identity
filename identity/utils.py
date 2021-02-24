@@ -49,7 +49,7 @@ def log_exception(e):
     email(
         subject=current_app.config["ERROR_EMAIL_SUBJECT"],
         message=traceback.format_exc(),
-        recipients=current_app.config["ADMIN_EMAIL_ADDRESSES"].split(";"),
+        recipients=[current_app.config["ADMIN_EMAIL_ADDRESS"]],
     )
 
 
