@@ -2,7 +2,6 @@
 
 import pytest
 from flask import url_for
-from identity.database import db
 from tests import login
 
 

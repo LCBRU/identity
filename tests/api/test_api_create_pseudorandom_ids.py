@@ -1,7 +1,4 @@
 import pytest
-import uuid
-from flask import jsonify
-from identity.database import db
 from identity.printing.discordance import ID_TYPE_PARTICIPANT
 from identity.model.id import PseudoRandomId
 from tests.api import add_api_key_to_url

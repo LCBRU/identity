@@ -1,6 +1,6 @@
 import uuid
-from datetime import datetime
-from identity.database import db, GUID
+from identity.database import GUID
+from lbrc_flask.database import db
 from identity.model.security import User
 
 

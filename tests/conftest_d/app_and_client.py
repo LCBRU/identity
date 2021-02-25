@@ -6,7 +6,7 @@ from flask import Response
 from flask.testing import FlaskClient
 from bs4 import BeautifulSoup
 import identity
-from identity.database import db
+from lbrc_flask.database import db
 from identity.config import TestConfig, TestConfigCRSF
 from identity.setup import create_base_data
 from identity.security import init_users

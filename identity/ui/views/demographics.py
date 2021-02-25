@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from functools import wraps
 from flask import (
-    current_app, render_template,
+    render_template,
     redirect,
     url_for,
     flash,

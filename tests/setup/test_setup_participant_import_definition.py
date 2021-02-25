@@ -7,7 +7,7 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 import identity
 from unittest.mock import patch
 import pytest
-from identity.database import db
+from lbrc_flask.database import db
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.ecrfs.model import ParticipantImportDefinition, RedcapInstance, RedcapProject

@@ -18,9 +18,6 @@ from identity.demographics.smsp import (
 )
 from tests import login
 from tests.demographics import (
-    mock_get_demographics_from_nhs_number,
-    mock_get_demographics_from_search,
-    mock_get_spine_parameters,
     DemographicsTestHelper,
 )
 

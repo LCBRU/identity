@@ -2,7 +2,6 @@ from flask import Flask
 from .ui import blueprint as ui_blueprint
 from .security_ui import blueprint as security_ui_blueprint
 from .api import blueprint as api_blueprint
-from .database import db
 from .security import init_security, init_users
 from .admin import init_admin
 from .printing import init_printing
@@ -16,7 +15,9 @@ from lbrc_flask.logging import init_logging
 from lbrc_flask.template_filters import init_template_filters
 from lbrc_flask.standard_views import init_standard_views
 from lbrc_flask.emailing import init_mail
+from lbrc_flask.database import db
 from lbrc_flask import blueprint as flask_blueprint
+
 
 def create_app(config=Config):
     app = Flask(__name__)

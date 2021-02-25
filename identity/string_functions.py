@@ -1,5 +1,5 @@
-from flask import current_app
 from functools import lru_cache
+
 
 @lru_cache(maxsize=500, typed=False)
 def levenshtein_distance(string_a, string_b):
@@ -11,7 +11,7 @@ def levenshtein_distance(string_a, string_b):
         cost = 0
     else:
         cost = 1
-       
+
     result = min([
         levenshtein_distance(string_a[:-1], string_b)+1, # Deletion
         levenshtein_distance(string_a, string_b[:-1])+1, # Insertion
@@ -33,14 +33,17 @@ def decode_list_string(value):
     else:
         return [i.strip() for i in value.split(',')]
 
+
 def encode_list_string(value):
     if value:
         return ",".join(value)
     else:
         return None
 
+
 def decode_dictionary_string(value):
     return {k: v for k, v in [i.split(':') for i in decode_list_string(value)]}
+
 
 def encode_dictionary_string(value):
     if value is None:

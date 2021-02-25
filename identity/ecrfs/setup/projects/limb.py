@@ -1,4 +1,3 @@
-from identity.database import redcap_engine
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName

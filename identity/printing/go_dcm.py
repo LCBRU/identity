@@ -18,7 +18,7 @@ from .printing_methods import (
     print_barcode,
     print_notes_label,
 )
-from ..database import db
+from lbrc_flask.database import db
 
 
 ID_TYPE_PARTICIPANT = "GDPt"

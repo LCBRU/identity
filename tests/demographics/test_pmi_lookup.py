@@ -9,12 +9,10 @@ from identity.demographics.model import (
 )
 from identity.demographics import extract_pre_pmi_details, extract_post_pmi_details
 from identity.services.pmi import PmiData, PmiException
-from identity.database import db
+from lbrc_flask.database import db
 from tests import login
 from tests.demographics import (
     DemographicsTestHelper,
-    mock_schedule_lookup_tasks,
-    mock_pmi_details,
 )
 
 

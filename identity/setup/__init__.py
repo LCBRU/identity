@@ -4,9 +4,9 @@ from identity.setup.studies import StudyName
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 from flask import current_app
-from itertools import groupby, chain
+from itertools import chain
 from collections import ChainMap
-from identity.database import db
+from lbrc_flask.database import db
 from identity.model.id import (
     SequentialIdProvider,
     LegacyIdProvider,
@@ -20,7 +20,7 @@ from identity.model.id import (
 )
 from identity.utils import get_concrete_classes
 from identity.model import Study
-from identity.ecrfs.model import ParticipantImportDefinition, RedcapInstance, RedcapProject
+from identity.ecrfs.model import RedcapInstance
 from identity.security import get_system_user, get_admin_user
 from identity.printing.briccs import (
     ID_NAME_BRICCS_PARTICIPANT,

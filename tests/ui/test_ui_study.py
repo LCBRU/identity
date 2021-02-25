@@ -1,12 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import pytest
-import urllib.parse
 from flask import url_for
-from identity.database import db
+from lbrc_flask.database import db
 from tests import login
 from identity.model import Study
-from identity.printing.model import LabelPack
 
 
 @pytest.mark.parametrize(

@@ -1,7 +1,5 @@
-from pydoc import cli
 from unittest.mock import patch
-from bs4 import BeautifulSoup
-from identity.database import db
+from lbrc_flask.database import db
 from identity.security import login_user, init_users
 from identity.model import Study
 

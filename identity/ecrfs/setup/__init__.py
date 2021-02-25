@@ -3,7 +3,7 @@ from identity.setup.participant_identifier_types import ParticipantIdentifierTyp
 from identity.model.sex import SexName
 from identity.ecrfs.model import CiviCrmEcrfSource, CustomEcrfSource, ParticipantImportDefinition, RedcapInstance, RedcapProject
 from identity.model import Study
-from identity.database import db
+from lbrc_flask.database import db
 
 
 crfs = []

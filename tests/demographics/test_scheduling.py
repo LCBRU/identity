@@ -1,16 +1,10 @@
 import contextlib
 from datetime import datetime
 import os
-from identity.database import db
+from lbrc_flask.database import db
 from identity.demographics import schedule_lookup_tasks
 from tests import login
 from tests.demographics import (
-    mock_process_demographics_request_data,
-    mock_extract_data,
-    mock_produce_demographics_result,
-    mock_extract_pre_pmi_details,
-    mock_extract_post_pmi_details,
-    mock_log_exception,
     DemographicsTestHelper,
 )
 

@@ -1,5 +1,3 @@
-from flask_sqlalchemy import SQLAlchemy
-
 from sqlalchemy import create_engine
 from contextlib import contextmanager
 from flask import current_app
@@ -7,8 +5,6 @@ from flask import current_app
 from sqlalchemy.types import TypeDecorator, CHAR
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
-
-db = SQLAlchemy()
 
 
 @contextmanager

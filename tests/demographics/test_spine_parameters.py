@@ -3,20 +3,10 @@ import os
 from identity.services.validators import parse_date
 from identity.demographics import get_spine_parameters
 from identity.demographics.data_conversions import (
-    convert_dob,
     convert_gender,
-    convert_name,
-    convert_nhs_number,
-    convert_postcode,
-    convert_uhl_system_number,
 )
 from tests import login
 from tests.demographics import (
-    mock_convert_dob,
-    mock_convert_gender,
-    mock_convert_name,
-    mock_convert_nhs_number,
-    mock_convert_postcode,
     DemographicsTestHelper,
 )
 

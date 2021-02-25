@@ -1,18 +1,20 @@
 from datetime import datetime
-from pprint import pprint
-from unittest.mock import call, patch
+from unittest.mock import patch
 from copy import deepcopy
 
 import pytest
 
-from identity.database import db
+from lbrc_flask.database import db
 from identity.model import Study
 from identity.ecrfs import import_participants
-from identity.ecrfs.model import (EcrfDetail, ParticipantImportDefinition,
-                                   RedcapInstance, RedcapProject)
+from identity.ecrfs.model import (
+    EcrfDetail,
+    ParticipantImportDefinition,
+    RedcapInstance,
+    RedcapProject,
+)
 from identity.services.validators import parse_date
-from identity.setup.participant_identifier_types import \
-    ParticipantIdentifierTypeName
+from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 
 DEFAULT_RECORD = {
     'record': 'abc1',

@@ -1,11 +1,9 @@
 import traceback
-from typing import NamedTuple
 from collections import namedtuple
 from datetime import datetime
 from dateutil.parser import parse
 from flask import url_for, current_app, render_template
-from sqlalchemy.sql import text
-from identity.database import db, pmi_engine
+from lbrc_flask.database import db
 from identity.celery import celery
 from identity.demographics.model import (
     DemographicsRequest,

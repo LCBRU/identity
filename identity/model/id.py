@@ -1,7 +1,7 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 import random
 from datetime import datetime
-from identity.database import db
+from lbrc_flask.database import db
 from .security import User
 from . import Study
 

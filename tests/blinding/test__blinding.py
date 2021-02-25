@@ -1,11 +1,9 @@
 
-from sys import prefix
-from identity.ui.views.study import study
 from identity.model.id import PseudoRandomId, PseudoRandomIdProvider
 from identity.blinding.model import Blinding, BlindingSet, BlindingType
 from tests import login
 from identity.model import Study
-from identity.database import db
+from lbrc_flask.database import db
 
 
 def test__get_blind_ids___no_sets(client, faker):

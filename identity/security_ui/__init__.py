@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import logging
 from urllib.parse import urlparse, urljoin
 from flask import (
     Blueprint,
@@ -8,14 +7,12 @@ from flask import (
     redirect,
     abort,
     url_for,
-    flash,
     request,
     current_app,
 )
 from flask_login import logout_user
 from .forms import LoginForm
-from identity.database import db
-from identity.model.security import User
+from lbrc_flask.database import db
 from identity.security import login as login_user
 
 

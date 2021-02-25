@@ -2,7 +2,7 @@ import ldap
 from datetime import datetime
 from flask import current_app
 from flask_login import UserMixin
-from identity.database import db
+from lbrc_flask.database import db
 from identity.utils import log_exception
 
 

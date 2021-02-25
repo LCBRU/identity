@@ -1,5 +1,5 @@
 from datetime import datetime
-from ..database import db
+from lbrc_flask.database import db
 from identity.model import Study
 from identity.model.id import (
     PseudoRandomIdProvider,

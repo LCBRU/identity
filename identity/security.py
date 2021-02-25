@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 
 import time
-import ldap
-import pprint
 from functools import wraps
 from flask import g, current_app
 from flask_login import (
     LoginManager,
     login_user,
-    logout_user,
     current_user,
 )
 from identity.model.security import User, Role
-from .database import db
+from lbrc_flask.database import db
 
 SYSTEM_USER_NAME = 'system'
 

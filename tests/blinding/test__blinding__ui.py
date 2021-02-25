@@ -4,18 +4,12 @@ import pytest
 import re
 from flask import url_for
 from tests import login, add_all_studies
-from identity.printing.briccs import (
-    ID_NAME_BRICCS_PARTICIPANT,
-    ID_NAME_BRICCS_SAMPLE,
-    ID_NAME_BRICCS_ALIQUOT,
-)
-from identity.model.security import User
 from identity.model import Study
 from identity.blinding.model import (
     BlindingSet,
     Blinding,
 )
-from identity.database import db
+from lbrc_flask.database import db
 
 
 @pytest.mark.parametrize(

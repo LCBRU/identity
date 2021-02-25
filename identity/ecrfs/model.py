@@ -5,9 +5,9 @@ from memoization import cached
 from identity.services.validators import parse_date_or_none
 from flask import current_app
 from identity.model.id import ParticipantIdentifierSource
-from identity.database import db, redcap_engine
+from identity.database import redcap_engine
 from datetime import datetime
-from identity.database import db
+from lbrc_flask.database import db
 from identity.model import Study
 from identity.model.security import User
 from sqlalchemy.orm import column_property

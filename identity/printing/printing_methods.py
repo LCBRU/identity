@@ -2,14 +2,9 @@ import re
 import socket
 import datetime
 import time
-from collections import namedtuple
 from flask import current_app
 from flask_login import current_user
-from ..database import db
-from identity.model.id import (
-    Study,
-    ParticipantIdentifierType,
-)
+
 
 FONT_TINY = 'P'
 FONT_SMALL = 'R'

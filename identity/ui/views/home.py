@@ -1,6 +1,6 @@
-from flask import render_template, redirect, url_for
+from flask import render_template
 from .. import blueprint
-from lbrc_flask.emailing import email
+
 
 @blueprint.route("/")
 def index():

@@ -6,7 +6,7 @@ from datetime import datetime
 from io import BytesIO
 from flask import url_for
 from identity.demographics.model import DemographicsRequest, DemographicsRequestColumn
-from identity.database import db
+from lbrc_flask.database import db
 from tests import login, flash_messages_contains_error
 from tests.demographics import (
     assert_uploaded_file,

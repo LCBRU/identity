@@ -3,7 +3,7 @@ import time
 from collections import namedtuple
 from flask import current_app
 from flask_login import current_user
-from ..database import db
+from lbrc_flask.database import db
 from identity.model.id import (
     Study,
     ParticipantIdentifier,

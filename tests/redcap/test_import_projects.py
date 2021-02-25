@@ -1,10 +1,8 @@
 from datetime import datetime
 from unittest.mock import patch
 
-from identity.database import db
-from identity.ecrfs import (ProjectImporter, RedcapProject, import_project_details)
-from identity.ecrfs.model import RedcapInstance
-from identity.security import get_system_user
+from lbrc_flask.database import db
+from identity.ecrfs import (ProjectImporter, RedcapProject)
 
 
 def _run_import(records):

@@ -9,8 +9,6 @@ from identity.services.validators import parse_date
 from tests import login
 from tests.demographics import (
     DemographicsTestHelper,
-    mock_schedule_lookup_tasks,
-    mock_log_exception,
 )
 
 

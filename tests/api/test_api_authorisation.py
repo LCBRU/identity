@@ -1,9 +1,5 @@
-import urllib
 import pytest
 import uuid
-from urllib.parse import urlencode
-from flask import url_for
-from identity.database import db
 from tests.api import get_api_key, add_parameters_to_url, add_api_key_to_url
 
 

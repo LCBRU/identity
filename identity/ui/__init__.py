@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask_login import login_required
-from ..database import db
+from lbrc_flask.database import db
 
 
 blueprint = Blueprint("ui", __name__, template_folder="templates")

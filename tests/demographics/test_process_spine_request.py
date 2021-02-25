@@ -1,6 +1,6 @@
 import contextlib
 import os
-from identity.database import db
+from lbrc_flask.database import db
 from identity.demographics import process_demographics_request_data
 from identity.demographics.model import (
     DemographicsRequest,
@@ -9,9 +9,6 @@ from identity.demographics.model import (
 from tests import login
 from tests.demographics import (
     DemographicsTestHelper,
-    mock_schedule_lookup_tasks,
-    mock_spine_lookup,
-    mock_log_exception,
 )
 
 

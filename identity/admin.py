@@ -4,7 +4,7 @@ import flask_admin as admin
 from flask_admin.form import SecureForm
 from flask_admin.contrib.sqla import ModelView, fields
 from flask_login import current_user
-from identity.database import db
+from lbrc_flask.database import db
 from identity.model.security import (
     User,
     Role,

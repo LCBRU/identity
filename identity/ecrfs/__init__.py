@@ -3,7 +3,8 @@ from celery.schedules import crontab
 from flask import current_app
 from sqlalchemy.sql import text
 from identity.celery import celery
-from identity.database import redcap_engine, db
+from identity.database import redcap_engine
+from lbrc_flask.database import db
 from .model import (
     ParticipantImportDefinition, RedcapInstance,
     RedcapProject,
