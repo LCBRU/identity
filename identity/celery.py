@@ -1,5 +1,5 @@
 from celery import Celery
-from identity.config import IdentityConfig, Config
+from identity.config import IdentityConfig
 
 
 celery = Celery(

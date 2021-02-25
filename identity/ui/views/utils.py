@@ -8,7 +8,7 @@ from flask import (
 )
 from sqlalchemy.sql import select
 from .. import blueprint
-from identity.emailing import email
+from lbrc_flask.emailing import email
 from identity.database import pmi_engine
 from dateutil.parser import parse
 

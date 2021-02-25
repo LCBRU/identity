@@ -3,7 +3,7 @@
 import inspect
 import traceback
 from flask import current_app
-from identity.emailing import email
+from lbrc_flask.emailing import email
 
 
 class ReverseProxied(object):

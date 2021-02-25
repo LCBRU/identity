@@ -20,7 +20,7 @@ from identity.demographics.smsp import (
     SmspException,
 )
 from identity.utils import log_exception
-from identity.emailing import email
+from lbrc_flask.emailing import email
 from identity.services.pmi import get_pmi, PmiException
 from .data_conversions import (
     convert_dob,

@@ -1,52 +1,30 @@
-from logging import FileHandler
-import os
-import traceback
-import logging
 from flask import Flask
 from .ui import blueprint as ui_blueprint
 from .security_ui import blueprint as security_ui_blueprint
 from .api import blueprint as api_blueprint
 from .database import db
-from .template_filters import init_template_filters
-from .standard_views import init_standard_views
-from .emailing import init_mail
 from .security import init_security, init_users
 from .admin import init_admin
 from .printing import init_printing
 from .setup import import_ids, create_base_data
 from .utils import ReverseProxied
-from .celery import init_celery, celery
+from .celery import init_celery
 from .config import Config
 from .ecrfs import init_redcap
-import logging
+from lbrc_flask.logging import init_logging
+
+from lbrc_flask.template_filters import init_template_filters
+from lbrc_flask.standard_views import init_standard_views
+from lbrc_flask.emailing import init_mail
+from lbrc_flask import blueprint as flask_blueprint
 
 def create_app(config=Config):
     app = Flask(__name__)
     app.wsgi_app = ReverseProxied(app.wsgi_app)
     app.config.from_object(config)
 
-    info_handler = FileHandler('info.log')
-    info_handler.setLevel(logging.INFO)
-    info_handler.setFormatter(logging.Formatter(
-        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
-    ))
-
-    app.logger.addHandler(info_handler)
-
-    error_handler = FileHandler('error.log')
-    error_handler.setLevel(logging.ERROR)
-    error_handler.setFormatter(logging.Formatter(
-        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
-    ))
-
-    app.logger.addHandler(error_handler)
-
-    app.logger.info('Flask app created')
-
-    print(f'LOG LEVEL = {app.config["LOG_LEVEL"]}')
-    
     with app.app_context():
-        app.logger.setLevel(app.config['LOG_LEVEL'])
+        init_logging(app)
         db.init_app(app)
         init_mail(app)
         init_template_filters(app)
@@ -56,6 +34,8 @@ def create_app(config=Config):
         init_printing(app)
         init_celery(app)
         init_redcap(app)
+
+    app.register_blueprint(flask_blueprint)
 
     app.register_blueprint(security_ui_blueprint)
     app.register_blueprint(ui_blueprint)

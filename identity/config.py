@@ -3,13 +3,10 @@ from lbrc_flask.config import BaseConfig, BaseTestConfig
 
 
 class IdentityConfig():
-    LOG_LEVEL = os.getenv("LOG_LEVEL", "WARNING")
-
     IMPORT_OLD_IDS = os.getenv("IMPORT_OLD_IDS", "True") == 'True'
 
+    # To be deleted
     ERROR_EMAIL_SUBJECT = "LBRC identity Error"
-
-    MAIL_DEBUG = os.getenv("MAIL_DEBUG", "False") == 'True'
 
     PRINTER_CVRC_LAB_SAMPLE = os.environ["PRINTER_CVRC_LAB_SAMPLE"]
     PRINTER_BRU_CRF_SAMPLE = os.environ["PRINTER_BRU_CRF_SAMPLE"]
