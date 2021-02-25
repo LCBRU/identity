@@ -10,13 +10,7 @@ from .utils import ReverseProxied
 from .celery import init_celery
 from .config import Config
 from .ecrfs import init_redcap
-from lbrc_flask.logging import init_logging
-
-from lbrc_flask.template_filters import init_template_filters
-from lbrc_flask.standard_views import init_standard_views
-from lbrc_flask.emailing import init_mail
-from lbrc_flask.database import db
-from lbrc_flask import blueprint as flask_blueprint
+from lbrc_flask import init_lbrc_flask
 
 
 def create_app(config=Config):
@@ -24,19 +18,16 @@ def create_app(config=Config):
     app.wsgi_app = ReverseProxied(app.wsgi_app)
     app.config.from_object(config)
 
+    TITLE = 'Identity'
+
     with app.app_context():
-        init_logging(app)
-        db.init_app(app)
-        init_mail(app)
-        init_template_filters(app)
-        init_standard_views(app)
+        init_lbrc_flask(app, TITLE)
+
         init_security(app)
         init_admin(app)
         init_printing(app)
         init_celery(app)
         init_redcap(app)
-
-    app.register_blueprint(flask_blueprint)
 
     app.register_blueprint(security_ui_blueprint)
     app.register_blueprint(ui_blueprint)
