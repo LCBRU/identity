@@ -1,4 +1,4 @@
-from identity.string_functions import decode_dictionary_string, decode_list_string, encode_dictionary_string, encode_list_string
+from lbrc_flask.string_functions import decode_dictionary_string, decode_list_string, encode_dictionary_string, encode_list_string
 from identity.setup.civicrm_instances import CiviCrmInstanceDetail
 from sqlalchemy import func, select
 from memoization import cached
