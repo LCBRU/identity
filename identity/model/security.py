@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import current_app
 from flask_login import UserMixin
 from lbrc_flask.database import db
-from identity.utils import log_exception
+from lbrc_flask.logging import log_exception
 
 
 users_studies = db.Table(

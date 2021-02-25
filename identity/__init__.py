@@ -6,11 +6,10 @@ from .security import init_security, init_users
 from .admin import init_admin
 from .printing import init_printing
 from .setup import import_ids, create_base_data
-from .utils import ReverseProxied
 from .celery import init_celery
 from .config import Config
 from .ecrfs import init_redcap
-from lbrc_flask import init_lbrc_flask
+from lbrc_flask import init_lbrc_flask, ReverseProxied
 
 
 def create_app(config=Config):

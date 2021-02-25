@@ -17,7 +17,7 @@ from identity.demographics.smsp import (
     get_demographics_from_nhs_number,
     SmspException,
 )
-from identity.utils import log_exception
+from lbrc_flask.logging import log_exception
 from lbrc_flask.emailing import email
 from identity.services.pmi import get_pmi, PmiException
 from .data_conversions import (

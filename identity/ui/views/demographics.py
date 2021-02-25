@@ -31,7 +31,7 @@ from identity.demographics.model import (
 )
 from identity.demographics import schedule_lookup_tasks
 from identity.security import must_be_admin
-from identity.utils import log_exception
+from lbrc_flask.logging import log_exception
 
 
 def must_be_request_owner():

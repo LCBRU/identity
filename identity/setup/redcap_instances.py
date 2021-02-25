@@ -1,5 +1,3 @@
-from enum import Enum
-
 class REDCapInstanceDetail():
     UHL_LIVE = {
         'name': 'UHL Live',

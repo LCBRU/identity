@@ -1,5 +1,3 @@
-from enum import Enum
-
 class ParticipantIdentifierTypeName():
     AS_PROGRESSION_ID = 'AS_PROGRESSION_ID'
     BME_COVID_ID = 'BME_COVID_ID'

@@ -18,7 +18,7 @@ from identity.model.id import (
     StudyIdSpecification,
     ParticipantIdentifierType,
 )
-from identity.utils import get_concrete_classes
+from lbrc_flask.python_helpers import get_concrete_classes
 from identity.model import Study
 from identity.ecrfs.model import RedcapInstance
 from identity.security import get_system_user, get_admin_user

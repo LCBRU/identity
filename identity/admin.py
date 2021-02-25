@@ -9,7 +9,7 @@ from identity.model.security import (
     User,
     Role,
 )
-from wtforms.validators import Required, ValidationError
+from wtforms.validators import ValidationError
 from identity.model import Study
 from identity.api.model import ApiKey
 from identity.ecrfs.model import (

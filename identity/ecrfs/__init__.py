@@ -15,7 +15,7 @@ from identity.model.id import (
     ParticipantIdentifier,
 )
 from identity.security import get_system_user
-from identity.utils import log_exception
+from lbrc_flask.logging import log_exception
 import multiprocessing
 
 

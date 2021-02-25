@@ -1,5 +1,3 @@
-from enum import Enum
-
 class CiviCrmInstanceDetail():
     UHL_LIVE = {
         'name': 'CiviCRM UHL Live',
