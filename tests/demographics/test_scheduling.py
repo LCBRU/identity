@@ -3,7 +3,7 @@ from datetime import datetime
 import os
 from lbrc_flask.database import db
 from identity.demographics import schedule_lookup_tasks
-from tests import login
+from lbrc_flask.pytest.helpers import login
 from tests.demographics import (
     DemographicsTestHelper,
 )

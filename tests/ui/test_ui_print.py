@@ -5,7 +5,8 @@ from identity.printing.cardiomet import ID_TYPE_PARTICIPANT as CARDIOMET_ID_TYPE
 from identity.printing.go_dcm import ID_TYPE_PARTICIPANT as GO_DCM_ID_TYPE_PARTICIPANT
 from identity.model.id import PseudoRandomId, PseudoRandomIdProvider
 from lbrc_flask.database import db
-from tests import login, add_all_studies
+from tests import add_all_studies
+from lbrc_flask.pytest.helpers import login
 
 
 def test__labels(client, faker):

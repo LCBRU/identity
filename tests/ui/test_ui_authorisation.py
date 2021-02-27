@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-
 import pytest
-from tests import login
+from lbrc_flask.pytest.helpers import login
 
 
 def test_missing_route(client):

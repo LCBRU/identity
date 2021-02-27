@@ -16,7 +16,7 @@ from identity.demographics.smsp import (
     SmspNhsNumberNotVerifiedException,
     SmspNhsNumberNotNewStyleException,
 )
-from tests import login
+from lbrc_flask.pytest.helpers import login
 from tests.demographics import (
     DemographicsTestHelper,
 )

@@ -1,7 +1,7 @@
 import pytest
 from flask import url_for
 from lbrc_flask.database import db
-from tests import login
+from lbrc_flask.pytest.helpers import login
 from identity.model import Study
 
 

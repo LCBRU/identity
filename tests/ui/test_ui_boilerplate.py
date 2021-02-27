@@ -2,7 +2,7 @@
 
 import pytest
 from flask import url_for
-from tests import login
+from lbrc_flask.pytest.helpers import login
 
 
 @pytest.mark.parametrize(
@@ -34,9 +34,8 @@ def test__boilerplate__html_standards(client, faker, path):
 
 
 @pytest.mark.parametrize("path", [("/login")])
-def test__boilerplate__login_csrf_token(client_with_crsf, faker, path):
-    client = client_with_crsf
-
+@pytest.mark.app_crsf(True)
+def test__boilerplate__login_csrf_token(client, faker, path):
     resp = client.get(path)
 
     assert (
@@ -62,4 +61,4 @@ def test__boilerplate__basic_navigation(client, faker, path):
     assert resp.soup.nav.find("a", href=url_for('ui.index')) is not None
     assert resp.soup.nav.find("a", href=url_for('ui.labels')) is not None
     assert resp.soup.find(lambda tag:tag.name=="a" and user.full_name in tag.text) is not None
-    assert resp.soup.nav.find("a", href=url_for('security_ui.logout')) is not None
+    assert resp.soup.nav.find("a", href=url_for('security.logout')) is not None

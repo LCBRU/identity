@@ -7,7 +7,8 @@ from io import BytesIO
 from flask import url_for
 from identity.demographics.model import DemographicsRequest, DemographicsRequestColumn
 from lbrc_flask.database import db
-from tests import login, flash_messages_contains_error
+from tests import flash_messages_contains_error
+from lbrc_flask.pytest.helpers import login, logout
 from tests.demographics import (
     assert_uploaded_file,
     assert_uploaded_file_not_exists,
@@ -176,8 +177,11 @@ def test__ui_demographics_define_columns_get__not_owner(client, faker):
 
     dr = do_create_request(client, faker, user, headers=headers)
 
+    logout(client)
+
     user2 = login(client, faker)
     response = client.get(url_for('ui.demographics_define_columns', id=dr.id, _external=True))
+
     assert response.status_code == 403
 
     _remove_files(dr)
@@ -283,6 +287,8 @@ def test__ui_demographics_define_columns_post__not_owner(client, faker):
 
     dr = do_create_request(client, faker, user, headers=headers)
 
+    logout(client)
+
     user2 = login(client, faker)
 
     response = client.post(
@@ -345,6 +351,8 @@ def test__ui_demographics_submit_get__not_owner(client, faker):
     dr = do_create_request(client, faker, user)
     do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
+    logout(client)
+
     user2 = login(client, faker)
     response = client.get(url_for('ui.demographics_submit', id=dr.id, _external=True))
     assert response.status_code == 403
@@ -373,6 +381,8 @@ def test__ui_demographics_submit_post__not_owner(client, faker):
 
     dr = do_create_request(client, faker, user)
     do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
+
+    logout(client)
 
     user2 = login(client, faker)
     response = do_submit(client, dr.id)
@@ -424,6 +434,8 @@ def test__ui_demographics_result_created__download(client, faker):
     assert dr.result_downloaded == True
 
     # Do not allows others to download
+    logout(client)
+
     user = login(client, faker)
     response = client.get(url_for('ui.demographics_download_result', id=dr.id, _external=True))
     assert response.status_code == 403
@@ -442,6 +454,8 @@ def test__ui_demographics_delete_get(client, faker):
     assert response.status_code == 200
 
     # Do not allows others to delete
+    logout(client)
+
     user = login(client, faker)
     response = client.get(url_for('ui.demographics_delete', id=dr.id, _external=True))
     assert response.status_code == 403
@@ -477,6 +491,8 @@ def test__ui_demographics_delete_post__not_owner(client, faker):
     dr = do_create_request(client, faker, user)
     do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
     do_submit(client, dr.id)
+
+    logout(client)
 
     user2 = login(client, faker)
     response = do_delete(client, dr.id)

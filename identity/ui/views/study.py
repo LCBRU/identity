@@ -21,7 +21,7 @@ def blinding(id):
 
     blinding_form = BlindingForm()
 
-    if blinding_form.validate_on_submit():        
+    if blinding_form.validate_on_submit():
         ids = study.get_blind_ids(blinding_form.id.data, current_user)
 
         db.session.add_all(ids)

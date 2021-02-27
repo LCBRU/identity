@@ -6,7 +6,7 @@ from identity.demographics.model import (
     DemographicsRequest,
 )
 from identity.services.validators import parse_date
-from tests import login
+from lbrc_flask.pytest.helpers import login
 from tests.demographics import (
     DemographicsTestHelper,
 )

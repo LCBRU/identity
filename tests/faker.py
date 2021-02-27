@@ -25,18 +25,18 @@ def _random_date(start_date, end_date):
     return start_date + datetime.timedelta(days=random_number_of_days)
 
 
-class FakerProvider(BaseProvider):
-    def column_headers(self, columns):
-        return ['X' * i for i in range(1, columns)]
-
+class IdentityProvider(BaseProvider):
     def user_details(self):
         u = User(
             first_name=self.generator.first_name(),
             last_name=self.generator.last_name(),
-            username=self.generator.email(),
+            email=self.generator.email(),
             active=True,
         )
         return u
+
+    def column_headers(self, columns):
+        return ['X' * i for i in range(1, columns)]
 
     def nhs_number(self):
         while True:  
@@ -115,7 +115,7 @@ class FakerProvider(BaseProvider):
         }
 
 
-class FakerProviderCsv(BaseProvider):
+class DemographicsCsvProvider(BaseProvider):
     def csv_string(self, headers, data=None, rows=10):
 
         csf_file = io.StringIO()
@@ -133,7 +133,7 @@ class FakerProviderCsv(BaseProvider):
         return csf_file.getvalue()
 
 
-class FakerProviderXslx(BaseProvider):
+class DemographicsXslxProvider(BaseProvider):
     def xslx_data(self, headers, data=None, rows=10):
 
         wb = Workbook()
@@ -154,7 +154,7 @@ class FakerProviderXslx(BaseProvider):
         return result.getvalue()
 
 
-class FakerProviderPmi(BaseProvider):
+class PmiProvider(BaseProvider):
 
     def __init__(self, generator):
         super().__init__(generator)
@@ -169,16 +169,5 @@ class FakerProviderPmi(BaseProvider):
         return self._details[key]
 
     def create_pmi_details(self):
-        f = FakerProvider(self.generator)
+        f = IdentityProvider(self.generator)
         return {key: value for key, value in f.person_details().items() if key in PmiData._fields}
-
-
-@pytest.yield_fixture(scope="function")
-def faker():
-    result = Faker("en_GB")
-    result.add_provider(FakerProvider)
-    result.add_provider(FakerProviderCsv)
-    result.add_provider(FakerProviderXslx)
-    result.add_provider(FakerProviderPmi)
-
-    yield result

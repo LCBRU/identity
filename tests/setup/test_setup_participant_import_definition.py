@@ -2,7 +2,7 @@ from datetime import datetime
 from identity.ecrfs.setup import RedCapEcrfDefinition
 from identity.model import Study
 from identity.model.sex import SexName
-from identity.security import get_system_user
+from lbrc_flask.security import get_system_user, init_users
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 import identity
 from unittest.mock import patch
@@ -66,18 +66,19 @@ EXAMPLE_DEFINITION = {
 }
 
 
-def test__create_base_data__no_participant_import_definitions(app_no_data, faker):
+def test__create_base_data__no_participant_import_definitions(initialised_app, faker):
+    init_users()
     with patch.object(identity.setup, 'crfs', []):
         create_base_data()
 
     assert ParticipantImportDefinition.query.count() == 0
 
 
-def test__create_base_data__an_example_participant_import_definitions(app_no_data, faker):
+def test__create_base_data__an_example_participant_import_definitions(initialised_app, faker):
     _test__create_base_data__participant_import_definitions(RedCapEcrfDefinition(EXAMPLE_DEFINITION))
 
 
-def test__create_base_data__participant_import_definitions__multiple_projects(app_no_data, faker):
+def test__create_base_data__participant_import_definitions__multiple_projects(initialised_app, faker):
     definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     definition.crfs = [
         {
@@ -90,7 +91,7 @@ def test__create_base_data__participant_import_definitions__multiple_projects(ap
     _test__create_base_data__participant_import_definitions(definition)
 
 
-def test__create_base_data__participant_import_definitions__multiple_instances(app_no_data, faker):
+def test__create_base_data__participant_import_definitions__multiple_instances(initialised_app, faker):
     definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     definition.crfs = [
         {
@@ -108,7 +109,7 @@ def test__create_base_data__participant_import_definitions__multiple_instances(a
     _test__create_base_data__participant_import_definitions(definition)
 
 
-def test__create_base_data__participant_import_definitions__multiple_studies(app_no_data, faker):
+def test__create_base_data__participant_import_definitions__multiple_studies(initialised_app, faker):
     definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     definition.crfs = [
         {
@@ -160,7 +161,7 @@ MAP_COLUMN_NAMES = [
 ]
 
 @pytest.mark.parametrize("column_name", COLUMN_NAMES)
-def test__create_base_data__participant_import_definitions__empty_column_name(app_no_data, faker, column_name):
+def test__create_base_data__participant_import_definitions__empty_column_name(initialised_app, faker, column_name):
     definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     setattr(definition, column_name, '')
 
@@ -168,7 +169,7 @@ def test__create_base_data__participant_import_definitions__empty_column_name(ap
 
 
 @pytest.mark.parametrize("column_name", [*COLUMN_NAMES, *LIST_COLUMN_NAMES, *MAP_COLUMN_NAMES])
-def test__create_base_data__participant_import_definitions__none_column_name(app_no_data, faker, column_name):
+def test__create_base_data__participant_import_definitions__none_column_name(initialised_app, faker, column_name):
     definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     setattr(definition, column_name, None)
 
@@ -176,6 +177,7 @@ def test__create_base_data__participant_import_definitions__none_column_name(app
 
 
 def _test__create_base_data__participant_import_definitions(definition):
+    init_users()
     projects = _create_projects(definition.crfs)
 
     before = datetime.utcnow()

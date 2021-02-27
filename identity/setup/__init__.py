@@ -21,7 +21,7 @@ from identity.model.id import (
 from lbrc_flask.python_helpers import get_concrete_classes
 from identity.model import Study
 from identity.ecrfs.model import RedcapInstance
-from identity.security import get_system_user, get_admin_user
+from lbrc_flask.security import get_system_user, get_admin_user
 from identity.printing.briccs import (
     ID_NAME_BRICCS_PARTICIPANT,
     ID_NAME_BRICCS_SAMPLE,

@@ -1,7 +1,7 @@
 
 from identity.model.id import PseudoRandomId, PseudoRandomIdProvider
 from identity.blinding.model import Blinding, BlindingSet, BlindingType
-from tests import login
+from lbrc_flask.pytest.helpers import login
 from identity.model import Study
 from lbrc_flask.database import db
 

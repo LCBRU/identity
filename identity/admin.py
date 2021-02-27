@@ -1,14 +1,10 @@
 import datetime
 import re
-import flask_admin as admin
-from flask_admin.form import SecureForm
-from flask_admin.contrib.sqla import ModelView, fields
+from flask_admin.contrib.sqla import fields
 from flask_login import current_user
 from lbrc_flask.database import db
-from identity.model.security import (
-    User,
-    Role,
-)
+from identity.model.security import User
+from lbrc_flask.security import Role
 from wtforms.validators import ValidationError
 from identity.model import Study
 from identity.api.model import ApiKey
@@ -17,23 +13,16 @@ from identity.ecrfs.model import (
     RedcapProject,
     ParticipantImportDefinition,
 )
-from identity.security import get_admin_role
 from flask_admin.form import rules
+from lbrc_flask.admin import AdminCustomView, init_admin as flask_init_admin
+
 
 class QuerySelectMultipleFieldSet(fields.QuerySelectMultipleField):
     def populate_obj(self, obj, name):
         setattr(obj, name, set(self.data))
 
 
-class CustomView(ModelView):
-    # Enable CSRF
-    form_base_class = SecureForm
-
-    def is_accessible(self):
-        return get_admin_role() in current_user.roles
-
-
-class UserView(CustomView):
+class UserView(AdminCustomView):
     form_columns = ["username", "first_name", "last_name", "studies", "active", "roles"]
 
     # form_args and form_overrides required to allow studies and roles to be sets.
@@ -51,13 +40,13 @@ class UserView(CustomView):
     }
 
 
-class StudyView(CustomView):
+class StudyView(AdminCustomView):
     can_delete = False
     can_edit = False
     form_columns = ["name"]
 
 
-class RedcapInstanceView(CustomView):
+class RedcapInstanceView(AdminCustomView):
     form_columns = ["name", "database_name", "base_url"]
 
     def on_model_change(self, form, model, is_created):
@@ -65,7 +54,7 @@ class RedcapInstanceView(CustomView):
         model.last_updated_by_user = current_user
 
 
-class RedcapProjectView(CustomView):
+class RedcapProjectView(AdminCustomView):
     form_columns = ["redcap_instance", "project_id"]
 
     def on_model_change(self, form, model, is_created):
@@ -73,7 +62,7 @@ class RedcapProjectView(CustomView):
         model.last_updated_by_user = current_user
 
 
-class ParticipantImportDefinitionView(CustomView):
+class ParticipantImportDefinitionView(AdminCustomView):
     def valid_list_of_values(form, field):
         if field.data is None:
             return
@@ -194,7 +183,7 @@ class ParticipantImportDefinitionView(CustomView):
         model.last_updated_by_user = current_user
 
 
-class ApiKeyView(CustomView):
+class ApiKeyView(AdminCustomView):
     form_columns = ["user"]
 
     form_args = {
@@ -204,11 +193,16 @@ class ApiKeyView(CustomView):
     }
 
 
-def init_admin(app):
-    flask_admin = admin.Admin(app, name="Leicester BRC Identity", url="/admin")
-    flask_admin.add_view(ApiKeyView(ApiKey, db.session))
-    flask_admin.add_view(UserView(User, db.session))
-    flask_admin.add_view(StudyView(Study, db.session))
-    flask_admin.add_view(RedcapInstanceView(RedcapInstance, db.session))
-    flask_admin.add_view(RedcapProjectView(RedcapProject, db.session))
-    flask_admin.add_view(ParticipantImportDefinitionView(ParticipantImportDefinition, db.session))
+def init_admin(app, title):
+    flask_init_admin(
+        app,
+        title,
+        [
+            StudyView(Study, db.session),
+            UserView(User, db.session),
+            ApiKeyView(ApiKey, db.session),
+            RedcapInstanceView(RedcapInstance, db.session),
+            RedcapProjectView(RedcapProject, db.session),
+            ParticipantImportDefinitionView(ParticipantImportDefinition, db.session),
+        ]
+    )

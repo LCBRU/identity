@@ -36,15 +36,15 @@ def mock_print_barcode(app):
         yield mock
 
 
-def test__print_label__testing(app, faker, mock_socket):
+def test__print_label__testing(initialised_app, faker, mock_socket):
     print_label('test host', 'printer code')
 
     mock_socket.socket.assert_not_called()
 
 
-def test__print_label__not_testing(app, faker, mock_socket):
-    app.config['TESTING'] = False
-    app.config['host'] = 'Host actual'
+def test__print_label__not_testing(initialised_app, faker, mock_socket):
+    initialised_app.config['TESTING'] = False
+    initialised_app.config['host'] = 'Host actual'
 
     s = MagicMock(name='Fred')
     mock_socket.socket.return_value.__enter__.return_value = s
@@ -63,7 +63,7 @@ def test__print_label__not_testing(app, faker, mock_socket):
         (10),
     ],
 )
-def test__print_barcode(app, faker, mock_print_label, count):
+def test__print_barcode(initialised_app, faker, mock_print_label, count):
     print_barcode('printer', 'barcode', count, 'title')
 
     mock_print_label.assert_called_once()
@@ -80,13 +80,13 @@ def test__print_barcode(app, faker, mock_print_label, count):
         ('BPt1234567A1234', '>:BPt>5123456>67A>51234>6'),
     ],
 )
-def test__encode_barcode(app, faker, barcode, expected):
+def test__encode_barcode(initialised_app, faker, barcode, expected):
     actual = _encode_barcode(barcode)
 
     assert actual == expected
 
 
-def test__print_sample__with_defaults(app, faker, mock_print_barcode):
+def test__print_sample__with_defaults(initialised_app, faker, mock_print_barcode):
     EXPECTED_PRINTER = faker.pystr()
     EXPECTED_ID = faker.pystr()
 
@@ -102,7 +102,7 @@ def test__print_sample__with_defaults(app, faker, mock_print_barcode):
     )
 
 
-def test__print_sample__without_defaults(app, faker, mock_print_barcode):
+def test__print_sample__without_defaults(initialised_app, faker, mock_print_barcode):
     EXPECTED_PRINTER = faker.pystr()
     EXPECTED_ID = faker.pystr()
     EXPECTED_TITLE = faker.pystr()
@@ -127,7 +127,7 @@ def test__print_sample__without_defaults(app, faker, mock_print_barcode):
         (10),
     ],
 )
-def test__print_recruited_notice(app, faker, mock_print_label, count):
+def test__print_recruited_notice(initialised_app, faker, mock_print_label, count):
     print_recruited_notice('printer', 'barcode', count)
 
     mock_print_label.assert_called_once()
@@ -140,13 +140,13 @@ def test__print_recruited_notice(app, faker, mock_print_label, count):
         (10),
     ],
 )
-def test__print_aliquot(app, faker, mock_print_label, count):
+def test__print_aliquot(initialised_app, faker, mock_print_label, count):
     print_aliquot('printer', 'barcode', count)
 
     mock_print_label.assert_called_once()
 
 
-def test__print_bag__with_defaults(app, faker, mock_print_label):
+def test__print_bag__with_defaults(initialised_app, faker, mock_print_label):
     EXPECTED_PRINTER = faker.pystr()
     EXPECTED_ID = faker.pystr()
     EXPECTED_SIDEBAR = faker.pystr()
@@ -171,7 +171,7 @@ def test__print_bag__with_defaults(app, faker, mock_print_label):
         (10),
     ],
 )
-def test__print_bag__without_defaults(app, faker, mock_print_label, count):
+def test__print_bag__without_defaults(initialised_app, faker, mock_print_label, count):
     context = BagContext(printer=faker.pystr(), participant_id=faker.pystr(), side_bar=faker.pystr())
 
     print_bag(
@@ -200,7 +200,7 @@ def test__print_bag__without_defaults(app, faker, mock_print_label, count):
         (10),
     ],
 )
-def test__print_bag_small(app, faker, mock_print_label, count):
+def test__print_bag_small(initialised_app, faker, mock_print_label, count):
     print_bag_small(
         printer=faker.pystr(),
         title=faker.pystr(),
@@ -219,7 +219,7 @@ def test__print_bag_small(app, faker, mock_print_label, count):
         (10),
     ],
 )
-def test__print_notes_label(app, faker, mock_print_label, count):
+def test__print_notes_label(initialised_app, faker, mock_print_label, count):
     context = BagContext(printer=faker.pystr(), participant_id=faker.pystr(), side_bar=faker.pystr())
 
     print_notes_label(

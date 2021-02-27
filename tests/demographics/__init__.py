@@ -22,7 +22,7 @@ from identity.demographics.model import (
     DemographicsRequestDataMessage,
 )
 from lbrc_flask.database import db
-from tests import login
+from lbrc_flask.pytest.helpers import login
 
 
 def assert_uploaded_file(user, filename, content, headers, skip_pmi):

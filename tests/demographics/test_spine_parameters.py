@@ -5,7 +5,7 @@ from identity.demographics import get_spine_parameters
 from identity.demographics.data_conversions import (
     convert_gender,
 )
-from tests import login
+from lbrc_flask.pytest.helpers import login
 from tests.demographics import (
     DemographicsTestHelper,
 )

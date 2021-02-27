@@ -10,7 +10,7 @@ from identity.demographics.model import (
 from identity.demographics import extract_pre_pmi_details, extract_post_pmi_details
 from identity.services.pmi import PmiData, PmiException
 from lbrc_flask.database import db
-from tests import login
+from lbrc_flask.pytest.helpers import login
 from tests.demographics import (
     DemographicsTestHelper,
 )
