@@ -1,5 +1,6 @@
 import pytest
 from lbrc_flask.pytest.helpers import login
+from flask.helpers import url_for
 
 
 def test_missing_route(client):
@@ -8,20 +9,18 @@ def test_missing_route(client):
 
 
 @pytest.mark.parametrize(
-    "path",
+    "path, filename",
     [
-        ("/static/css/main.css"),
-        ("/static/img/bars-top.svg"),
-        ("/static/img/nihr-lbrc-cropped.png"),
-        ("/static/img/cropped-favicon-32x32.png"),
-        ("/static/img/cropped-favicon-192x192.png"),
-        ("/static/img/cropped-favicon-180x180.png"),
-        ("/static/img/cropped-favicon-270x270.png"),
-        ("/static/favicon.ico"),
+        ('lbrc_flask.static', 'css/main.css'),
+        ('lbrc_flask.static', 'img/cropped-favicon-32x32.png'),
+        ('lbrc_flask.static', 'img/cropped-favicon-192x192.png'),
+        ('lbrc_flask.static', 'img/cropped-favicon-180x180.png'),
+        ('lbrc_flask.static', 'img/cropped-favicon-270x270.png'),
+        ('lbrc_flask.static', 'favicon.ico'),
     ],
 )
-def test_url_exists_without_login(client, path):
-    resp = client.get(path)
+def test_url_exists_without_login(client, path, filename):
+    resp = client.get(url_for(path, filename=filename))
 
     assert resp.status_code == 200
 

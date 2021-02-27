@@ -1,0 +1,25 @@
+{% extends "lbrc_flask/page.html" %}
+{% from "lbrc_flask/nav_macros.html" import render_nav_link with context %}
+
+{% block navlinks %}
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Studies</a>
+    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+        {% for s in current_user.studies | sort(attribute='name') %}
+            {{ render_nav_link('ui.study', s.name, id=s.id) }}        
+        {% endfor %}
+    </div>
+</li>
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tools</a>
+    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+        {{ render_nav_link('ui.labels', 'Labels') }}
+        {% if current_user.is_admin %}
+            {{ render_nav_link('ui.demographics', 'Demographics') }}
+        {% endif %}
+    </div>
+</li>
+
+{% endblock %}

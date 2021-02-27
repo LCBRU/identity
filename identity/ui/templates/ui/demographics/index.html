@@ -1,5 +1,5 @@
-{% extends "_base.html" %}
-{% import "_formHelpers.html" as formhelper %}
+{% extends "ui/page.html" %}
+{% import "lbrc_flask/form_macros.html" as formhelper %}
 {% import "ui/demographics/help.html" as help %}
 
 {% block content %}
@@ -16,7 +16,7 @@
                     <ul class="list-group">
                         {% for dr in demographics_requests.items %}
                             <li class="list-group-item">
-                                <div class='upload_details'>
+                                <div class='summary_details'>
                                     <header>
                                         <h1>{{ dr.filename }} <span class="float-right badge badge-info">{{ dr.status }}</span></h1>
                                         <h2>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h2>
