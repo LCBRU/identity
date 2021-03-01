@@ -1,152 +1,18 @@
 
-from identity.model.id import PseudoRandomId, PseudoRandomIdProvider
-from identity.blinding.model import Blinding, BlindingSet, BlindingType
+from identity.model.id import PseudoRandomId
+from identity.blinding.model import Blinding
 from lbrc_flask.pytest.helpers import login
-from identity.model import Study
 from lbrc_flask.database import db
 
 
-def test__get_blind_ids___no_sets(client, faker):
+def _test_blinding(client, faker, study, expected_blinding_types):
     u = login(client, faker)
-    s = Study(name='Fred')
 
-    db.session.add(s)
-    db.session.commit()
-
-    ids = s.get_blind_ids('hello', u)
+    ids = study.get_blind_ids('hello', u)
 
     db.session.commit()
 
-    assert len(ids) == 0
-    assert Blinding.query.count() == 0
-    assert PseudoRandomId.query.count() == 0
-
-
-def test__get_blind_ids___sets_no_types(client, faker):
-    u = login(client, faker)
-    s = Study(name='Fred')
-    db.session.add_all([s, BlindingSet(name='A', study=s), BlindingSet(name='B', study=s)])
-
-    db.session.commit()
-
-    ids = s.get_blind_ids('hello', u)
-
-    db.session.commit()
-
-    assert len(ids) == 0
-    assert Blinding.query.count() == 0
-    assert PseudoRandomId.query.count() == 0
-
-
-def test__get_blind_ids___one_type(client, faker):
-    unblind_id = 'hello'
-
-    u = login(client, faker)
-    s = Study(name='Fred')
-    bs = BlindingSet(name='A', study=s)
-    prp = PseudoRandomIdProvider(name='PS', prefix='PS')
-    bts = [BlindingType(name='BT', blinding_set=bs, pseudo_random_id_provider=prp)]
-
-    db.session.add_all([s, bs, *bts])
-
-    db.session.commit()
-
-    ids = s.get_blind_ids(unblind_id, u)
-
-    db.session.commit()
-
-    _assert_ids_created_correctly(unblind_id, ids, bts)
-
-
-def test__get_blind_ids___two_types__one_set(client, faker):
-    unblind_id = 'hello'
-
-    u = login(client, faker)
-    s = Study(name='Fred')
-    bs = BlindingSet(name='A', study=s)
-    prp1 = PseudoRandomIdProvider(name='PS1', prefix='PS1')
-    prp2 = PseudoRandomIdProvider(name='PS2', prefix='PS2')
-
-    bts = [
-        BlindingType(name='BT1', blinding_set=bs, pseudo_random_id_provider=prp1),
-        BlindingType(name='BT2', blinding_set=bs, pseudo_random_id_provider=prp2),
-    ]
-
-    db.session.add_all([s, bs, *bts])
-
-    db.session.commit()
-
-    ids = s.get_blind_ids(unblind_id, u)
-
-    db.session.commit()
-
-    _assert_ids_created_correctly(unblind_id, ids, bts)
-
-
-def test__get_blind_ids___two_sets__one_type_each(client, faker):
-    unblind_id = 'hello'
-
-    u = login(client, faker)
-    s = Study(name='Fred')
-    bss = [
-        BlindingSet(name='A', study=s),
-        BlindingSet(name='B', study=s),
-    ]
-
-    prp1 = PseudoRandomIdProvider(name='PS1', prefix='PS1')
-    prp2 = PseudoRandomIdProvider(name='PS2', prefix='PS2')
-
-    bts = [
-        BlindingType(name='BT1', blinding_set=bss[0], pseudo_random_id_provider=prp1),
-        BlindingType(name='BT2', blinding_set=bss[1], pseudo_random_id_provider=prp2),
-    ]
-
-    db.session.add_all([s, *bss, *bts])
-
-    db.session.commit()
-
-    ids = s.get_blind_ids(unblind_id, u)
-
-    db.session.commit()
-
-    _assert_ids_created_correctly(unblind_id, ids, bts)
-
-
-def test__get_blind_ids___type_deleted(client, faker):
-    unblind_id = 'hello'
-
-    u = login(client, faker)
-    s = Study(name='Fred')
-    bss = [
-        BlindingSet(name='A', study=s),
-        BlindingSet(name='B', study=s),
-    ]
-
-    prp1 = PseudoRandomIdProvider(name='PS1', prefix='PS1')
-    prp2 = PseudoRandomIdProvider(name='PS2', prefix='PS2')
-    prp3 = PseudoRandomIdProvider(name='PS3', prefix='PS3')
-
-    bts = [
-        BlindingType(name='BT1', blinding_set=bss[0], pseudo_random_id_provider=prp1),
-        BlindingType(name='BT2', blinding_set=bss[1], pseudo_random_id_provider=prp2),
-    ]
-
-    bt_deleted = BlindingType(
-        name='BT_Deleted',
-        blinding_set=bss[0],
-        pseudo_random_id_provider=prp3,
-        deleted=True,
-    )
-
-    db.session.add_all([s, bt_deleted, *bss, *bts])
-
-    db.session.commit()
-
-    ids = s.get_blind_ids(unblind_id, u)
-
-    db.session.commit()
-
-    _assert_ids_created_correctly(unblind_id, ids, bts)
+    _assert_ids_created_correctly('hello', ids, expected_blinding_types)
 
 
 def _assert_ids_created_correctly(unblind_id, ids, blinding_types):
@@ -170,3 +36,59 @@ def _assert_ids_created_correctly(unblind_id, ids, blinding_types):
             unblind_id = unblind_id,
             pseudo_random_id_id = prid.id,
         ).count() == 1
+
+
+def test__get_blind_ids___no_sets(client, faker):
+    _test_blinding(client, faker, faker.get_test_study(), [])
+
+
+def test__get_blind_ids___sets_no_types(client, faker):
+    s = faker.get_test_study()
+    bs1 = faker.get_test_blinding_set(study=s)
+    bs2 = faker.get_test_blinding_set(study=s)
+
+    _test_blinding(client, faker, s, [])
+
+
+def test__get_blind_ids___one_type(client, faker):
+    bt = faker.get_test_blinding_type()
+
+    _test_blinding(client, faker, bt.blinding_set.study, [bt])
+
+
+def test__get_blind_ids___two_types__one_set(client, faker):
+    bs = faker.get_test_blinding_set()
+
+    bts = [
+        faker.get_test_blinding_type(blinding_set=bs),
+        faker.get_test_blinding_type(blinding_set=bs),
+    ]
+
+    _test_blinding(client, faker, bs.study, bts)
+
+
+def test__get_blind_ids___two_sets__one_type_each(client, faker):
+    s = faker.get_test_study()
+
+    bts = [
+        faker.get_test_blinding_type(blinding_set=faker.get_test_blinding_set(study=s)),
+        faker.get_test_blinding_type(blinding_set=faker.get_test_blinding_set(study=s)),
+    ]
+
+    _test_blinding(client, faker, s, bts)
+
+
+def test__get_blind_ids___type_deleted(client, faker):
+    bs = faker.get_test_blinding_set()
+
+    bts = [
+        faker.get_test_blinding_type(blinding_set=bs),
+        faker.get_test_blinding_type(blinding_set=bs),
+    ]
+
+    bt_deleted = faker.get_test_blinding_type(
+        blinding_set=bs,
+        deleted=True,
+    )
+
+    _test_blinding(client, faker, bs.study, bts)

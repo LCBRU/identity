@@ -1,32 +1,18 @@
+from identity.model.id import PseudoRandomIdProvider
+from identity.blinding.model import Blinding, BlindingSet, BlindingType
+from identity.model.security import User
 import io
 import csv
-import datetime
-import random
-from dateutil.relativedelta import relativedelta
 from faker.providers import BaseProvider
-from identity.model.security import User
 from openpyxl import Workbook
-from random import randint, choice
-from lbrc_flask.validators import (
-    is_invalid_nhs_number,
-    calculate_nhs_number_checksum,
-)
 from identity.services.pmi import PmiData
 from identity.model import Study
-
-
-def _random_date(start_date, end_date):
-    time_between_dates = end_date - start_date
-    days_between_dates = time_between_dates.days
-    random_number_of_days = random.randrange(days_between_dates)
-    return start_date + datetime.timedelta(days=random_number_of_days)
+from identity.api.model import ApiKey
+from lbrc_flask.database import db
 
 
 class IdentityProvider(BaseProvider):
 
-    def add_all_studies(self, user):
-        user.studies.update(Study.query.all())
-    
     def user_details(self):
         u = User(
             first_name=self.generator.first_name(),
@@ -36,84 +22,167 @@ class IdentityProvider(BaseProvider):
         )
         return u
 
+    def get_test_user(self,  **kwargs):
+        u = self.user_details(**kwargs)
+
+        db.session.add(u)
+        db.session.commit()
+
+        return u
+
+    def get_api_key(self):
+        u = self.user_details()
+        db.session.add(u)
+
+        a = ApiKey()
+        a.user = u
+        db.session.add(a)
+
+        db.session.commit()
+
+        return a
+
+    def add_all_studies(self, user):
+        user.studies.update(Study.query.all())
+    
     def column_headers(self, columns):
         return ['X' * i for i in range(1, columns)]
 
-    def nhs_number(self):
-        while True:  
-            number = str(randint(100_000_000, 999_999_999))
-            whole_num = f'{number}{calculate_nhs_number_checksum(number)}'
+    def study_details(self, name=None, owner=None):
+        if name is None:
+            name = self.generator.pystr(min_chars=5, max_chars=100)
 
-            if(not is_invalid_nhs_number(whole_num)):  
-                return whole_num
+        result = Study(
+            name=name,
+        )
 
-    def invalid_nhs_number(self):
-        return 'ABC'
+        if owner:
+            result.users.append(owner)
 
-    def uhl_system_number(self):
-        prefix = choice(['S', 'R', 'F', 'G', 'U', 'LB', 'RTD'])
-        return f'{prefix}{randint(1_000_000, 9_999_999)}'
+        return result
 
-    def invalid_uhl_system_number(self):
-        return 'ABC'
+    def get_test_study(self,  **kwargs):
+        s = self.study_details(**kwargs)
 
-    def gp_practice_code(self):
-        prefix = choice(['ABCDEFGHIJKLMNOPQRSTUVWXYZ'])
-        return f'{prefix}{randint(10_000, 99_999)}'
+        db.session.add(s)
+        db.session.commit()
 
-    def person_details(self):
-        if not randint(0, 1):
-            return self.female_person_details()
+        return s
+
+    def blinding_set_details(self, name=None, study=None):
+        if name is None:
+            name = self.generator.pystr(min_chars=5, max_chars=100)
+        
+        result = BlindingSet(name=name)
+
+        if study is None:
+            result.study = self.study_details()
+        elif study.id is None:
+            result.study = study
         else:
-            return self.male_person_details()
+            result.study_id = study.id
 
-    def female_person_details(self):
-        return {
-            **{
-                'family_name': self.generator.last_name_female(),
-                'given_name': self.generator.first_name_female(),
-                'middle_name': self.generator.first_name_female(),
-                'gender': 'F',
-                'title': self.generator.prefix_female(),
-            },
-            **self._generic_person_details(),
-        }
+        return result
 
-    def male_person_details(self):
-        return {
-            **{
-                'family_name': self.generator.last_name_male(),
-                'given_name': self.generator.first_name_male(),
-                'middle_name': self.generator.first_name_male(),
-                'gender': 'M',
-                'title': self.generator.prefix_male(),
-            },
-            **self._generic_person_details(),
-        }
+    def get_test_blinding_set(self,  **kwargs):
+        bs = self.blinding_set_details(**kwargs)
+
+        db.session.add(bs)
+        db.session.commit()
+
+        return bs
+
+    def pseudo_random_id_provider_details(self, name=None, prefix=None):
+        if name is None:
+            name = self.generator.pystr(min_chars=5, max_chars=100)
+        if prefix is None:
+            prefix = self.generator.pystr(min_chars=3, max_chars=3).upper()
+        
+        return PseudoRandomIdProvider(name=name, prefix=prefix)
 
 
-    def _generic_person_details(self):
+    def get_test_pseudo_random_id_provider(self,  **kwargs):
+        p = self.pseudo_random_id_provider_details(**kwargs)
 
-        today = datetime.date.today()
-        dob = _random_date(today - relativedelta(years=75), today - relativedelta(years=40))
+        db.session.add(p)
+        db.session.commit()
 
-        if randint(0, 10):
-            dod = None
-            is_deceased = False
+        return p
+
+    def blinding_type_details(self, name=None, blinding_set=None, pseudo_random_id_provider=None, deleted=False):
+        if name is None:
+            name = self.generator.pystr(min_chars=5, max_chars=100)
+        
+        result = BlindingType(name=name, deleted=deleted)
+
+        if blinding_set is None:
+            result.blinding_set = self.blinding_set_details()
+        elif blinding_set.id is None:
+            result.blinding_set = blinding_set
         else:
-            dod = _random_date(dob, today)
-            is_deceased = True
+            result.blinding_set_id = blinding_set.id
 
-        return {
-            'date_of_birth': dob,
-            'date_of_death': dod,
-            'is_deceased': is_deceased,
-            'address': self.generator.address(),
-            'current_gp_practice_code': self.gp_practice_code(),
-            'nhs_number': self.generator.nhs_number(),
-            'uhl_system_number': self.generator.uhl_system_number(),
-            'postcode': self.generator.postcode(),
-        }
+        if pseudo_random_id_provider is None:
+            result.pseudo_random_id_provider = self.pseudo_random_id_provider_details()
+        elif pseudo_random_id_provider.id is None:
+            result.pseudo_random_id_provider = pseudo_random_id_provider
+        else:
+            result.pseudo_random_id_provider_id = pseudo_random_id_provider.id
+
+        return result
+
+
+    def get_test_blinding_type(self,  **kwargs):
+        bt = self.blinding_type_details(**kwargs)
+
+        db.session.add(bt)
+        db.session.commit()
+
+        return bt
+
+    def blinding_details(self, unblind_id=None, blinding_type=None, pseudo_random_id=None):
+        if unblind_id is None:
+            unblind_id = self.generator.pystr(min_chars=5, max_chars=100)
+
+        result = Blinding(unblind_id=unblind_id)
+
+        if blinding_type is None:
+            result.blinding_type = self.blinding_type_details()
+        elif blinding_type.id is None:
+            result.blinding_type = blinding_type
+        else:
+            result.blinding_type_id = blinding_type.id
+
+        if pseudo_random_id is None:
+            result.pseudo_random_id = self.pseudo_random_id_details()
+        elif pseudo_random_id.id is None:
+            result.pseudo_random_id = pseudo_random_id
+        else:
+            result.pseudo_random_id_id = pseudo_random_id.id
+
+        return result
+
+    def get_test_blinding(self, **kwargs):
+        b = self.blinding_details(**kwargs)
+
+        db.session.add(b)
+        db.session.commit()
+
+        return b
+
+    def get_test_blinding_with_owner(self, owner, unblind_id=None, **kwargs):
+        if unblind_id is None:
+            unblind_id = self.generator.pystr(min_chars=5, max_chars=100)
+
+        s = self.get_test_study(owner=owner)
+        bs = self.get_test_blinding_set(study=s)
+        bt = self.get_test_blinding_type(blinding_set=bs)
+        b = bt.get_blind_id(unblind_id, owner)
+
+        db.session.add(b)
+        db.session.commit()
+
+        return b
 
 
 class DemographicsCsvProvider(BaseProvider):
@@ -170,5 +239,4 @@ class PmiProvider(BaseProvider):
         return self._details[key]
 
     def create_pmi_details(self):
-        f = IdentityProvider(self.generator)
-        return {key: value for key, value in f.person_details().items() if key in PmiData._fields}
+        return {key: value for key, value in self.generator.person_details().items() if key in PmiData._fields}

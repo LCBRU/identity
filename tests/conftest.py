@@ -9,6 +9,7 @@ from .faker import (
     DemographicsXslxProvider,
     PmiProvider,
 )
+from lbrc_flask.pytest.faker import LbrcFlaskFakerProvider
 from .mocks import *
 
 
@@ -20,6 +21,7 @@ def app():
 @pytest.yield_fixture(scope="function")
 def faker():
     result = Faker("en_GB")
+    result.add_provider(LbrcFlaskFakerProvider)
     result.add_provider(IdentityProvider)
     result.add_provider(DemographicsCsvProvider)
     result.add_provider(DemographicsXslxProvider)

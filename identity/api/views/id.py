@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, abort
+from flask import jsonify, request, abort
 from identity.model.id import PseudoRandomIdProvider
 from .. import blueprint, db
 from ..decorators import validate_json
