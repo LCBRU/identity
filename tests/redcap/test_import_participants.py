@@ -13,7 +13,7 @@ from identity.ecrfs.model import (
     RedcapInstance,
     RedcapProject,
 )
-from identity.services.validators import parse_date
+from lbrc_flask.validators import parse_date
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 
 DEFAULT_RECORD = {

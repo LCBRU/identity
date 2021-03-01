@@ -2,7 +2,7 @@ import contextlib
 import os
 import pytest
 from unittest.mock import MagicMock
-from identity.services.validators import parse_date
+from lbrc_flask.validators import parse_date
 from identity.demographics import (
     spine_lookup,
     SpineParameters,

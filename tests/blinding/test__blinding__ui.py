@@ -3,7 +3,6 @@
 import pytest
 import re
 from flask import url_for
-from tests import add_all_studies
 from lbrc_flask.pytest.helpers import login
 from identity.model import Study
 from identity.blinding.model import (
@@ -22,7 +21,7 @@ from lbrc_flask.database import db
 )
 def test__ui_blinding__blinding(client, faker, blinding_set_name):
     user = login(client, faker)
-    add_all_studies(user)
+    faker.add_all_studies(user)
 
     blinding_set = BlindingSet.query.filter_by(name=blinding_set_name).first()
 
@@ -65,7 +64,7 @@ def test__ui_blinding__blinding(client, faker, blinding_set_name):
 )
 def test__ui_blinding_existing(client, faker, blinding_set_name):
     user = login(client, faker)
-    add_all_studies(user)
+    faker.add_all_studies(user)
 
     blinding_set = BlindingSet.query.filter_by(name=blinding_set_name).first()
 
@@ -126,7 +125,7 @@ def test__ui_blinding_existing(client, faker, blinding_set_name):
 )
 def test__ui_unblinding_existing(client, faker, blinding_set_name):
     user = login(client, faker)
-    add_all_studies(user)
+    faker.add_all_studies(user)
 
     blinding_set = BlindingSet.query.filter_by(name=blinding_set_name).first()
 

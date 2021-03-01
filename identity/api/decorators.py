@@ -1,9 +1,8 @@
-from uuid import UUID
 from functools import wraps
-from flask import flash, abort, current_app, request, jsonify
+from flask import abort, current_app, request, jsonify
 from flask_inputs import Inputs
 from flask_inputs.validators import JsonSchema
-from .model import ApiKey, get_api_key
+from .model import get_api_key
 
 
 def assert_api_key():

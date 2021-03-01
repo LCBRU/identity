@@ -5,7 +5,7 @@ from identity.demographics import extract_data
 from identity.demographics.model import (
     DemographicsRequest,
 )
-from identity.services.validators import parse_date
+from lbrc_flask.validators import parse_date
 from lbrc_flask.pytest.helpers import login
 from tests.demographics import (
     DemographicsTestHelper,

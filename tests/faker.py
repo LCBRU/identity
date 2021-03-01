@@ -1,21 +1,18 @@
-# -*- coding: utf-8 -*-
-
 import io
 import csv
-import pytest
 import datetime
 import random
 from dateutil.relativedelta import relativedelta
-from faker import Faker
 from faker.providers import BaseProvider
 from identity.model.security import User
 from openpyxl import Workbook
 from random import randint, choice
-from identity.services.validators import (
+from lbrc_flask.validators import (
     is_invalid_nhs_number,
     calculate_nhs_number_checksum,
 )
 from identity.services.pmi import PmiData
+from identity.model import Study
 
 
 def _random_date(start_date, end_date):
@@ -26,6 +23,10 @@ def _random_date(start_date, end_date):
 
 
 class IdentityProvider(BaseProvider):
+
+    def add_all_studies(self, user):
+        user.studies.update(Study.query.all())
+    
     def user_details(self):
         u = User(
             first_name=self.generator.first_name(),

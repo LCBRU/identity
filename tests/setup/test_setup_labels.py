@@ -5,6 +5,7 @@ from identity.printing.model import LabelPack
 from identity.setup import create_base_data
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize(
     "study, pack",
     [

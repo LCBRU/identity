@@ -2,7 +2,7 @@ from lbrc_flask.string_functions import decode_dictionary_string, decode_list_st
 from identity.setup.civicrm_instances import CiviCrmInstanceDetail
 from sqlalchemy import func, select
 from memoization import cached
-from identity.services.validators import parse_date_or_none
+from lbrc_flask.validators import parse_date_or_none
 from flask import current_app
 from identity.model.id import ParticipantIdentifierSource
 from identity.database import redcap_engine

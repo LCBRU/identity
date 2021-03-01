@@ -819,6 +819,7 @@ REDCAP_CRFS = [
 ]
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("instance, study_name, project_id", REDCAP_CRFS)
 def test__create_base_data__creates_participant_import_definitions__redcap(client, faker, instance, study_name, project_id):
     ri = RedcapInstance.query.filter_by(name=instance['name']).one_or_none()
@@ -840,6 +841,7 @@ def test__create_base_data__creates_participant_import_definitions__redcap(clien
     ).one_or_none() is not None
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("study_name, case_type_id", CIVICRM_CRFS)
 def test__create_base_data__creates_participant_import_definitions__civicrm(client, faker, study_name, case_type_id):
     create_base_data()
@@ -853,6 +855,7 @@ def test__create_base_data__creates_participant_import_definitions__civicrm(clie
     ).one_or_none() is not None
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("study_name, database", CUSTOM_CRFS)
 def test__create_base_data__creates_participant_import_definitions__custom(client, faker, study_name, database):
     create_base_data()
@@ -866,6 +869,7 @@ def test__create_base_data__creates_participant_import_definitions__custom(clien
     ).one_or_none() is not None
 
 
+@pytest.mark.slow
 def test__create_base_data__creates_all_participant_import_definitions(client, faker):
     _create_projects()
 

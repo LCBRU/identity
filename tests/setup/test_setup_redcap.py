@@ -3,6 +3,7 @@ import pytest
 from identity.setup import create_base_data
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize(
     "instance, database_name, base_url, version",
     [

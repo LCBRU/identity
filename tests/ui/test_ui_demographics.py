@@ -7,7 +7,6 @@ from io import BytesIO
 from flask import url_for
 from identity.demographics.model import DemographicsRequest, DemographicsRequestColumn
 from lbrc_flask.database import db
-from tests import flash_messages_contains_error
 from lbrc_flask.pytest.helpers import login, logout
 from tests.demographics import (
     assert_uploaded_file,
@@ -18,6 +17,8 @@ from tests.demographics import (
     do_submit,
     do_delete,
 )
+from lbrc_flask.pytest.asserts import assert__flash_messages_contains_error
+
 
 AWAITING_DEFINE_COLUMNS = 'AWAITING_DEFINE_COLUMNS'
 AWAITING_SUBMISSION = 'AWAITING_SUBMISSION'
@@ -149,7 +150,7 @@ def _test__ui_demographics_upload_error(client, faker, content, extension, heade
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
-    assert flash_messages_contains_error(client)
+    assert assert__flash_messages_contains_error(client)
 
 
 def test__ui_demographics_define_columns_get(client, faker):
@@ -560,7 +561,7 @@ def test__ui_demographics_define_columns_get_submitted(client, faker):
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
-    assert flash_messages_contains_error(client)
+    assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
@@ -575,7 +576,7 @@ def test__ui_demographics_define_columns_post_submitted(client, faker):
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
-    assert flash_messages_contains_error(client)
+    assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
@@ -589,7 +590,7 @@ def test__ui_demographics_define_columns_get_deleted(client, faker):
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
-    assert flash_messages_contains_error(client)
+    assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
@@ -603,7 +604,7 @@ def test__ui_demographics_define_columns_post_deleted(client, faker):
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
-    assert flash_messages_contains_error(client)
+    assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
@@ -617,7 +618,7 @@ def test__ui_demographics_submit_get_submitted(client, faker):
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
-    assert flash_messages_contains_error(client)
+    assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
@@ -631,7 +632,7 @@ def test__ui_demographics_submit_post_submitted(client, faker):
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
-    assert flash_messages_contains_error(client)
+    assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
@@ -645,7 +646,7 @@ def test__ui_demographics_submit_get_deleted(client, faker):
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
-    assert flash_messages_contains_error(client)
+    assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
@@ -659,7 +660,7 @@ def test__ui_demographics_submit_post_deleted(client, faker):
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
-    assert flash_messages_contains_error(client)
+    assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
@@ -673,7 +674,7 @@ def test__ui_delete_get_deleted(client, faker):
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
-    assert flash_messages_contains_error(client)
+    assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
@@ -687,7 +688,7 @@ def test__ui_delete_post_deleted(client, faker):
 
     assert response.status_code == 302
     assert response.location == url_for('ui.demographics', _external=True)
-    assert flash_messages_contains_error(client)
+    assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 

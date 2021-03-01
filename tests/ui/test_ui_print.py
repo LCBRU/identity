@@ -5,13 +5,12 @@ from identity.printing.cardiomet import ID_TYPE_PARTICIPANT as CARDIOMET_ID_TYPE
 from identity.printing.go_dcm import ID_TYPE_PARTICIPANT as GO_DCM_ID_TYPE_PARTICIPANT
 from identity.model.id import PseudoRandomId, PseudoRandomIdProvider
 from lbrc_flask.database import db
-from tests import add_all_studies
 from lbrc_flask.pytest.helpers import login
 
 
 def test__labels(client, faker):
     user = login(client, faker)
-    add_all_studies(user)
+    faker.add_all_studies(user)
 
     resp = client.get(url_for(
         'ui.labels',
@@ -31,7 +30,7 @@ def test__labels(client, faker):
 )
 def test__label_print__no_id_entry__study_redirect(client, faker, pack_count):
     user = login(client, faker)
-    add_all_studies(user)
+    faker.add_all_studies(user)
 
     pack = LabelPack.query.filter_by(type='CardiometPack').one()
 
@@ -60,7 +59,7 @@ def test__label_print__no_id_entry__study_redirect(client, faker, pack_count):
 )
 def test__label_print__no_id_entry__labels_redirect(client, faker, pack_count):
     user = login(client, faker)
-    add_all_studies(user)
+    faker.add_all_studies(user)
 
     pack = LabelPack.query.filter_by(type='CardiometPack').one()
 
@@ -81,7 +80,7 @@ def test__label_print__no_id_entry__labels_redirect(client, faker, pack_count):
 
 def test__label_print__requires_id_entry(client, faker):
     user = login(client, faker)
-    add_all_studies(user)
+    faker.add_all_studies(user)
 
     pack = LabelPack.query.filter_by(type='GoDcmPack').one()
 
@@ -126,7 +125,7 @@ def test__label_print__not_a_user_study(client, faker):
 
 def test__label_print_definition__get(client, faker):
     user = login(client, faker)
-    add_all_studies(user)
+    faker.add_all_studies(user)
 
     pack = LabelPack.query.filter_by(type='GoDcmPack').one()
 
@@ -161,7 +160,7 @@ def test__label_print_definition__not_a_study_user__get(client, faker):
 
 def test__label_print_definition__post__study_redirect(client, faker):
     user = login(client, faker)
-    add_all_studies(user)
+    faker.add_all_studies(user)
 
     pack = LabelPack.query.filter_by(type='GoDcmPack').one()
 
@@ -189,7 +188,7 @@ def test__label_print_definition__post__study_redirect(client, faker):
 
 def test__label_print_definition__post__labels_redirect(client, faker):
     user = login(client, faker)
-    add_all_studies(user)
+    faker.add_all_studies(user)
 
     pack = LabelPack.query.filter_by(type='GoDcmPack').one()
 
@@ -217,7 +216,7 @@ def test__label_print_definition__post__labels_redirect(client, faker):
 
 def test__label_print_definition__post__no_id_given(client, faker):
     user = login(client, faker)
-    add_all_studies(user)
+    faker.add_all_studies(user)
 
     pack = LabelPack.query.filter_by(type='GoDcmPack').one()
 

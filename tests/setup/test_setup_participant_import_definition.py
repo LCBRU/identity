@@ -66,6 +66,7 @@ EXAMPLE_DEFINITION = {
 }
 
 
+@pytest.mark.slow
 def test__create_base_data__no_participant_import_definitions(initialised_app, faker):
     init_users()
     with patch.object(identity.setup, 'crfs', []):
@@ -74,10 +75,12 @@ def test__create_base_data__no_participant_import_definitions(initialised_app, f
     assert ParticipantImportDefinition.query.count() == 0
 
 
+@pytest.mark.slow
 def test__create_base_data__an_example_participant_import_definitions(initialised_app, faker):
     _test__create_base_data__participant_import_definitions(RedCapEcrfDefinition(EXAMPLE_DEFINITION))
 
 
+@pytest.mark.slow
 def test__create_base_data__participant_import_definitions__multiple_projects(initialised_app, faker):
     definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     definition.crfs = [
@@ -91,6 +94,7 @@ def test__create_base_data__participant_import_definitions__multiple_projects(in
     _test__create_base_data__participant_import_definitions(definition)
 
 
+@pytest.mark.slow
 def test__create_base_data__participant_import_definitions__multiple_instances(initialised_app, faker):
     definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     definition.crfs = [
@@ -109,6 +113,7 @@ def test__create_base_data__participant_import_definitions__multiple_instances(i
     _test__create_base_data__participant_import_definitions(definition)
 
 
+@pytest.mark.slow
 def test__create_base_data__participant_import_definitions__multiple_studies(initialised_app, faker):
     definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
     definition.crfs = [
@@ -160,6 +165,7 @@ MAP_COLUMN_NAMES = [
     ('identity_map'),
 ]
 
+@pytest.mark.slow
 @pytest.mark.parametrize("column_name", COLUMN_NAMES)
 def test__create_base_data__participant_import_definitions__empty_column_name(initialised_app, faker, column_name):
     definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
@@ -168,6 +174,7 @@ def test__create_base_data__participant_import_definitions__empty_column_name(in
     _test__create_base_data__participant_import_definitions(definition)
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("column_name", [*COLUMN_NAMES, *LIST_COLUMN_NAMES, *MAP_COLUMN_NAMES])
 def test__create_base_data__participant_import_definitions__none_column_name(initialised_app, faker, column_name):
     definition = RedCapEcrfDefinition(EXAMPLE_DEFINITION)
