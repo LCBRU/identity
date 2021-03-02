@@ -1,12 +1,8 @@
-# -*- coding: utf-8 -*-
-
-import pytest
 from unittest.mock import patch, MagicMock, call
 from identity.demographics.smsp import (
     get_demographics_from_search,
     _SMSP_OK,
     _SMSP_ERR_NO_MATCH,
-    SmspMultipleMatchesException,
 )
 
 

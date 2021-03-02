@@ -8,18 +8,6 @@ from lbrc_flask.database import db
 from lbrc_flask.pytest.helpers import login
 
 
-def test__labels(client, faker):
-    user = login(client, faker)
-    faker.add_all_studies(user)
-
-    resp = client.get(url_for(
-        'ui.labels',
-        _external=True,
-    ))
-
-    assert resp.status_code == 200
-
-
 @pytest.mark.parametrize(
     "pack_count",
     [

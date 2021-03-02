@@ -6,13 +6,17 @@
 
     {% for s in studies | sort(attribute='name') %}
 
-        <section>
-            <h3>{{ s.name }}</h3>
-            <hr>
+        {% if s.label_packs | count > 0 %}
 
-            {{ study_labels.study_label_list(s, 'labels') }}
+            <section>
+                <h3>{{ s.name }}</h3>
+                <hr>
 
-        </section>
+                {{ study_labels.study_label_list(s, 'labels') }}
+
+            </section>
+
+        {% endif %}
 
     {% endfor %}
 

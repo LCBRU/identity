@@ -1,3 +1,4 @@
+from identity.printing.model import LabelPack
 from identity.model.id import PseudoRandomIdProvider
 from identity.blinding.model import Blinding, BlindingSet, BlindingType
 from identity.model.security import User
@@ -183,6 +184,29 @@ class IdentityProvider(BaseProvider):
         db.session.commit()
 
         return b
+
+    def label_pack_details(self, type=None, study=None):
+        if type is None:
+            type = 'Pack'
+
+        result = LabelPack(type=type)
+
+        if study is None:
+            result.study = self.study_details()
+        elif study.id is None:
+            result.study = study
+        else:
+            result.study_id = study.id
+
+        return result
+
+    def get_test_label_pack(self, **kwargs):
+        lp = self.label_pack_details(**kwargs)
+
+        db.session.add(lp)
+        db.session.commit()
+
+        return lp
 
 
 class DemographicsCsvProvider(BaseProvider):

@@ -3,7 +3,7 @@ import pytest
 import os
 from unittest.mock import patch
 from identity.demographics import produce_demographics_result
-from identity.demographics.model import DemographicsRequestCsv, DemographicsRequest
+from identity.demographics.model import DemographicsRequest
 from lbrc_flask.validators import parse_date
 from lbrc_flask.pytest.helpers import login
 from tests.demographics import DemographicsTestHelper

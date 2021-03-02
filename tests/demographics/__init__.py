@@ -1,7 +1,6 @@
 import os
 import csv
 import xlwt
-import pytest
 from openpyxl import Workbook
 from datetime import datetime
 from io import BytesIO

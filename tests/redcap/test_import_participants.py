@@ -74,7 +74,7 @@ def _define_result(pid, fields=None, identifiers=None, id=None):
     result = {id: deepcopy(DEFAULT_RESULT)}
 
     for f, v in fields.items():
-       result[id]['ecrf'][f] = v
+        result[id]['ecrf'][f] = v
 
     result[id]['ecrf']['ecrf_participant_identifier'] = id
     result[id]['identifiers'] = identifiers
