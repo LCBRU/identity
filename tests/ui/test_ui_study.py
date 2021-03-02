@@ -3,6 +3,16 @@ from flask import url_for
 from lbrc_flask.database import db
 from lbrc_flask.pytest.helpers import login
 from identity.model import Study
+from lbrc_flask.pytest.asserts import assert__requires_login
+
+
+def _url(external=True, **kwargs):
+    return url_for('ui.study', _external=external, **kwargs)
+
+
+def test__get__requires_login(client):
+    s = Study.query.filter_by(name="MERMAID").first()
+    assert__requires_login(client, _url(id=s.id, external=False))
 
 
 @pytest.mark.parametrize(
