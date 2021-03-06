@@ -112,3 +112,4 @@ upload/
 .vscode
 celerybeat.pid
 identity/tests
+tests/file_uploads
