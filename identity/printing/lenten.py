@@ -59,6 +59,8 @@ class LentenPack(LabelPack):
         self.print_lenten_visit(bag_context, sample_context, 'Visit 2')
         self.print_lenten_visit(bag_context, sample_context, 'Visit 3')
         self.print_lenten_visit(bag_context, sample_context, 'Visit 4')
+        self.print_lenten_visit(bag_context, sample_context, 'Visit 5')
+        self.print_lenten_visit(bag_context, sample_context, 'Visit 6')
 
         print_barcode(
             printer=PRINTER_BRU_CRF_SAMPLE,
