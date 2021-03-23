@@ -411,7 +411,7 @@ class ParticipantImportDefinition(db.Model):
     last_updated_by_user = db.relationship(User)
 
     _latest_timestamp = column_property(
-        select([func.max(EcrfDetail.ecrf_timestamp)]).where(EcrfDetail.participant_import_definition_id==id)
+        select([func.max(EcrfDetail.ecrf_timestamp)]).where(EcrfDetail.participant_import_definition_id==id).scalar_subquery()
     )
 
     @property
