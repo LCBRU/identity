@@ -1,6 +1,6 @@
 from identity.ecrfs.model import RedcapInstance
 import pytest
-from identity.setup import create_base_data
+from identity.setup.setup import create_base_data
 
 
 @pytest.mark.slow

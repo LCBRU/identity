@@ -53,7 +53,6 @@ class RedcapInstanceView(AdminCustomView):
         model.last_updated_datetime = datetime.datetime.utcnow()
         model.last_updated_by_user = current_user
 
-
 class RedcapProjectView(AdminCustomView):
     form_columns = ["redcap_instance", "project_id"]
 
@@ -198,9 +197,9 @@ def init_admin(app, title):
         app,
         title,
         [
+            ApiKeyView(ApiKey, db.session),
             StudyView(Study, db.session),
             UserView(User, db.session),
-            ApiKeyView(ApiKey, db.session),
             RedcapInstanceView(RedcapInstance, db.session),
             RedcapProjectView(RedcapProject, db.session),
             ParticipantImportDefinitionView(ParticipantImportDefinition, db.session),

@@ -2,7 +2,7 @@ from identity.setup.studies import StudyName
 import pytest
 from identity.model import Study
 from identity.printing.model import LabelPack
-from identity.setup import create_base_data
+from identity.setup.setup import create_base_data
 
 
 @pytest.mark.slow

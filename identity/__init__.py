@@ -1,4 +1,4 @@
-from identity.setup import create_base_data, import_ids
+from identity.setup.setup import create_base_data, import_ids
 from flask import Flask
 from .ui import blueprint as ui_blueprint
 from .api import blueprint as api_blueprint

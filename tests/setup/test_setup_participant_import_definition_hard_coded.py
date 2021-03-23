@@ -4,7 +4,7 @@ from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.model import Study
 from identity.setup.studies import StudyName
 from identity.ecrfs.model import CiviCrmEcrfSource, CustomEcrfSource, ParticipantImportDefinition, RedcapInstance, RedcapProject
-from identity.setup import create_base_data
+from identity.setup.setup import create_base_data
 
 
 CIVICRM_CRFS = [

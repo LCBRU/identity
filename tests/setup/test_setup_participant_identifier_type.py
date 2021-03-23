@@ -1,7 +1,7 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.model.id import ParticipantIdentifierType
 import pytest
-from identity.setup import create_base_data
+from identity.setup.setup import create_base_data
 
 
 @pytest.mark.slow

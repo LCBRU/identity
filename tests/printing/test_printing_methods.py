@@ -18,19 +18,19 @@ from identity.printing.model import (
 )
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def mock_socket(app):
     with patch('identity.printing.printing_methods.socket') as mock:
         yield mock
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def mock_print_label(app):
     with patch('identity.printing.printing_methods.print_label') as mock:
         yield mock
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def mock_print_barcode(app):
     with patch('identity.printing.printing_methods.print_barcode') as mock:
         yield mock

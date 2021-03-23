@@ -9,7 +9,7 @@ from lbrc_flask.pytest.helpers import login
 from tests.demographics import DemographicsTestHelper
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def mock_email(app):
     with patch('identity.demographics.email') as mock_email:
         yield mock_email

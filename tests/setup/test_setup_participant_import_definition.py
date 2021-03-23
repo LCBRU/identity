@@ -11,7 +11,7 @@ from lbrc_flask.database import db
 from identity.setup.redcap_instances import REDCapInstanceDetail
 from identity.setup.studies import StudyName
 from identity.ecrfs.model import ParticipantImportDefinition, RedcapInstance, RedcapProject
-from identity.setup import create_base_data, create_redcap_instances, create_studies
+from identity.setup.setup import create_base_data, create_redcap_instances, create_studies
 
 
 EXAMPLE_DEFINITION = {
@@ -69,7 +69,7 @@ EXAMPLE_DEFINITION = {
 @pytest.mark.slow
 def test__create_base_data__no_participant_import_definitions(initialised_app, faker):
     init_users()
-    with patch.object(identity.setup, 'crfs', []):
+    with patch.object(identity.setup.setup, 'crfs', []):
         create_base_data()
 
     assert ParticipantImportDefinition.query.count() == 0
@@ -189,7 +189,7 @@ def _test__create_base_data__participant_import_definitions(definition):
 
     before = datetime.utcnow()
     
-    with patch.object(identity.setup, 'crfs', [definition]):
+    with patch.object(identity.setup.setup, 'crfs', [definition]):
         create_base_data()
 
     after = datetime.utcnow()

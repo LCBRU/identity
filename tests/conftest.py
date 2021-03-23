@@ -18,7 +18,7 @@ def app():
     return create_app(TestConfig)
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def faker():
     result = Faker("en_GB")
     result.add_provider(LbrcFlaskFakerProvider)
