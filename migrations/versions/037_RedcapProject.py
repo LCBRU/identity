@@ -30,7 +30,7 @@ def upgrade(migrate_engine):
         Column("study_id", Integer, ForeignKey(s.c.id), index=True),
         Column("last_updated_datetime", DateTime, nullable=False),
         Column("last_updated_by_user_id", Integer, ForeignKey(u.c.id), index=True, nullable=False),
-     )
+    )
     t.create()
 
 

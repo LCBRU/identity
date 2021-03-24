@@ -22,7 +22,7 @@ def upgrade(migrate_engine):
 
         Column("last_updated_datetime", DateTime, nullable=False),
         Column("last_updated_by_user_id", Integer, ForeignKey(u.c.id), index=True, nullable=False),
-     )
+    )
     t.create()
 
 def downgrade(migrate_engine):

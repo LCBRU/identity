@@ -49,7 +49,7 @@ def upgrade(migrate_engine):
             'ecrf_participant_identifier',
             name='uix__ecrf_details__project_id__ecrf_participant_identifier',
         )
-     )
+    )
     t.create()
 
 

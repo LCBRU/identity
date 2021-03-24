@@ -32,7 +32,7 @@ def upgrade(migrate_engine):
             'identifier',
             name='uix__participant_identifier__part_id_type_id__identifier',
         )
-     )
+    )
     t.create()
 
 

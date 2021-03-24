@@ -21,7 +21,7 @@ def upgrade(migrate_engine):
         Column("id", Integer, ForeignKey(e.c.id), primary_key=True, nullable=False),
         Column("case_type_id", Integer, nullable=False),
         Column("custom_tables", NVARCHAR(500)),
-     )
+    )
     t.create()
 
 

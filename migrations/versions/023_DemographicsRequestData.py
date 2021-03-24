@@ -29,7 +29,7 @@ def upgrade(migrate_engine):
         Column("dob", NVARCHAR(500)),
         Column("postcode", NVARCHAR(500)),
         UniqueConstraint('demographics_request_id', 'row_number', name='uix__demographics_request_id__row_number')
-     )
+    )
     t.create()
 
 

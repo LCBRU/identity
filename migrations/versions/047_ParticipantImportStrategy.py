@@ -20,7 +20,7 @@ def upgrade(migrate_engine):
         meta,
         Column("id", Integer, primary_key=True),
         Column("type", NVARCHAR(100), index=True, nullable=False, unique=True),
-     )
+    )
     t.create()
 
 

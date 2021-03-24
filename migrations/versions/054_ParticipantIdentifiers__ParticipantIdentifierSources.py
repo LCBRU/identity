@@ -22,7 +22,7 @@ def upgrade(migrate_engine):
         meta,
         Column("participant_identifier_id", Integer, ForeignKey(pi.c.id), primary_key=True, index=True, nullable=False),
         Column("participant_identifier_source_id", Integer, ForeignKey(pis.c.id), primary_key=True, index=True, nullable=False),
-     )
+    )
     t.create()
 
 

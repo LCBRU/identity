@@ -32,7 +32,7 @@ def upgrade(migrate_engine):
         Column("date_of_death", Date),
         Column("postcode", NVARCHAR(500)),
         Column("created_datetime", DateTime),
-     )
+    )
     t.create()
 
 

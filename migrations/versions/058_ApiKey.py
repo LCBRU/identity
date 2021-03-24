@@ -22,7 +22,7 @@ def upgrade(migrate_engine):
         Column("id", Integer, primary_key=True),
         Column("key", NVARCHAR(100), index=True, nullable=False),
         Column("user_id", Integer, ForeignKey(u.c.id), index=True, nullable=False),
-     )
+    )
     t.create()
 
 
