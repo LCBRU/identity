@@ -24,6 +24,9 @@ def upgrade(migrate_engine):
     participant_import_definition_id.create(t, index_name='idx__redcap_project__pid_id')
 
     t.append_constraint(ForeignKeyConstraint([participant_import_definition_id], [pid.c.id]))
+    
+    pis = Table("participant_import_strategy", meta, autoload=True)
+    pis.drop()
 
 
 def downgrade(migrate_engine):
