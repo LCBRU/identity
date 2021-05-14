@@ -17,9 +17,6 @@ def upgrade(migrate_engine):
     t = Table("role", meta, autoload=True)
     u = Table("user", meta, autoload=True)
 
-    cons = ForeignKeyConstraint([t.c.last_updated_by_user_id], [u.c.id])
-    cons.drop()
-
     t.c.last_updated_datetime.drop()
     t.c.last_updated_by_user_id.drop()
 
