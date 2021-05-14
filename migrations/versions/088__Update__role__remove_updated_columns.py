@@ -3,12 +3,10 @@ from sqlalchemy import (
     Table,
     Column,
     Integer,
-    NVARCHAR,
-    ForeignKey,
     DateTime,
-    UniqueConstraint,
 )
 from sqlalchemy.sql.schema import Column
+from migrate.changeset.constraint import ForeignKeyConstraint
 
 meta = MetaData()
 
@@ -17,6 +15,10 @@ def upgrade(migrate_engine):
     meta.bind = migrate_engine
 
     t = Table("role", meta, autoload=True)
+    u = Table("user", meta, autoload=True)
+
+    cons = ForeignKeyConstraint([t.c.last_updated_by_user_id], [u.c.id])
+    cons.drop()
 
     t.c.last_updated_datetime.drop()
     t.c.last_updated_by_user_id.drop()
