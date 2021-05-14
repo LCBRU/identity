@@ -24,6 +24,7 @@ class QuerySelectMultipleFieldSet(fields.QuerySelectMultipleField):
 
 class UserView(AdminCustomView):
     form_columns = ["username", "first_name", "last_name", "studies", "active", "roles"]
+    column_list = ['username', 'first_name', 'last_name', 'active', 'last_login_at', 'ldap_user']
 
     # form_args and form_overrides required to allow studies and roles to be sets.
     form_args = {
@@ -80,6 +81,7 @@ class ParticipantImportDefinitionView(AdminCustomView):
         if not regex.match(field.data):
             raise ValidationError('invalid key-value pairs')
 
+    column_list = ['study', 'ecrf_source', 'latest_timestamp']
 
     form_columns = [
         "recruitment_date_column_name",
