@@ -9,6 +9,7 @@ from wtforms.validators import ValidationError
 from identity.model import Study
 from identity.api.model import ApiKey
 from identity.ecrfs.model import (
+    EcrfSource,
     RedcapInstance,
     RedcapProject,
     ParticipantImportDefinition,
@@ -25,6 +26,7 @@ class QuerySelectMultipleFieldSet(fields.QuerySelectMultipleField):
 class UserView(AdminCustomView):
     form_columns = ["username", "first_name", "last_name", "studies", "active", "roles"]
     column_list = ['username', 'first_name', 'last_name', 'active', 'last_login_at', 'ldap_user']
+    can_create = False
 
     # form_args and form_overrides required to allow studies and roles to be sets.
     form_args = {
@@ -39,15 +41,19 @@ class UserView(AdminCustomView):
         'studies': QuerySelectMultipleFieldSet,
         'roles': QuerySelectMultipleFieldSet,
     }
+    column_searchable_list = [User.username, User.first_name, User.last_name, User.email]
 
 
 class StudyView(AdminCustomView):
     can_delete = False
     can_edit = False
+    can_create = False
     form_columns = ["name"]
+    column_searchable_list = [Study.name]
 
 
 class RedcapInstanceView(AdminCustomView):
+    column_list = ['name', 'database_name', 'base_url', 'version']
     form_columns = ["name", "database_name", "base_url"]
 
     def on_model_change(self, form, model, is_created):
@@ -55,6 +61,10 @@ class RedcapInstanceView(AdminCustomView):
         model.last_updated_by_user = current_user
 
 class RedcapProjectView(AdminCustomView):
+    can_delete = False
+    can_edit = False
+    can_create = False
+    column_list = ["redcap_instance", "project_id", 'name']
     form_columns = ["redcap_instance", "project_id"]
 
     def on_model_change(self, form, model, is_created):
@@ -81,7 +91,8 @@ class ParticipantImportDefinitionView(AdminCustomView):
         if not regex.match(field.data):
             raise ValidationError('invalid key-value pairs')
 
-    column_list = ['study', 'ecrf_source', 'latest_timestamp']
+    column_searchable_list = [Study.name, EcrfSource.name]
+    column_list = ['study', 'ecrf_source']
 
     form_columns = [
         "recruitment_date_column_name",
@@ -110,7 +121,6 @@ class ParticipantImportDefinitionView(AdminCustomView):
     ]
 
     form_rules = [
-        'csrf_token',
         "recruitment_date_column_name",
         "first_name_column_name",
         "last_name_column_name",

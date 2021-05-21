@@ -403,6 +403,7 @@ class ParticipantIdentifierSource(db.Model):
     __tablename__ = 'participant_identifier_source'
 
     id = db.Column(db.Integer, primary_key=True)
+    linked_minimum_patient_identifier_source_id = db.Column(db.Integer, db.ForeignKey("participant_identifier_source.id"), nullable=True)
     type = db.Column(db.String(100), nullable=False)
     study_id = db.Column(db.Integer, db.ForeignKey(Study.id), nullable=True)
     study = db.relationship(Study, backref=db.backref("participant_identifier_sources"))
