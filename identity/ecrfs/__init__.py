@@ -1,7 +1,9 @@
 from datetime import datetime
 from celery.schedules import crontab
 from flask import current_app
+from sqlalchemy import select, func, and_
 from sqlalchemy.sql import text
+from sqlalchemy.orm import aliased
 from identity.celery import celery
 from identity.database import redcap_engine
 from lbrc_flask.database import db
@@ -11,12 +13,14 @@ from .model import (
     EcrfDetail,
 )
 from identity.model.id import (
+    ParticipantIdentifierSource,
     ParticipantIdentifierType,
     ParticipantIdentifier,
 )
 from lbrc_flask.security import get_system_user
 from lbrc_flask.logging import log_exception
 import multiprocessing
+from identity.model.id import participant_identifiers__participant_identifier_sources
 
 
 def init_redcap(app):
@@ -135,7 +139,42 @@ class ParticipantImporter():
 
             except Exception as e:
                 log_exception(e)
+        
+        self._merge_participants()
 
+    def _merge_participants(self):
+        current_app.logger.info(f'Merging Participants')
+
+        pism = ParticipantIdentifierSource.__table__.alias('pism')
+        pipis1 = participant_identifiers__participant_identifier_sources.alias('pipis1')
+        pipis2 = participant_identifiers__participant_identifier_sources.alias('pipis2')
+
+        j = pism\
+            .join(pipis1, pipis1.c.participant_identifier_source_id == pism.c.id)\
+            .join(pipis2, and_(
+                pipis2.c.participant_identifier_id == pipis1.c.participant_identifier_id,
+                pipis2.c.participant_identifier_source_id < pism.c.linked_minimum_patient_identifier_source_id
+            ))
+
+        q = select([pism.c.id, func.min(pipis2.c.participant_identifier_source_id)])\
+            .select_from(j)\
+            .group_by(pism.c.id)
+
+        with db.engine.connect() as conn:
+
+            while True:
+                update_mappings = [{
+                    'id': id,
+                    'linked_minimum_patient_identifier_source_id': linked_minimum_patient_identifier_source_id
+                } for id, linked_minimum_patient_identifier_source_id in conn.execute(q).fetchall()]
+
+                if len(update_mappings) == 0:
+                    break
+
+                current_app.logger.info(f'Merge Participant Count = {len(update_mappings)}')
+
+                db.session.bulk_update_mappings(ParticipantIdentifierSource, update_mappings)
+                db.session.commit()
 
     def _load_participants(self, pid, id_cache):
         current_app.logger.info(f'Importing Participants: pidid="{pid.id}" study="{pid.study.name}"; source="{pid.ecrf_source.name}".')
