@@ -14,7 +14,7 @@ zeep
 requests
 openpyxl
 python-dateutil
-celery
+celery==4.4.2
 chardet
 pyodbc
 Werkzeug
