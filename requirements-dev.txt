@@ -7,3 +7,4 @@ coverage
 pytest-cov
 pickle5
 pytest-xdist
+click
