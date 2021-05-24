@@ -24,6 +24,7 @@ crfs.append(RedCapEcrfDefinition({
 
     'identity_map': {
         ParticipantIdentifierTypeName.AS_PROGRESSION_ID: 'record',
+        ParticipantIdentifierTypeName.BRICCS_ID: 'record',
         ParticipantIdentifierTypeName.NHS_NUMBER: 'nhs_number',
         ParticipantIdentifierTypeName.UHL_SYSTEM_NUMBER: 's_number',
     }
