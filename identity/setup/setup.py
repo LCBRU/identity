@@ -391,6 +391,6 @@ def create_partipipant_import_definitions(user):
     current_app.logger.info(f'Creating particpant import definitions')
 
     for c in crfs:
-        db.session.add_all(c.get_partipipant_import_definitions(user))
+        db.session.add_all(c.get_partipipant_import_definitions())
     
     db.session.commit()

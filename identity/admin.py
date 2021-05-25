@@ -75,7 +75,7 @@ class ParticipantImportDefinitionView(AdminCustomView):
     can_create = False
 
     column_searchable_list = [Study.name, EcrfSource.name]
-    column_list = ['study', 'ecrf_source']
+    column_list = ['study', 'ecrf_source', 'active']
 
 
 class ApiKeyView(AdminCustomView):

@@ -3,6 +3,7 @@ from flask import flash, abort
 from flask_login import current_user
 from ..model import Study
 
+
 def assert_study_user():
     def decorator(f):
         @wraps(f)

@@ -130,7 +130,7 @@ class ParticipantImporter():
     def run(self):
         id_cache = {}
 
-        for pid in ParticipantImportDefinition.query.all():
+        for pid in ParticipantImportDefinition.query.filter(ParticipantImportDefinition.active == True).all():
             try:
                 if pid.ecrf_source.has_new_data(pid.latest_timestamp):
                     self._load_participants(pid, id_cache)

@@ -13,6 +13,7 @@ class EcrfDefinition():
 
     def __init__(self, definition):
         self.crfs = definition['crfs']
+        self.active = definition.get('active', False)
         self.recruitment_date_column_name = definition.get('recruitment_date_column_name', None)
         self.first_name_column_name = definition.get('first_name_column_name', None)
         self.last_name_column_name = definition.get('last_name_column_name', None)
@@ -37,25 +38,25 @@ class EcrfDefinition():
         self.excluded_from_study_values = definition.get('excluded_from_study_values', None)
         self.identity_map = definition.get('identity_map', None)
 
-    def get_ecrf_sources(self, crf_definition, user):
+    def get_ecrf_sources(self, crf_definition):
         pass
 
-    def get_partipipant_import_definitions(self, user):
+    def get_partipipant_import_definitions(self):
         results = []
 
         for c in self.crfs:
             study = Study.query.filter_by(name=c['study']).one_or_none()
 
-            for source in self.get_ecrf_sources(c, user):
+            for source in self.get_ecrf_sources(c):
                 pid = ParticipantImportDefinition.query.filter_by(study_id=study.id, ecrf_source_id=source.id).one_or_none()
 
                 if pid is None:
                     pid = ParticipantImportDefinition(
                         study_id=study.id,
                         ecrf_source_id=source.id,
-                        last_updated_by_user_id=user.id,
                     )
 
+                pid.active = self.active
                 pid.recruitment_date_column_name = self.recruitment_date_column_name
                 pid.first_name_column_name = self.first_name_column_name
                 pid.last_name_column_name = self.last_name_column_name
@@ -87,7 +88,7 @@ class EcrfDefinition():
 
 class RedCapEcrfDefinition(EcrfDefinition):
 
-    def get_ecrf_sources(self, crf_definition, user):
+    def get_ecrf_sources(self, crf_definition):
         results = []
 
         ri = RedcapInstance.query.filter_by(name=crf_definition['instance']['name']).one_or_none()
@@ -103,7 +104,7 @@ class RedCapEcrfDefinition(EcrfDefinition):
 
 class CustomEcrfDefinition(EcrfDefinition):
 
-    def get_ecrf_sources(self, crf_definition, user):
+    def get_ecrf_sources(self, crf_definition):
         ced = CustomEcrfSource.query.filter_by(name=crf_definition['name']).one_or_none()
 
         if ced is None:
@@ -115,7 +116,6 @@ class CustomEcrfDefinition(EcrfDefinition):
         ced.data_query = crf_definition['data_query']
         ced.most_recent_timestamp_query = crf_definition['most_recent_timestamp_query']
         ced.link = crf_definition['link']
-        ced.last_updated_by_user = user
 
         db.session.add(ced)
 
@@ -161,7 +161,7 @@ class CiviCrmEcrfDefinition(EcrfDefinition):
 
         super().__init__(c)
  
-    def get_ecrf_sources(self, crf_definition, user):
+    def get_ecrf_sources(self, crf_definition):
         ced = CiviCrmEcrfSource.query.filter_by(name=crf_definition['name']).one_or_none()
 
         if ced is None:
@@ -171,7 +171,6 @@ class CiviCrmEcrfDefinition(EcrfDefinition):
         
         ced.case_type_id = crf_definition['case_type_id']
         ced.set_custom_tables(crf_definition['custom_tables'])
-        ced.last_updated_by_user = user
 
         db.session.add(ced)
 

@@ -23,3 +23,7 @@
 </li>
 
 {% endblock %}
+
+{% block adminlinks %}
+    <a class="dropdown-item" href="{{url_for('ui.imports')}}">Imports</a>
+{% endblock %}

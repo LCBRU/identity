@@ -19,6 +19,8 @@ crfs.extend([
             },
         ],
 
+        'active': True,
+
         'recruitment_date_column_name': 'int_date',
         'first_name_column_name': 'first_name',
         'last_name_column_name': 'last_name',

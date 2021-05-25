@@ -1,3 +1,4 @@
+from lbrc_flask.security import current_user_id
 from lbrc_flask.string_functions import decode_dictionary_string, decode_list_string, encode_dictionary_string, encode_list_string
 from identity.setup.civicrm_instances import CiviCrmInstanceDetail
 from sqlalchemy import func, select
@@ -20,8 +21,18 @@ class EcrfSource(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(100), nullable=False)
     name = db.Column(db.String(100))
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_datetime = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
+    last_updated_by_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey(User.id),
+        default=current_user_id,
+        onupdate=current_user_id,
+    )
     last_updated_by_user = db.relationship(User)
 
     __mapper_args__ = {
@@ -72,7 +83,7 @@ class EcrfDetail(db.Model):
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)
 
-    identifier_source = db.relationship("EcrfParticipantIdentifierSource", back_populates="ecrf_detail", uselist=False)
+    identifier_source = db.relationship("EcrfParticipantIdentifierSource", cascade="all, delete-orphan", back_populates="ecrf_detail", uselist=False)
 
     def __str__(self):
         return self.ecrf_participant_identifier
@@ -345,7 +356,7 @@ class CiviCrmEcrfSource(EcrfSource):
             {joins}
             WHERE cc.case_type_id = :case_type_id
                 AND cc.is_deleted = 0
-                 AND GREATEST(
+                AND GREATEST(
                     COALESCE(s.latest_datetime, 0),
                     COALESCE(CONVERT(DATE_FORMAT(con.modified_date, '%Y%m%d%H%i%S'), UNSIGNED), 0)
                 ) > :timestamp
@@ -369,6 +380,8 @@ class ParticipantImportDefinition(db.Model):
 
     study_id = db.Column(db.Integer, db.ForeignKey(Study.id))
     study = db.relationship(Study)
+
+    active = db.Column(db.Boolean(), default=False)
 
     ecrf_source_id = db.Column(db.Integer, db.ForeignKey(EcrfSource.id))
     ecrf_source = db.relationship(EcrfSource, backref=db.backref("participant_import_definitions"))
@@ -406,8 +419,19 @@ class ParticipantImportDefinition(db.Model):
 
     identities_map = db.Column(db.String(500))
 
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_datetime = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )
+
+    last_updated_by_user_id = db.Column(
+        db.Integer,
+        db.ForeignKey(User.id),
+        default=current_user_id,
+        onupdate=current_user_id,
+    )
     last_updated_by_user = db.relationship(User)
 
     _latest_timestamp = column_property(
