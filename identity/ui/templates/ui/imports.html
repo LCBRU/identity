@@ -1,0 +1,47 @@
+{% extends "ui/page.html" %}
+{% import "ui/study_labels.html" as study_labels %}
+
+{% block content %}
+<section>
+    <h1>Import Utilities</h1>
+
+    <dl>
+        <dt>eCRFs</dt>
+        <dd>{{ ecrf_count }}</dd>
+    </dl>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Firstname</th>
+                <th>Lastname</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>John</td>
+                <td>Doe</td>
+                <td>john@example.com</td>
+            </tr>
+            <tr>
+                <td>Mary</td>
+                <td>Moe</td>
+                <td>mary@example.com</td>
+            </tr>
+            <tr>
+                <td>July</td>
+                <td>Dooley</td>
+                <td>july@example.com</td>
+            </tr>
+        </tbody>
+    </table>
+    
+
+    <form action="{{ url_for('ui.delete_ecrfs') }}" method="post">
+        <button type="submit" class="btn btn-primary btn-lg btn-block lock_screen">Delete eCRCFs</button>
+    </form>
+
+</section>
+
+{% endblock %}
