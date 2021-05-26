@@ -5,7 +5,7 @@ from flask_security import roles_required
 from identity.ecrfs.model import EcrfDetail, EcrfParticipantIdentifierSource
 from identity.model.id import ParticipantIdentifierSource, participant_identifiers__participant_identifier_sources
 from lbrc_flask.database import db
-from sqlalchemy import select, func, and_, delete
+from sqlalchemy import select, func, delete, update
 from .. import blueprint
 
 
@@ -31,6 +31,7 @@ def delete_ecrfs():
 
         conn.execute(delete(pipis).where(pipis.c.participant_identifier_source_id.in_(epis_ids)))
         conn.execute(delete(epis).where(epis.c.participant_identifier_source_id.in_(epis_ids)))
+        conn.execute(update(pis).where(pis.c.id.in_(epis_ids)).values(linked_minimum_patient_identifier_source_id=pis.c.id))
         conn.execute(delete(pis).where(pis.c.id.in_(epis_ids)))
 
         EcrfDetail.query.delete()
