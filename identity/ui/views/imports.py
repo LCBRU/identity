@@ -31,6 +31,7 @@ def delete_ecrfs():
 
         conn.execute(delete(pipis).where(pipis.c.participant_identifier_source_id.in_(epis_ids)))
         conn.execute(delete(epis).where(epis.c.participant_identifier_source_id.in_(epis_ids)))
+        # Delete all PIS without tripping over self reference constraint
         conn.execute(delete(pis).where(and_(pis.c.id.in_(epis_ids), pis.c.id != pis.c.linked_minimum_patient_identifier_source_id)))
         conn.execute(delete(pis).where(and_(pis.c.id.in_(epis_ids), pis.c.id == pis.c.linked_minimum_patient_identifier_source_id)))
 
