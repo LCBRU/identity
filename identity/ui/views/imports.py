@@ -25,11 +25,13 @@ def delete_ecrfs():
     pipis = participant_identifiers__participant_identifier_sources
 
     with db.engine.connect() as conn:
-        epis_q = select(epis.c.participant_identifier_source_id).scalar_subquery()
+        epis_q = select(epis.c.participant_identifier_source_id)
 
-        conn.execute(delete(pipis).where(pipis.c.participant_identifier_source_id.in_(epis_q)))
-        conn.execute(delete(pis).where(pis.c.id.in_(epis_q)))
-        conn.execute(delete(epis).where(epis.c.participant_identifier_source_id.in_(epis_q)))
+        epis_ids = [id for id in conn.execute(epis_q).scalars()]
+
+        conn.execute(delete(pipis).where(pipis.c.participant_identifier_source_id.in_(epis_ids)))
+        conn.execute(delete(epis).where(epis.c.participant_identifier_source_id.in_(epis_ids)))
+        conn.execute(delete(pis).where(pis.c.id.in_(epis_ids)))
 
         EcrfDetail.query.delete()
 
