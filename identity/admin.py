@@ -81,11 +81,11 @@ class ParticipantImportDefinitionView(AdminCustomView):
 class ApiKeyView(AdminCustomView):
     form_columns = ["user"]
 
-    # form_args = {
-    #     'user': {
-    #         'query_factory': lambda: db.session.query(User),
-    #     },
-    # }
+    form_args = {
+        'user': {
+            'query_factory': lambda: db.session.query(User),
+        },
+    }
 
 
 def init_admin(app, title):

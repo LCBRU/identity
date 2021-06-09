@@ -26,3 +26,6 @@ class User(BaseUser):
         "Study", secondary=users_studies, collection_class=set, backref=db.backref("users", lazy="joined")
     )
 
+    def __str__(self):
+        return 'user'
+
