@@ -51,7 +51,7 @@ class StudyView(AdminCustomView):
 
 class RedcapInstanceView(AdminCustomView):
     column_list = ['name', 'database_name', 'base_url', 'version']
-    form_columns = ["name", "database_name", "base_url"]
+    form_columns = ["name", "database_name", "base_url", 'version']
 
     def on_model_change(self, form, model, is_created):
         model.last_updated_datetime = datetime.datetime.utcnow()
