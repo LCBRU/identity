@@ -25,3 +25,7 @@ class User(BaseUser):
     studies = db.relationship(
         "Study", secondary=users_studies, collection_class=set, backref=db.backref("users", lazy="joined")
     )
+
+    def __str__(self):
+        return 'user'
+

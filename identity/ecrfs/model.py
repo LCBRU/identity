@@ -131,11 +131,17 @@ class RedcapProject(EcrfSource):
     redcap_instance_id = db.Column(db.Integer, db.ForeignKey(RedcapInstance.id), nullable=False)
     redcap_instance = db.relationship(RedcapInstance, backref=db.backref("projects"))
     
-    def get_link(self, record_id):
-        return "/".join(map(lambda x: str(x).rstrip('/'), [
-            self.redcap_instance.base_url,
-            f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
-        ))
+    def get_link(self, record_id=None):
+        if record_id is None:
+            return "/".join(map(lambda x: str(x).rstrip('/'), [
+                self.redcap_instance.base_url,
+                f'redcap_v{self.redcap_instance.version}//index.php?pid={self.project_id}'],
+            ))
+        else:
+            return "/".join(map(lambda x: str(x).rstrip('/'), [
+                self.redcap_instance.base_url,
+                f'redcap_v{self.redcap_instance.version}/DataEntry/record_home.php?pid={self.project_id}&id={record_id}'],
+            ))
 
     def _get_latest_timestamp(self):
         return self.redcap_instance.get_newest_timestamps().get(self.project_id, -1)

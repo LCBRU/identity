@@ -39,11 +39,26 @@
             {% endif %}
         
             {{ formhelper.render_pagination(participants, 'ui.study', id=study.id) }}
-      
 
         </section>                
     </div>
     <div class="col-md-5 col-lg-4 col-xl-3">
+        {% if redcaps | length > 0 %}
+
+            <div class="card study-card">
+                <div class="card-header">REDCaps</div>
+
+                <div class="card-body text-center">
+                    <div>
+                        {% for rp in redcaps %}
+                            <a href='{{ rp.get_link() }}' class="list-group-item list-group-item-action" target='_blank'>{{ rp.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>        
+            </div>
+            
+        {% endif %}
+
         {% if study.label_packs | length > 0 %}
 
             <div class="card study-card">
