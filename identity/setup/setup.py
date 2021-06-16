@@ -381,8 +381,18 @@ def create_redcap_instances(user):
     current_app.logger.info(f'Creating REDCap Instances')
 
     for i in REDCapInstanceDetail().all_instances():
-        if RedcapInstance.query.filter_by(name=i['name']).count() == 0:
-            db.session.add(RedcapInstance(**i, last_updated_by_user=user))
+        instance = RedcapInstance.query.filter_by(name=i['name']).one_or_none()
+
+        if instance is None:
+            instance = RedcapInstance()
+        
+        instance.name = i['name']
+        instance.database_name = i['database_name']
+        instance.base_url = i['base_url']
+        instance.version = i['version']
+        instance.last_updated_by_user = user
+
+        db.session.add(instance)
 
     db.session.commit()
 

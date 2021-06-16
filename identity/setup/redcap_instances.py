@@ -29,12 +29,18 @@ class REDCapInstanceDetail():
         'base_url': 'https://redcap.lcbru.le.ac.uk',
         'version': '7.2.2',
     }
-    # NATIONAL = {
-    #     'name': 'National',
-    #     'database_name': 'redcap_national',
-    #     'base_url': 'https://brc.uhl-tr.nhs.uk/',
-    #     'version': '9.1.15',
-    # }
+    NATIONAL = {
+        'name': 'National',
+        'database_name': 'redcap_national',
+        'base_url': 'https://brc.uhl-tr.nhs.uk/',
+        'version': '9.1.15',
+    }
+    EASY_AS = {
+        'name': 'Easy AS',
+        'database_name': 'uol_easyas_redcap',
+        'base_url': 'https://easy-as.lbrc.le.ac.uk/',
+        'version': '9.1.24',
+    }
 
     def all_instances(self):
         return [getattr(self, f) for f in dir(self) if not callable(getattr(self,f)) and not f.startswith('__')]
