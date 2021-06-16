@@ -1,4 +1,6 @@
 import copy
+
+from lbrc_flask.security import get_system_user
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.model.sex import SexName
 from identity.ecrfs.model import CiviCrmEcrfSource, CustomEcrfSource, ParticipantImportDefinition, RedcapInstance, RedcapProject
@@ -80,6 +82,7 @@ class EcrfDefinition():
                 pid.excluded_from_study_column_name = self.excluded_from_study_column_name
                 pid.set_excluded_from_study_values_list(self.excluded_from_study_values)
                 pid.set_identities_map_dictionary(self.identity_map)
+                pid.last_updated_by_user = get_system_user()
 
                 results.append(pid)
         

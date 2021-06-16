@@ -30,8 +30,6 @@ class EcrfSource(db.Model):
     last_updated_by_user_id = db.Column(
         db.Integer,
         db.ForeignKey(User.id),
-        default=current_user_id,
-        onupdate=current_user_id,
     )
     last_updated_by_user = db.relationship(User)
 
@@ -242,7 +240,7 @@ class CiviCrmEcrfSource(EcrfSource):
     id = db.Column(db.Integer, db.ForeignKey(EcrfSource.id), primary_key=True)
     case_type_id = db.Column(db.Integer)
     custom_tables = db.Column(db.String(500))
-   
+
     @staticmethod
     @cached(ttl=30)
     def get_newest_timestamps():
@@ -435,8 +433,6 @@ class ParticipantImportDefinition(db.Model):
     last_updated_by_user_id = db.Column(
         db.Integer,
         db.ForeignKey(User.id),
-        default=current_user_id,
-        onupdate=current_user_id,
     )
     last_updated_by_user = db.relationship(User)
 
