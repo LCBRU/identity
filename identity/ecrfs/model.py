@@ -1,4 +1,4 @@
-from lbrc_flask.security import current_user_id
+from lbrc_flask.security import system_user_id
 from lbrc_flask.string_functions import decode_dictionary_string, decode_list_string, encode_dictionary_string, encode_list_string
 from identity.setup.civicrm_instances import CiviCrmInstanceDetail
 from sqlalchemy import func, select
@@ -30,6 +30,8 @@ class EcrfSource(db.Model):
     last_updated_by_user_id = db.Column(
         db.Integer,
         db.ForeignKey(User.id),
+        default=system_user_id,
+        onupdate=system_user_id,
     )
     last_updated_by_user = db.relationship(User)
 
@@ -433,6 +435,8 @@ class ParticipantImportDefinition(db.Model):
     last_updated_by_user_id = db.Column(
         db.Integer,
         db.ForeignKey(User.id),
+        default=system_user_id,
+        onupdate=system_user_id,
     )
     last_updated_by_user = db.relationship(User)
 

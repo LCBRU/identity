@@ -23,7 +23,7 @@ class User(BaseUser):
     __table_args__ = {'extend_existing': True}
 
     studies = db.relationship(
-        "Study", secondary=users_studies, collection_class=set, backref=db.backref("users", lazy="joined")
+        "Study", secondary=users_studies, backref=db.backref("users", lazy="joined")
     )
 
     def __str__(self):

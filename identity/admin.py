@@ -17,7 +17,7 @@ from lbrc_flask.admin import AdminCustomView, init_admin as flask_init_admin
 
 class QuerySelectMultipleFieldSet(fields.QuerySelectMultipleField):
     def populate_obj(self, obj, name):
-        setattr(obj, name, set(self.data))
+        setattr(obj, name, list(set(self.data)))
 
 
 class UserView(AdminCustomView):

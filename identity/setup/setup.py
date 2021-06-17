@@ -309,7 +309,7 @@ def create_studies(user):
             db.session.add(study)
 
         admin = get_admin_user()
-        admin.studies.add(study)
+        admin.studies.append(study)
         db.session.add(admin)
 
     db.session.commit()
@@ -401,6 +401,8 @@ def create_partipipant_import_definitions(user):
     current_app.logger.info(f'Creating particpant import definitions')
 
     for c in crfs:
-        db.session.add_all(c.get_partipipant_import_definitions())
+        for pid in c.get_partipipant_import_definitions():
+            pid.last_updated_by_user_id = user.id
+            db.session.add(pid)
     
     db.session.commit()
