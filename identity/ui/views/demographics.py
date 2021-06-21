@@ -247,6 +247,22 @@ def demographics_resubmit(id):
     return redirect(url_for('ui.demographics'))
 
 
+@blueprint.route("/demographics/clear_error/<int:id>")
+@must_be_admin()
+def demographics_clear_error(id):
+    dr = DemographicsRequest.query.get_or_404(id)
+    dr.error_datetime = None
+    dr.error_message = None
+
+    db.session.add(dr)
+    db.session.commit()
+
+    schedule_lookup_tasks(id)
+        
+    flash('Error cleared and Request resubmitted.')
+    return redirect(url_for('ui.demographics'))
+
+
 @blueprint.route("/demographics/pause/<int:id>")
 @must_be_admin()
 def demographics_pause(id):

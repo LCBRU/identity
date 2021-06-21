@@ -41,6 +41,10 @@
                                     {% if dr.can_be_deleted %}
                                         <a class="btn btn-danger" href="{{ url_for('ui.demographics_delete', id=dr.id) }}">Delete Request</a>
                                     {% endif %}
+                                    {% if dr.in_error and current_user.is_admin %}
+                                        <a class="btn btn-warning" href="javascript://" data-toggle="modal" data-target="#help_modal" data-title="Demographics Error" data-text="{{ dr.error_message }}">View Error</a>
+                                        <a class="btn btn-danger" href="{{ url_for('ui.demographics_clear_error', id=dr.id) }}">Clear Error</a>
+                                    {% endif %}
                                 </div>
                             </li>
                         {% endfor %}
