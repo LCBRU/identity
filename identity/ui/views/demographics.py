@@ -75,7 +75,6 @@ def demographics():
     if not search_form.show_downloaded.data:
         q = q.filter(DemographicsRequest.result_downloaded_datetime.is_(None))
 
-
     if current_user.is_admin:
         owner_id = search_form.owner_user_id.data or current_user.id
 

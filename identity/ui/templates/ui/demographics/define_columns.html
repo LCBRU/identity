@@ -1,6 +1,6 @@
 {% extends "ui/page.html" %}
 {% import "lbrc_flask/form_macros.html" as formhelper %}
-{% import "ui/demographics/help.html" as help %}
+{% from "ui/demographics/column_help.html" import column_help_text %}
 
 {% block content %}
 
@@ -10,7 +10,7 @@
         <div class="card study-card">
             <div class="card-header">
                 <div class="float-right">
-                    <a class="fas fa-question-circle" data-toggle="modal" data-target="#help_modal"></a>
+                    <a class="fas fa-question-circle" data-toggle="modal" data-target="#help_modal" data-title="Participant File Format" data-text="{{ column_help_text() }}"></a>
                 </div>
                 <div>Define Columns for {{ demographics_request.filename }}</div>
             </div>
@@ -38,7 +38,5 @@
         </div>            
     </div>
 </div>
-
-{{ help.columns() }}
 
 {% endblock %}

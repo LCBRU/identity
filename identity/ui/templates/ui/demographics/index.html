@@ -1,6 +1,6 @@
 {% extends "ui/page.html" %}
 {% import "lbrc_flask/form_macros.html" as formhelper %}
-{% import "ui/demographics/help.html" as help %}
+{% from "ui/demographics/column_help.html" import column_help_text %}
 
 {% block content %}
 
@@ -63,7 +63,7 @@
 
                         <div class="input-group mb-2">
                             {{ form.upload(class="form-control", placeholder="Participant Details") }}
-                            <span class="input-group-append" data-toggle="modal" data-target="#help_modal">
+                            <span class="input-group-append" data-toggle="modal" data-target="#help_modal" data-title="Participant File Format" data-text="{{ column_help_text() }}">
                                 <span class="input-group-text fas fa-question-circle"></span>
                             </span>
                         </div>
@@ -77,8 +77,6 @@
         </div>
     </div>
 </div>
-
-{{ help.columns() }}
 
 <!-- Upload Progress Dialog Simple-->
 <div class="modal fade" id="uploadProgressModalSimple" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="uploadProgressModalSimple" aria-hidden="true">

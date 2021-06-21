@@ -1,0 +1,39 @@
+{% macro column_help_text() %}
+#### File Type
+
+The participant file must be in CSV or Excel (`.xlsx` or `.xls`) format with
+unique column names in the first row.
+
+#### Demographics Matching Requirements
+
+There are three methods that can be used to match
+the demographics supplied to an individual patient.
+Each method for matching requires a different
+set of data.
+    
+#### NHS Number Matching
+
+File should contain an **NHS number** and a **date of birth**.
+Participants without correct values for both of these
+fields will not be successfully matched.
+
+#### UHL System Number Matching
+
+File should contain a **UHL System number**.
+Participants without a correct value for this
+field will not be successfully matched.
+
+Demographics Matching
+
+File must contain **date of birth** and **sex**
+and should contain as many of the following
+information as possible:
+
+* First name
+* Last name
+* Post Code
+
+Particpants without enough information, or
+whose details match multiple people, will
+not be successfully matched.
+{% endmacro %}
