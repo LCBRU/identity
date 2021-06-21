@@ -49,7 +49,7 @@ lock = multiprocessing.Lock()
 
 @celery.task
 def import_participants():
-    current_app.logger.warning('REDCap participant import: waiting for lock')
+    current_app.logger.info('REDCap participant import: waiting for lock')
     with lock:
         start = datetime.utcnow()
         current_app.logger.info('Importing REDCap particiapnts')
@@ -63,7 +63,7 @@ def import_participants():
 
 @celery.task
 def import_project_details():
-    current_app.logger.warning('REDCap project import: waiting for lock')
+    current_app.logger.info('REDCap project import: waiting for lock')
     with lock:
         current_app.logger.info('Importing REDCap projects')
 
