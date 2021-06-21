@@ -197,52 +197,33 @@ class DemographicsRequest(db.Model):
         else:
             return 'Downloaded'
 
-    @hybrid_property
+    @property
     def data_count(self):
-        return len(self.data)
+        return DemographicsRequestData.query.filter(DemographicsRequestData.demographics_request_id == self.id).count()
 
-    @data_count.expression
-    def data_count(cls):
-        return (select([func.count(DemographicsRequestData.id)]).
-                where(DemographicsRequestData.demographics_request_id == cls.id).
-                label("data_count")
-                )
-
-    @hybrid_property
+    @property
     def fetched_count(self):
-        return len([d for d in self.data if d.processed])
+        return DemographicsRequestData.query.filter(
+                DemographicsRequestData.demographics_request_id == self.id
+            ).filter(
+                DemographicsRequestData.processed_datetime.isnot(None)
+            ).count()
 
-    @fetched_count.expression
-    def fetched_count(cls):
-        return (select([func.count(DemographicsRequestData.id)]).
-                where(DemographicsRequestData.demographics_request_id == cls.id).
-                where(DemographicsRequestData.processed_datetime.isnot(None)).
-                label("fetched_count")
-                )
-
-    @hybrid_property
+    @property
     def prepmi_count(self):
-        return len([d for d in self.data if d.pmi_pre_processed])
+        return DemographicsRequestData.query.filter(
+                DemographicsRequestData.demographics_request_id == self.id
+            ).filter(
+                DemographicsRequestData.pmi_pre_processed_datetime.isnot(None)
+            ).count()
 
-    @prepmi_count.expression
-    def prepmi_count(cls):
-        return (select([func.count(DemographicsRequestData.id)]).
-                where(DemographicsRequestData.demographics_request_id == cls.id).
-                where(DemographicsRequestData.pmi_pre_processed_datetime.isnot(None)).
-                label("prepmi_count")
-                )
-
-    @hybrid_property
+    @property
     def postpmi_count(self):
-        return len([d for d in self.data if d.pmi_post_processed])
-
-    @postpmi_count.expression
-    def postpmi_count(cls):
-        return (select([func.count(DemographicsRequestData.id)]).
-                where(DemographicsRequestData.demographics_request_id == cls.id).
-                where(DemographicsRequestData.pmi_post_processed_datetime.isnot(None)).
-                label("prepost_count")
-                )
+        return DemographicsRequestData.query.filter(
+                DemographicsRequestData.demographics_request_id == self.id
+            ).filter(
+                DemographicsRequestData.pmi_post_processed_datetime.isnot(None)
+            ).count()
 
     def get_most_likely_uhl_system_number_column_id(self):
         return self._get_most_likely_column_id('(uhl|\bs).*(number|no|)')
