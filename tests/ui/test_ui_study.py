@@ -26,8 +26,8 @@ def test__get__requires_login(client):
 def test__ui_study_menu_visible(client, faker, study_name, visible):
     user = login(client, faker)
 
-    user.studies.add(Study.query.filter_by(name="MERMAID").first())
-    user.studies.add(Study.query.filter_by(name="SCAD").first())
+    user.studies.append(Study.query.filter_by(name="MERMAID").first())
+    user.studies.append(Study.query.filter_by(name="SCAD").first())
     db.session.commit()
 
     resp = client.get(url_for('ui.index', _external=True))
@@ -50,8 +50,8 @@ def test__ui_study_menu_visible(client, faker, study_name, visible):
 def test__ui_study_page_visible(client, faker, study_name, visible):
     user = login(client, faker)
 
-    user.studies.add(Study.query.filter_by(name="MERMAID").first())
-    user.studies.add(Study.query.filter_by(name="SCAD").first())
+    user.studies.append(Study.query.filter_by(name="MERMAID").first())
+    user.studies.append(Study.query.filter_by(name="SCAD").first())
     db.session.commit()
 
     study = Study.query.filter_by(name=study_name).first()
@@ -79,8 +79,8 @@ def test__ui_print_buttons_visible(client, faker, pack_name, visible):
 
     scad_study = Study.query.filter_by(name="SCAD").first()
 
-    user.studies.add(Study.query.filter_by(name="MERMAID").first())
-    user.studies.add(scad_study)
+    user.studies.append(Study.query.filter_by(name="MERMAID").first())
+    user.studies.append(scad_study)
     db.session.commit()
 
     resp = client.get(url_for('ui.study', id=scad_study.id, _external=True))
@@ -105,8 +105,8 @@ def test__ui_blinding_and_unblinding_forms_visible(client, faker, study_name, vi
 
     study = Study.query.filter_by(name=study_name).first()
 
-    user.studies.add(Study.query.filter_by(name="DISCORDANCE").first())
-    user.studies.add(study)
+    user.studies.append(Study.query.filter_by(name="DISCORDANCE").first())
+    user.studies.append(study)
     db.session.commit()
 
     resp = client.get(url_for('ui.study', id=study.id, _external=True))

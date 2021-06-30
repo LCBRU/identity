@@ -44,7 +44,7 @@ class IdentityProvider(BaseProvider):
         return a
 
     def add_all_studies(self, user):
-        user.studies.update(Study.query.all())
+        user.studies.extend(Study.query.all())
     
     def column_headers(self, columns):
         return ['X' * i for i in range(1, columns)]

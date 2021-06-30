@@ -45,7 +45,7 @@ class EcrfSource(db.Model):
 
     def has_new_data(self, existing_timestamp):
         latest_timesheet = self._get_latest_timestamp()
-        
+
         if latest_timesheet > existing_timestamp:
             current_app.logger.info(f'{self.name} has new data - existing timestamp: "{existing_timestamp}"; latest Timestamp: "{latest_timesheet}".')
             return True

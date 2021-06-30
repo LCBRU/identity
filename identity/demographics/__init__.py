@@ -35,6 +35,10 @@ class ScheduleException(Exception):
 
 
 def schedule_lookup_tasks(demographics_request_id):
+    do_lookup_tasks.delay(demographics_request_id)
+
+@celery.task()
+def do_lookup_tasks(demographics_request_id):
     current_app.logger.info(f'schedule_lookup_tasks (demographics_request_id={demographics_request_id})')
 
     try:

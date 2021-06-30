@@ -2,7 +2,7 @@ import contextlib
 from datetime import datetime
 import os
 from lbrc_flask.database import db
-from identity.demographics import schedule_lookup_tasks
+from identity.demographics import do_lookup_tasks
 from lbrc_flask.pytest.helpers import login
 from tests.demographics import (
     DemographicsTestHelper,
@@ -19,7 +19,7 @@ def test__schedule_lookup_tasks__request_not_found(
     mock_log_exception,
 ):
 
-    schedule_lookup_tasks(1)
+    do_lookup_tasks(1)
 
     mock_extract_data.delay.assert_not_called()
     mock_extract_pre_pmi_details.delay.assert_not_called()
@@ -47,7 +47,7 @@ def test__schedule_lookup_tasks__in_error(
     db.session.add(dr)
     db.session.commit()
 
-    schedule_lookup_tasks(dr.id)
+    do_lookup_tasks(dr.id)
 
     mock_extract_data.delay.assert_not_called()
     mock_extract_pre_pmi_details.delay.assert_not_called()
@@ -77,7 +77,7 @@ def test__schedule_lookup_tasks__paused(
     db.session.add(dr)
     db.session.commit()
 
-    schedule_lookup_tasks(dr.id)
+    do_lookup_tasks(dr.id)
 
     mock_extract_data.delay.assert_not_called()
     mock_extract_pre_pmi_details.delay.assert_not_called()
@@ -107,7 +107,7 @@ def test__schedule_lookup_tasks__deleted(
     db.session.add(dr)
     db.session.commit()
 
-    schedule_lookup_tasks(dr.id)
+    do_lookup_tasks(dr.id)
 
     mock_extract_data.delay.assert_not_called()
     mock_extract_pre_pmi_details.delay.assert_not_called()
@@ -134,7 +134,7 @@ def test__schedule_lookup_tasks__submitted(
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__data_extraction()
 
-    schedule_lookup_tasks(dr.id)
+    do_lookup_tasks(dr.id)
 
     mock_extract_data.delay.assert_called_once_with(dr.id)
     mock_extract_pre_pmi_details.delay.assert_not_called()
@@ -161,7 +161,7 @@ def test__schedule_lookup_tasks__extracted(
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__pre_pmi_lookup()
 
-    schedule_lookup_tasks(dr.id)
+    do_lookup_tasks(dr.id)
 
     mock_extract_data.delay.assert_not_called()
     mock_extract_pre_pmi_details.delay.assert_called_once_with(dr.id)
@@ -188,7 +188,7 @@ def test__schedule_lookup_tasks__extracted__skip_pmi(
     dth = DemographicsTestHelper(faker=faker, user=u, skip_pmi=True)
     dr = dth.get_demographics_request__pre_pmi_lookup()
 
-    schedule_lookup_tasks(dr.id)
+    do_lookup_tasks(dr.id)
 
     mock_extract_data.delay.assert_not_called()
     mock_extract_pre_pmi_details.delay.assert_not_called()
@@ -215,7 +215,7 @@ def test__schedule_lookup_tasks__got_pre_pmi(
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__spine_lookup()
 
-    schedule_lookup_tasks(dr.id)
+    do_lookup_tasks(dr.id)
 
     mock_extract_data.delay.assert_not_called()
     mock_extract_pre_pmi_details.delay.assert_not_called()
@@ -242,7 +242,7 @@ def test__schedule_lookup_tasks__spine_looked_up(
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__post_pmi_lookup()
 
-    schedule_lookup_tasks(dr.id)
+    do_lookup_tasks(dr.id)
 
     mock_extract_data.delay.assert_not_called()
     mock_extract_pre_pmi_details.delay.assert_not_called()
@@ -269,7 +269,7 @@ def test__schedule_lookup_tasks__spine_looked_up__skip_pmi(
     dth = DemographicsTestHelper(faker=faker, user=u, skip_pmi=True)
     dr = dth.get_demographics_request__post_pmi_lookup()
 
-    schedule_lookup_tasks(dr.id)
+    do_lookup_tasks(dr.id)
 
     mock_extract_data.delay.assert_not_called()
     mock_extract_pre_pmi_details.delay.assert_not_called()
@@ -296,7 +296,7 @@ def test__schedule_lookup_tasks__got_post_pmi(
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__create_results()
 
-    schedule_lookup_tasks(dr.id)
+    do_lookup_tasks(dr.id)
 
     mock_extract_data.delay.assert_not_called()
     mock_extract_pre_pmi_details.delay.assert_not_called()
@@ -323,7 +323,7 @@ def test__schedule_lookup_tasks__result_created(
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__download()
 
-    schedule_lookup_tasks(dr.id)
+    do_lookup_tasks(dr.id)
 
     mock_extract_data.delay.assert_not_called()
     mock_extract_pre_pmi_details.delay.assert_not_called()
