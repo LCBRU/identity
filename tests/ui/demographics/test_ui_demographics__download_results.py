@@ -1,5 +1,3 @@
-import contextlib
-import os
 from datetime import datetime
 from flask import url_for
 from identity.demographics.model import DemographicsRequest

@@ -47,7 +47,7 @@ class EcrfDefinition():
         results = []
 
         for c in self.crfs:
-            study = Study.query.filter_by(name=c['study']).one_or_none()
+            study = Study.query.filter_by(name=c['study']['name']).one_or_none()
 
             for source in self.get_ecrf_sources(c):
                 pid = ParticipantImportDefinition.query.filter_by(study_id=study.id, ecrf_source_id=source.id).one_or_none()

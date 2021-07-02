@@ -322,7 +322,7 @@ def demographics_download_result(id):
     return send_file(
         dr.result_filepath,
         as_attachment=True,
-        attachment_filename=dr.result_filename,
+        download_name=dr.result_filename,
     )
 
 
@@ -338,5 +338,5 @@ def demographics_download_request(id):
     return send_file(
         dr.filepath,
         as_attachment=True,
-        attachment_filename=dr.filename,
+        download_name=dr.filename,
     )

@@ -16,6 +16,7 @@ from .printing_methods import (
     print_barcode,
     print_notes_label,
 )
+from identity.setup.studies import StudyName
 from .briccs import BriccsBags
 
 ID_NAME_SCAD_REG = 'SCAD REG IDS'
@@ -30,7 +31,7 @@ ID_TYPE_FAMILY = "ScFm"
 class ScadIdSpecification(StudyIdSpecification):
     def __init__(self):
         super().__init__(
-            study_name='SCAD',
+            study_name=StudyName.SCAD,
             pseudo_identifier_types=[
                 {ID_TYPE_PARTICIPANT: 'SCAD Participants'},
                 {ID_TYPE_SAMPLE: 'SCAD Samples'},
@@ -52,7 +53,7 @@ class ScadPack(LabelPack):
         "polymorphic_identity": 'ScadPack',
     }
 
-    __study_name__ = 'SCAD'
+    __study_name__ = StudyName.SCAD
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
@@ -99,7 +100,7 @@ class ScadBloodOnlyPack(LabelPack):
         "polymorphic_identity": 'ScadBloodOnlyPack',
     }
 
-    __study_name__ = 'SCAD'
+    __study_name__ = StudyName.SCAD
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
@@ -125,7 +126,7 @@ class ScadFamilyPack(LabelPack):
         "polymorphic_identity": 'ScadFamilyPack',
     }
 
-    __study_name__ = 'SCAD'
+    __study_name__ = StudyName.SCAD
 
     def _do_print(self):
         family_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_FAMILY).first()
@@ -143,7 +144,7 @@ class ScadRegistryPack(LabelPack):
         "polymorphic_identity": 'ScadRegistryPack',
     }
 
-    __study_name__ = 'SCAD'
+    __study_name__ = StudyName.SCAD
 
     def _do_print(self):
         registry_id_provider = SequentialIdProvider.query.filter_by(name=ID_NAME_SCAD_REG).first()

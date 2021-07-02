@@ -89,5 +89,5 @@ from identity.setup.setup import create_base_data
 def test__setup__Studies(client, faker, study):
     create_base_data()
 
-    assert Study.query.filter_by(name=study).one_or_none() is not None
+    assert Study.query.filter_by(name=study['name']).one_or_none() is not None
 

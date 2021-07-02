@@ -46,7 +46,7 @@ class AlleviatePack(LabelPack):
         bag_context = BagContext(
             printer=PRINTER_TMF_BAG,
             participant_id=participant_id,
-            side_bar=StudyName.ALLEVIATE,
+            side_bar=StudyName.ALLEVIATE['name'],
         )
 
         sample_context = SampleContext(

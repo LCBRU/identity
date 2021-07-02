@@ -10,6 +10,7 @@ from unittest.mock import patch
 from identity.demographics import (
     extract_data,
 )
+from time import sleep
 from identity.demographics.model import (
     DemographicsRequestCsv,
     DemographicsRequestXlsx,
@@ -72,6 +73,8 @@ def do_create_request(client, faker, user, headers=None, data=None, extension='c
             filename,
         )
     }
+
+    sleep(1)
 
     response = do_upload(client, data)
 

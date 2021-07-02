@@ -238,7 +238,7 @@ def _create_projects(crfs):
     result = []
 
     for c in crfs:
-        study = Study.query.filter_by(name=c['study']).one_or_none()
+        study = Study.query.filter_by(name=c['study']['name']).one_or_none()
         ri = RedcapInstance.query.filter_by(name=c['instance']['name']).one_or_none()
 
         for project in c['projects']:

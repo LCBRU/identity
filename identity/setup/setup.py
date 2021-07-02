@@ -247,7 +247,7 @@ def create_label_packs(user):
         if LabelPack.query.filter_by(type=x.__class__.__name__).count() == 0:
             current_app.logger.info(f'Creating {x.name}')
 
-            x.study = Study.query.filter_by(name=x.__study_name__).first()
+            x.study = Study.query.filter_by(name=x.__study_name__['name']).first()
 
             db.session.add(x)
 
@@ -299,14 +299,20 @@ def create_providers(user):
 def create_studies(user):
     current_app.logger.info(f'Creating Studies')
 
-    for study_name in StudyName().all_studies():
-        study = Study.query.filter_by(name=study_name).first()
+    for s in StudyName().all_studies():
+        study = Study.query.filter_by(name=s['name']).first()
 
         if not study:
-            current_app.logger.info(f'Creating Study {study_name}')
+            current_app.logger.info(f'Creating Study {s["name"]}')
 
-            study = Study(name=study_name)
-            db.session.add(study)
+            study = Study(name=s['name'])
+
+        if 'edge_id' in s:
+            study.edge_id = s['edge_id']
+        else:
+            study.edge_id = None
+
+        db.session.add(study)
 
         admin = get_admin_user()
         admin.studies.append(study)

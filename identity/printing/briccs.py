@@ -194,7 +194,7 @@ class BriccsPack(LabelPack):
 
     def _do_print(self):
         bb = BriccsBags()
-        participant_id = bb.print_pack(study_name=StudyName.BRICCS, additional_sample_label_count=2)
+        participant_id = bb.print_pack(study_name=StudyName.BRICCS['name'], additional_sample_label_count=2)
         self.save_participant_id(participant_id)
 
 

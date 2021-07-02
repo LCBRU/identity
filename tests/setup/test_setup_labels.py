@@ -40,6 +40,6 @@ from identity.setup.setup import create_base_data
 def test__setup__labelpacks(client, faker, study, pack):
     create_base_data()
 
-    s = Study.query.filter_by(name=study).one_or_none()
+    s = Study.query.filter_by(name=study['name']).one_or_none()
     assert LabelPack.query.filter_by(study_id=s.id, type=pack).one_or_none() is not None
 

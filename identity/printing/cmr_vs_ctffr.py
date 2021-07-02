@@ -42,7 +42,7 @@ class CmrVsCtffrPack(LabelPack):
         bag_context = BagContext(
             printer=PRINTER_TMF_BAG,
             participant_id=self._participant_id,
-            side_bar=self.__study_name__,
+            side_bar=self.__study_name__['name'],
         )
 
         sample_context = SampleContext(

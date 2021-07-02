@@ -833,7 +833,7 @@ def test__create_base_data__creates_participant_import_definitions__redcap(clien
 
     create_base_data()
 
-    s = Study.query.filter_by(name=study_name).one_or_none()
+    s = Study.query.filter_by(name=study_name['name']).one_or_none()
 
     assert ParticipantImportDefinition.query.filter_by(
         study_id=s.id,
@@ -846,7 +846,7 @@ def test__create_base_data__creates_participant_import_definitions__redcap(clien
 def test__create_base_data__creates_participant_import_definitions__civicrm(client, faker, study_name, case_type_id):
     create_base_data()
 
-    s = Study.query.filter_by(name=study_name).one_or_none()
+    s = Study.query.filter_by(name=study_name['name']).one_or_none()
     e = CiviCrmEcrfSource.query.filter_by(case_type_id=case_type_id).one_or_none()
 
     assert ParticipantImportDefinition.query.filter_by(
@@ -860,7 +860,7 @@ def test__create_base_data__creates_participant_import_definitions__civicrm(clie
 def test__create_base_data__creates_participant_import_definitions__custom(client, faker, study_name, database):
     create_base_data()
 
-    s = Study.query.filter_by(name=study_name).one_or_none()
+    s = Study.query.filter_by(name=study_name['name']).one_or_none()
     e = CustomEcrfSource.query.filter_by(database_name=database).one_or_none()
 
     assert ParticipantImportDefinition.query.filter_by(
