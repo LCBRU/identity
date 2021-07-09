@@ -12,6 +12,8 @@
             <dl class="page-header">
                 <dt>EDGE ID</dt>
                 <dd>{{ study.edge_id | blank_if_none }}</dd>
+                <dt>IRAS Number</dt>
+                <dd>{{ edge_site_study.iras_number | blank_if_none }}</dd>
             </dl>
 
             {% if participants.items | length > 0 %}

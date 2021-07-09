@@ -18,8 +18,8 @@ from ..forms import (
     DemographicsSearchForm,
     DemographicsDefineColumnsForm,
     DemographicsAdminSearchForm,
-    ConfirmForm,
 )
+from lbrc_flask.forms import ConfirmForm
 from identity.demographics.model import (
     DemographicsRequest,
     DemographicsRequestXlsx,

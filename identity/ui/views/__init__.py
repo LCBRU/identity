@@ -4,4 +4,5 @@ __all__ = [
     "labels",
     "study",
     "imports",
+    "tracker",
 ]

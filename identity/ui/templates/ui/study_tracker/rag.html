@@ -1,0 +1,52 @@
+{% extends "ui/page.html" %}
+{% from "lbrc_flask/form_macros.html" import render_search, render_pagination %}
+
+{% block content %}
+<section>
+    <h1>Study Tracker RAG Report</h1>
+
+    {{ render_search(search_form, 'ui.study_tracker_rag', placeholder='Search Title or EDGE Project ID') }}
+
+    <ul class="list-group">
+        {% for s in edge_site_studies.items %}
+            <li class="list-group-item">
+                <div class='summary_details'>
+                    <header class="row">
+                        <div class="col">
+                            <h1><a href="https://www.edge.nhs.uk/Project/Details/{{ s.project_id }}" target='_blank'>{{s.project_short_title}} <i class="fas fa-external-link-alt fa-xs"></i></a></h1>
+                            <h2>{{s.primary_clinical_management_areas}} {% if s.key_staff %}({{s.key_staff | blank_if_none }}){% endif %}</h2>
+                        </div>
+                        <div class="col-2">
+                            <span class="float-right badge badge-info">{{ s.project_site_status }}</span>
+                        </div>
+                    </header>
+
+                    <table class="table table-sm">
+                        <thead>
+                            <th>Start Date</th>
+                            <th>End date</th>
+                            <th>Target</th>
+                            <th>Recruited</th>
+                            <th>Expected</th>
+                            <th>% of Expected</th>
+                        </thead>
+                        <tbody>
+                            <tr class="table-{{ s.rag_rating }}">
+                                <td>{{ s.effective_recruitment_start_date | date_format }}</td>
+                                <td>{{ s.effective_recruitment_end_date | date_format }}</td>
+                                <td>{{ s.project_site_target_participants | blank_if_none }}</td>
+                                <td>{{ s.recruited_org | default_if_none(0) }}</td>
+                                <td>{{ s.target_requirement_by() | blank_if_none }}</td>
+                                <td>{% if s.current_target_recruited_percent is not none %}{{ s.current_target_recruited_percent | int }}%{% endif %}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+    {{ render_pagination(edge_site_studies, 'ui.study_tracker_rag', search_form) }}
+</section>
+
+{% endblock %}

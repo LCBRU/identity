@@ -13,6 +13,7 @@ from identity.model import Study, StudyParticipant
 from identity.model.id import PseudoRandomId
 from ..forms import BlindingForm, UnblindingForm
 from ..decorators import assert_study_user
+from lbrc_edge import EdgeSiteStudy
 
 
 @blueprint.route("/study/<int:id>/blinding/", methods=['POST'])
@@ -79,6 +80,11 @@ def study(id, page=1):
     blinding_form = None
     unblinding_form = None
 
+    if study.edge_id:
+        ess = EdgeSiteStudy.query.filter(EdgeSiteStudy.project_id == study.edge_id).one()
+    else:
+        ess = None
+
     if study.blinding_sets:
         blinding_form = BlindingForm()
         unblinding_form = UnblindingForm()
@@ -96,6 +102,7 @@ def study(id, page=1):
         unblinding_form=unblinding_form,
         participants=participants,
         redcaps=_get_study_redcaps(study),
+        edge_site_study=ess,
     )
 
 def _get_study_redcaps(study):

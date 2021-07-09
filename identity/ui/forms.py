@@ -1,53 +1,15 @@
-from flask import flash
-from flask_wtf import FlaskForm
 from wtforms import (
     IntegerField,
     StringField,
-    TextAreaField,
     HiddenField,
     SelectField,
     BooleanField,
+    SelectMultipleField,
 )
 from wtforms.validators import Length, DataRequired
-from flask_wtf.file import FileField as _FileField, FileAllowed, FileRequired
-from wtforms.widgets import FileInput as _FileInput
-
-
-class FlashingForm(FlaskForm):
-    def validate_on_submit(self):
-        result = super(FlashingForm, self).validate_on_submit()
-
-        if not result:
-            for field, errors in self.errors.items():
-                for error in errors:
-                    flash(
-                        "Error in the {} field - {}".format(
-                            getattr(self, field).label.text, error
-                        ),
-                        "error",
-                    )
-        return result
-
-
-class FileInput(_FileInput):
-
-    def __call__(self, field, **kwargs):
-        if field.accept:
-            kwargs[u'accept'] = ','.join(field.accept)
-        return _FileInput.__call__(self, field, **kwargs)
-
-
-class FileField(_FileField):
-    widget = FileInput()
-
-    def __init__(self, *args, **kwargs):
-        self.accept = kwargs.pop('accept', None)
-        super(FileField, self).__init__(*args, **kwargs)
-
-
-class SearchForm(FlashingForm):
-    search = StringField("Search", validators=[Length(max=20)])
-    page = IntegerField("Page", default=1)
+from flask_wtf.file import FileRequired
+from lbrc_flask.forms import SearchForm, FlashingForm, FileField
+from lbrc_edge import EdgeSiteStudy
 
 
 class ConfirmForm(FlashingForm):
@@ -97,3 +59,38 @@ class DemographicsAdminSearchForm(DemographicsSearchForm):
 
 class LabelDefinition(FlashingForm):
     participant_id = StringField("Participant Identifier", validators=[DataRequired(), Length(max=100)])
+
+
+def _get_clinical_area_choices():
+    ess = EdgeSiteStudy.query.with_entities(EdgeSiteStudy.primary_clinical_management_areas.distinct()).all()
+    return [(s[0], s[0]) for s in ess]
+
+
+def _get_status_choices():
+    ess = EdgeSiteStudy.query.with_entities(EdgeSiteStudy.project_site_status.distinct()).all()
+    return [(s[0], s[0]) for s in ess]
+
+
+def _get_principal_investigator_choices():
+    ess = EdgeSiteStudy.query.with_entities(EdgeSiteStudy.principal_investigator.distinct()).all()
+    return [('', '')] + [(s, s) for s in sorted(filter(None, [s[0] for s in ess]))]
+
+
+def _get_lead_nurse_choices():
+    ess = EdgeSiteStudy.query.with_entities(EdgeSiteStudy.project_site_lead_nurses.distinct()).all()
+    return [('', '')] + [(s, s) for s in sorted(filter(None, [s[0] for s in ess]))]
+
+
+class TrackerRagSearchForm(SearchForm):
+    clinical_area = SelectMultipleField('Clinical Area', choices=[])
+    status = SelectMultipleField('Status', choices=[])
+    principal_investigator = SelectField('Principal Investigator', choices=[])
+    lead_nurse = SelectField('Lead Nurse', choices=[])
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.clinical_area.choices = _get_clinical_area_choices()
+        self.status.choices = _get_status_choices()
+        self.principal_investigator.choices = _get_principal_investigator_choices()
+        self.lead_nurse.choices = _get_lead_nurse_choices()

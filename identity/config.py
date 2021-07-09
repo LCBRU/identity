@@ -53,6 +53,9 @@ class IdentityConfig():
     REDCAP_PARTICIPANTS_SCHEDULE_MINUTE=os.environ["REDCAP_PARTICIPANTS_SCHEDULE_MINUTE"]
     REDCAP_PARTICIPANTS_SCHEDULE_HOUR=os.environ["REDCAP_PARTICIPANTS_SCHEDULE_HOUR"]
 
+    SQLALCHEMY_BINDS = {
+        'etl_central': os.environ["ETL_CENTRAL_DB_URI"],
+    }
 
 class Config(BaseConfig, IdentityConfig):
     pass
