@@ -1,0 +1,36 @@
+{% extends "ui/page.html" %}
+{% from "lbrc_flask/form_macros.html" import render_search, render_pagination %}
+
+{% block content %}
+<section>
+    <h1>Study Tracker Gantt Report</h1>
+
+    {{ render_search(search_form, 'ui.study_tracker_gantt', placeholder='Search Title or EDGE Project ID') }}
+
+    <h2>
+        Do not believe the figures on this page as the numbers are erroneous, inaccurate, fallacious and, what is more, wrong.
+        However, please look at the layout and let me know what you think. I should probably remove this message before I put
+        it live for real.
+    </h2>
+
+    <div id="gantt_chart"></div>
+
+</section>
+
+{% endblock %}
+
+{% block js %}
+    <!-- Import Vega & Vega-Lite (does not have to be from CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
+    <!-- Import vega-embed -->
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+    <script type="text/javascript">
+        var spec = {{ gantt_chart | safe }}
+        vegaEmbed('#gantt_chart', spec).then(function(result) {
+          // Access the Vega view instance (https://vega.github.io/vega/docs/api/view/) as result.view
+        }).catch(console.error);
+    </script>
+
+{% endblock %}

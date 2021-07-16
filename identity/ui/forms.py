@@ -1,3 +1,4 @@
+from datetime import datetime
 from wtforms import (
     IntegerField,
     StringField,
@@ -6,6 +7,7 @@ from wtforms import (
     BooleanField,
     SelectMultipleField,
 )
+from wtforms.fields.html5 import DateField
 from wtforms.validators import Length, DataRequired
 from flask_wtf.file import FileRequired
 from lbrc_flask.forms import SearchForm, FlashingForm, FileField
@@ -81,7 +83,7 @@ def _get_lead_nurse_choices():
     return [('', '')] + [(s, s) for s in sorted(filter(None, [s[0] for s in ess]))]
 
 
-class TrackerRagSearchForm(SearchForm):
+class TrackerSearchForm(SearchForm):
     clinical_area = SelectMultipleField('Clinical Area', choices=[])
     status = SelectMultipleField('Status', choices=[])
     principal_investigator = SelectField('Principal Investigator', choices=[])
@@ -94,3 +96,13 @@ class TrackerRagSearchForm(SearchForm):
         self.status.choices = _get_status_choices()
         self.principal_investigator.choices = _get_principal_investigator_choices()
         self.lead_nurse.choices = _get_lead_nurse_choices()
+
+class TrackerSearchGanttForm(TrackerSearchForm):
+    start_year = SelectField('Start Date', choices=[], default=datetime.now().year)
+    period = SelectField('Period', choices=[(1, '1 year'), (2, '2 years'), (3, '3 years'), (4, '4 years'), (5, '5 years')], default=1)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        this_year = datetime.now().year
+        self.start_year.choices = [(y, y) for y in range(this_year - 10, this_year + 10)]
