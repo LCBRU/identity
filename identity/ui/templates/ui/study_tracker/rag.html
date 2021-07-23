@@ -33,8 +33,8 @@
                             <th>End date</th>
                             <th>Target</th>
                             <th>Recruited</th>
-                            <th>Expected</th>
-                            <th>% of Expected</th>
+                            <th>Expected Recruitment by {{ s.target_end_date_description() | title_case }}</th>
+                            <th>Recruited % of Expected by {{ s.target_end_date_description() | title_case }}</th>
                         </thead>
                         <tbody>
                             <tr class="table-{{ s.rag_rating }}">

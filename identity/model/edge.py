@@ -67,16 +67,20 @@ class EdgeSiteStudy(db.Model):
         if result:
             return date(result.year, result.month, result.day)
 
-    def target_requirement_by(self, end_date=None):
+    def target_end_date_description(self):
+        if datetime.now().date() < (self.effective_recruitment_end_date or datetime.max.date()):
+            return 'today'
+        else:
+            return 'study end date'
+
+    def target_end_date(self):
+        return min(datetime.now().date(), (self.effective_recruitment_end_date or datetime.max.date()))
+
+    def target_requirement_by(self):
         if self.effective_recruitment_start_date is None or self.project_site_target_participants is None or self.effective_recruitment_end_date is None:
             return None
 
-        if end_date is None:
-            end_date = datetime.now().date()
-        
-        end_date = min(end_date, self.effective_recruitment_end_date)
-
-        return int(math.ceil(self.project_site_target_participants * (self.effective_recruitment_start_date - end_date).days / (self.effective_recruitment_start_date - self.effective_recruitment_end_date).days))
+        return int(math.ceil(self.project_site_target_participants * (self.effective_recruitment_start_date - self.target_end_date()).days / (self.effective_recruitment_start_date - self.effective_recruitment_end_date).days))
 
     @property
     def current_target_recruited_percent(self):

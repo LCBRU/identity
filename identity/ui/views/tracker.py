@@ -41,8 +41,8 @@ def _get_edge_site_search_query(search_form):
     if search_form.clinical_area.data:
         q = q.filter(EdgeSiteStudy.primary_clinical_management_areas.in_(search_form.clinical_area.data))
 
-    # if search_form.status.data:
-    #     q = q.filter(EdgeSiteStudy.project_site_status.in_(search_form.status.data))
+    if search_form.status.data:
+        q = q.filter(EdgeSiteStudy.project_site_status.in_(search_form.status.data))
 
     if search_form.principal_investigator.data:
         q = q.filter(EdgeSiteStudy.principal_investigator == search_form.principal_investigator.data)
