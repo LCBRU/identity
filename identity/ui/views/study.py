@@ -1,4 +1,4 @@
-from identity.ecrfs.model import EcrfSource, ParticipantImportDefinition, RedcapProject
+from identity.ecrfs.model import ParticipantImportDefinition, RedcapProject
 from flask import (
     render_template,
     redirect,
@@ -13,7 +13,7 @@ from identity.model import Study, StudyParticipant
 from identity.model.id import PseudoRandomId
 from ..forms import BlindingForm, UnblindingForm
 from ..decorators import assert_study_user
-from lbrc_edge import EdgeSiteStudy
+from identity.model.edge import EdgeSiteStudy
 
 
 @blueprint.route("/study/<int:id>/blinding/", methods=['POST'])

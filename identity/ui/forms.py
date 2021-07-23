@@ -11,7 +11,7 @@ from wtforms.fields.html5 import DateField
 from wtforms.validators import Length, DataRequired
 from flask_wtf.file import FileRequired
 from lbrc_flask.forms import SearchForm, FlashingForm, FileField
-from lbrc_edge import EdgeSiteStudy
+from identity.model.edge import EdgeSiteStudy
 
 
 class ConfirmForm(FlashingForm):
@@ -85,7 +85,7 @@ def _get_lead_nurse_choices():
 
 class TrackerSearchForm(SearchForm):
     clinical_area = SelectMultipleField('Clinical Area', choices=[])
-    status = SelectMultipleField('Status', choices=[])
+    status = SelectMultipleField('Status', choices=[], default=['Open'])
     principal_investigator = SelectField('Principal Investigator', choices=[])
     lead_nurse = SelectField('Lead Nurse', choices=[])
 
@@ -96,6 +96,7 @@ class TrackerSearchForm(SearchForm):
         self.status.choices = _get_status_choices()
         self.principal_investigator.choices = _get_principal_investigator_choices()
         self.lead_nurse.choices = _get_lead_nurse_choices()
+
 
 class TrackerSearchGanttForm(TrackerSearchForm):
     start_year = SelectField('Start Date', choices=[], default=datetime.now().year)

@@ -26,5 +26,6 @@ jsonschema
 memoization
 altair
 pandas
+matplotlib
 -e git+https://github.com/LCBRU/lbrc_flask.git@main#egg=lbrc_flask
 -e git+https://github.com/LCBRU/lbrc_edge.git@main#egg=lbrc_edge
