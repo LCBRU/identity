@@ -44,9 +44,27 @@ class DemographicsDefineColumnsForm(FlashingForm):
     family_name_column_id = SelectField('Family Name', coerce=int)
     given_name_column_id = SelectField('Given Name', coerce=int)
     gender_column_id = SelectField('Gender', coerce=int)
+    gender_female_value = StringField("Female Value (default 'f' or 'female')", validators=[Length(max=10)])
+    gender_male_value = StringField("Male Value (default 'm' or 'male')", validators=[Length(max=10)])
     dob_column_id = SelectField('Date of Birth', coerce=int)
     postcode_column_id = SelectField('Postcode', coerce=int)
 
+    def validate(self):
+        rv = FlashingForm.validate(self)
+        if not rv:
+            return False
+
+        gender_female_value = (self.gender_female_value.data or '').strip().lower()
+        gender_male_value = (self.gender_male_value.data or '').strip().lower()
+
+        if len(gender_female_value) == 0 or len(gender_male_value) == 0:
+            return True
+
+        if gender_female_value == gender_male_value:
+            self.gender_male_value.errors.append('Female and Male values cannot be the same.')
+            return False
+
+        return True
 
 class DemographicsSearchForm(FlashingForm):
     search = StringField("Search", validators=[Length(max=20)])

@@ -627,6 +627,9 @@ class DemographicsRequestColumnDefinition(db.Model):
     postcode_column_id = db.Column(db.Integer, db.ForeignKey(DemographicsRequestColumn.id))
     postcode_column = db.relationship(DemographicsRequestColumn, foreign_keys=[postcode_column_id])
 
+    gender_female_value = db.Column(db.String)
+    gender_male_value = db.Column(db.String)
+
     @property
     def is_valid(self):
         return (

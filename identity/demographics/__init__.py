@@ -161,7 +161,7 @@ def get_spine_parameters(demographics_request_data):
     if error is not None:
         result.add_warning(scope='nhs_number', message=error)
 
-    error, v_gender = convert_gender(demographics_request_data.gender)
+    error, v_gender = convert_gender_with_default(demographics_request_data.demographics_request.column_definition, demographics_request_data.gender)
     if error is not None:
         result.add_warning(scope='gender', message=error)
 
@@ -186,7 +186,7 @@ def get_spine_parameters(demographics_request_data):
         if error is not None:
             result.add_warning(scope='pmi_nhs_number', message=error)
 
-        error, v_pmi_gender = convert_gender(demographics_request_data.pmi_data.gender)
+        error, v_pmi_gender = convert_gender_with_default(demographics_request_data.demographics_request.column_definition, demographics_request_data.pmi_data.gender)
         if error is not None:
             result.add_warning(scope='pmi_gender', message=error)
 
@@ -223,6 +223,21 @@ def get_spine_parameters(demographics_request_data):
 
     return result
 
+def convert_gender_with_default(column_definition, value):
+    value = value.lower()
+
+    gender_female_value = (column_definition.gender_female_value or '').lower()
+    gender_male_value = (column_definition.gender_male_value or '').lower()
+
+    if len(gender_female_value) > 0:
+        if value == gender_female_value:
+            value = 'f'
+
+    if len(gender_male_value) > 0:
+        if value == gender_male_value:
+            value = 'm'
+
+    return convert_gender(value)
 
 @celery.task()
 def process_demographics_request_data(request_id):
