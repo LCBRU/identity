@@ -190,6 +190,8 @@ def demographics_define_columns(id):
         dr.column_definition.gender_column_id = form.gender_column_id.data if form.gender_column_id.data > 0 else None
         dr.column_definition.dob_column_id = form.dob_column_id.data if form.dob_column_id.data > 0 else None
         dr.column_definition.postcode_column_id = form.postcode_column_id.data if form.postcode_column_id.data > 0 else None
+        dr.column_definition.gender_female_value = form.gender_female_value.data
+        dr.column_definition.gender_male_value = form.gender_male_value.data
 
         if not dr.column_definition.is_valid:
             flash(Markup('Column specification is invalid.  Please read the <a data-toggle="modal" data-target="#help_modal">help page <span class="fas fa-question-circle" ></span></a> for more details.'), 'error')
