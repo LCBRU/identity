@@ -7,7 +7,7 @@ import xlwt
 import xlutils
 from xlutils.copy import copy
 from shutil import copyfile
-from itertools import takewhile
+from itertools import takewhile, zip_longest
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from openpyxl import load_workbook
 from flask import current_app
@@ -485,10 +485,18 @@ class DemographicsRequestCsv(DemographicsRequest):
     }
 
     def get_column_names(self):
+        result = []
+
         with open(self.filepath, 'r', encoding=self._get_encoding()) as f:
             d_reader = csv.DictReader(f)
 
-            return d_reader.fieldnames
+            result = d_reader.fieldnames
+
+            for row in d_reader:
+                for i in range(len(result), len(row)):
+                    result.append(f'Column {i}')
+
+        return result 
 
     def _get_encoding(self):
         rawdata = open(self.filepath, 'rb').read()
@@ -496,11 +504,13 @@ class DemographicsRequestCsv(DemographicsRequest):
         return result['encoding']
 
     def iter_rows(self):
+        column_names = self.get_column_names()
+
         with open(self.filepath, 'r', encoding=self._get_encoding()) as f:
             reader = csv.DictReader(f)
 
             for row in reader:
-                yield row
+                yield {name: value for name, value in zip_longest(column_names, row.values(), fillvalue='')}
 
     def iter_result_rows(self):
         with open(self.result_filepath, 'r', encoding=self._get_encoding()) as f:
@@ -546,6 +556,7 @@ class DemographicsRequestCsv(DemographicsRequest):
 
             for i, row in enumerate(self.iter_rows()):
 
+                
                 if i in indexed_data:
                     response = indexed_data[i].response
                     messages = indexed_data[i].messages
