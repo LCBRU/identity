@@ -1,8 +1,5 @@
 from matplotlib.transforms import Bbox
-from identity.ecrfs.setup.projects import interval
-import altair as alt
-import pandas as pd
-from datetime import datetime, date
+from datetime import date
 from operator import or_
 from identity.model.edge import EdgeSiteStudy
 from identity.ui.forms import TrackerSearchForm, TrackerSearchGanttForm
