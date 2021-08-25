@@ -67,15 +67,21 @@ def study_tracker_gantt_image():
     else:
         search_form = TrackerSearchGanttForm()
 
-    edge_studies_query = _get_edge_site_search_query(search_form)
+    q = _get_edge_site_search_query(search_form)
 
     start_date = date(int(search_form.start_year.data), 1, 1)
     years = int(search_form.period.data)
+    end_date = start_date + relativedelta(years=years)
     
+    q = q.filter(EdgeSiteStudy.effective_recruitment_start_date != None)
+    q = q.filter(EdgeSiteStudy.effective_recruitment_start_date <= end_date)
+    q = q.filter(EdgeSiteStudy.effective_recruitment_end_date != None)
+    q = q.filter(EdgeSiteStudy.effective_recruitment_end_date >= start_date)
+
     gc = GanttChart(
         start_date=start_date,
         years=years,
-        studies=edge_studies_query.all(),
+        studies=q.all(),
     )
 
     return gc.send_png(filename='tracker.png')
@@ -208,13 +214,7 @@ class GanttChart():
         result = []
 
         for x in studies:
-            if x.effective_recruitment_start_date is None or x.effective_recruitment_end_date is None:
-                continue
-
-            if x.effective_recruitment_start_date > self.end_date or x.effective_recruitment_end_date < self.start_date:
-                continue
-
-            result.append(        {
+            result.append({
                 'name': x.project_short_title,
                 'start_date': x.effective_recruitment_start_date,
                 'duration': (x.effective_recruitment_end_date - x.effective_recruitment_start_date).days,

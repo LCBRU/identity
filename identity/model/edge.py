@@ -25,6 +25,76 @@ class EdgeSiteStudy(db.Model):
     recruited_org = db.Column(db.Integer)
     project_site_lead_nurses = db.Column(db.String)
 
+    # calculated fields
+    effective_recruitment_start_date = db.Column(db.Date)
+    effective_recruitment_end_date = db.Column(db.Date)
+
+    target_end_date = db.Column(db.Date)
+    target_end_date_description = db.Column(db.String)
+    target_requirement_by = db.Column(db.Integer)
+
+    current_target_recruited_percent = db.Column(db.Integer)
+    rag_rating = db.Column(db.String)
+
+    def calculate_values(self):
+        self._calculate_effective_recruitment_start_date()
+        self._calculate_effective_recruitment_end_date()
+        self._calculate_target_end_date()
+        self._calculate_target_end_date_description()
+        self._calculate_target_requirement_by()
+        self._calculate_current_target_recruited_percent()
+        self._calculate_rag_rating()
+
+    def _calculate_effective_recruitment_start_date(self):
+        result = self.project_site_start_date_nhs_permission or self.project_site_date_site_confirmed
+
+        if result:
+            self.effective_recruitment_start_date = date(result.year, result.month, result.day)    
+        else:
+            self.effective_recruitment_start_date = None
+
+    def _calculate_effective_recruitment_end_date(self):
+        result = self.project_site_actual_recruitment_end_date or self.project_site_planned_recruitment_end_date
+
+        if result:
+            self.effective_recruitment_end_date = date(result.year, result.month, result.day)
+        else:
+            self.effective_recruitment_end_date = None
+    
+    def _calculate_target_end_date(self):
+        self.target_end_date = min(datetime.now().date(), (self.effective_recruitment_end_date or datetime.max.date()))
+
+    def _calculate_target_end_date_description(self):
+        if datetime.now().date() < (self.effective_recruitment_end_date or datetime.max.date()):
+            self.target_end_date_description = 'today'
+        else:
+            self.target_end_date_description = 'study end date'
+
+    def _calculate_target_requirement_by(self):
+        if self.effective_recruitment_start_date is None or self.project_site_target_participants is None or self.effective_recruitment_end_date is None:
+            self.target_requirement_by = None
+        else:
+            self.target_requirement_by = int(math.ceil(self.project_site_target_participants * (self.effective_recruitment_start_date - self.target_end_date).days / (self.effective_recruitment_start_date - self.effective_recruitment_end_date).days))
+
+    def _calculate_current_target_recruited_percent(self):
+        if not self.target_requirement_by:
+            self.current_target_recruited_percent = None
+        else:
+            recruited = self.recruited_org or 0
+
+            self.current_target_recruited_percent = round(recruited * 100 / self.target_requirement_by, 0)
+
+    def _calculate_rag_rating(self):
+        if self.current_target_recruited_percent is None:
+            self.rag_rating = None
+        else:
+            if self.current_target_recruited_percent >= 100:
+                self.rag_rating = 'success'
+            elif self.current_target_recruited_percent < 80:
+                self.rag_rating = 'danger'
+            else:
+                self.rag_rating = 'warning'
+
     @property
     def key_staff(self):
         staff = []
@@ -36,57 +106,3 @@ class EdgeSiteStudy(db.Model):
             staff.append(f'Lead Nurse: {self.project_site_lead_nurses}')
 
         return '; '.join(staff)
-            
-    @property
-    def effective_recruitment_start_date(self):
-        result = self.project_site_start_date_nhs_permission or self.project_site_date_site_confirmed
-
-        if result:
-            return date(result.year, result.month, result.day)
-
-    @property
-    def effective_recruitment_end_date(self):
-        result = self.project_site_actual_recruitment_end_date or self.project_site_planned_recruitment_end_date
-
-        if result:
-            return date(result.year, result.month, result.day)
-
-    def target_end_date_description(self):
-        if datetime.now().date() < (self.effective_recruitment_end_date or datetime.max.date()):
-            return 'today'
-        else:
-            return 'study end date'
-
-    def target_end_date(self):
-        return min(datetime.now().date(), (self.effective_recruitment_end_date or datetime.max.date()))
-
-    def target_requirement_by(self):
-        if self.effective_recruitment_start_date is None or self.project_site_target_participants is None or self.effective_recruitment_end_date is None:
-            return None
-
-        return int(math.ceil(self.project_site_target_participants * (self.effective_recruitment_start_date - self.target_end_date()).days / (self.effective_recruitment_start_date - self.effective_recruitment_end_date).days))
-
-    @property
-    def current_target_recruited_percent(self):
-        target_by_now = self.target_requirement_by()
-
-        if not target_by_now:
-            return None
-
-        recruited = self.recruited_org or 0
-        
-        return round(recruited * 100 / target_by_now, 0)
-
-    @property
-    def rag_rating(self):
-        target_perc_now = self.current_target_recruited_percent
-
-        if target_perc_now is None:
-            return None
-
-        if target_perc_now >= 100:
-            return 'success'
-        elif target_perc_now < 80:
-            return 'danger'
-        else:
-            return 'warning'

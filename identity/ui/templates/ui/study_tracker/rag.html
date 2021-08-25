@@ -33,8 +33,8 @@
                             <th>End date</th>
                             <th>Target</th>
                             <th>Recruited</th>
-                            <th>Expected Recruitment by {{ s.target_end_date_description() | title_case }}</th>
-                            <th>Recruited % of Expected by {{ s.target_end_date_description() | title_case }}</th>
+                            <th>Expected Recruitment by {{ s.target_end_date_description | title_case }}</th>
+                            <th>Recruited % of Expected by {{ s.target_end_date_description | title_case }}</th>
                         </thead>
                         <tbody>
                             <tr class="table-{{ s.rag_rating }}">
@@ -42,7 +42,7 @@
                                 <td>{{ s.effective_recruitment_end_date | date_format }}</td>
                                 <td>{{ s.project_site_target_participants | blank_if_none }}</td>
                                 <td>{{ s.recruited_org | default_if_none(0) }}</td>
-                                <td>{{ s.target_requirement_by() | blank_if_none }}</td>
+                                <td>{{ s.target_requirement_by | blank_if_none }}</td>
                                 <td>{% if s.current_target_recruited_percent is not none %}{{ s.current_target_recruited_percent | int }}%{% endif %}</td>
                             </tr>
                         </tbody>
