@@ -4,11 +4,9 @@ import re
 import chardet
 import xlrd
 import xlwt
-import xlutils
 from xlutils.copy import copy
 from shutil import copyfile
 from itertools import takewhile, zip_longest
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from openpyxl import load_workbook
 from flask import current_app
 from datetime import datetime

@@ -16,9 +16,7 @@
     <a class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Tools</a>
     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
         {{ render_nav_link('ui.labels', 'Labels') }}
-        {% if current_user.is_admin %}
-            {{ render_nav_link('ui.demographics', 'Demographics') }}
-        {% endif %}
+        {{ render_nav_link('ui.demographics', 'Demographics') }}
     </div>
 </li>
 
