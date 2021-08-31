@@ -38,6 +38,7 @@ class DemographicsLookupForm(FlashingForm):
     )
     skip_pmi = BooleanField('Skip PMI')
 
+
 class DemographicsDefineColumnsForm(FlashingForm):
     uhl_system_number_column_id = SelectField('UHL System Number', coerce=int)
     nhs_number_column_id = SelectField('NHS Number', coerce=int)
@@ -101,11 +102,17 @@ def _get_lead_nurse_choices():
     return [('', '')] + [(s, s) for s in sorted(filter(None, [s[0] for s in ess]))]
 
 
+def _get_rag_rating_choices():
+    ess = EdgeSiteStudy.query.with_entities(EdgeSiteStudy.rag_rating.distinct()).all()
+    return [('', '')] + [(s, s.title()) for s in sorted(filter(None, [s[0] for s in ess]))]
+
+
 class TrackerSearchForm(SearchForm):
     clinical_area = SelectMultipleField('Clinical Area', choices=[])
     status = SelectMultipleField('Status', choices=[], default=['Open'])
     principal_investigator = SelectField('Principal Investigator', choices=[])
     lead_nurse = SelectField('Lead Nurse', choices=[])
+    rag_rating = SelectField('RAG Rating', choices=[])
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -114,6 +121,7 @@ class TrackerSearchForm(SearchForm):
         self.status.choices = _get_status_choices()
         self.principal_investigator.choices = _get_principal_investigator_choices()
         self.lead_nurse.choices = _get_lead_nurse_choices()
+        self.rag_rating.choices = _get_rag_rating_choices()
 
 
 class TrackerSearchGanttForm(TrackerSearchForm):

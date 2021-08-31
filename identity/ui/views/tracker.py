@@ -47,6 +47,9 @@ def _get_edge_site_search_query(search_form):
     if search_form.lead_nurse.data:
         q = q.filter(EdgeSiteStudy.project_site_lead_nurses == search_form.lead_nurse.data)
 
+    if search_form.rag_rating.data:
+        q = q.filter(EdgeSiteStudy.rag_rating == search_form.rag_rating.data)
+
     return q.order_by(EdgeSiteStudy.project_short_title)
 
 
