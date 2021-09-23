@@ -14,12 +14,6 @@
 
     {{ render_search(search_form, 'ui.study_tracker_gantt', placeholder='Search Title or EDGE Project ID') }}
 
-    <h2>
-        Do not believe the figures on this page as the numbers are erroneous, inaccurate, fallacious and, what is more, wrong.
-        However, please look at the layout and let me know what you think. I should probably remove this message before I put
-        it live for real.
-    </h2>
-
     {% set form_fields = dict() %}
 
     {% for f in search_form | rejectattr("name", "eq", "page") | rejectattr("name", "eq", "csrf_token") | selectattr("data") %}
