@@ -54,35 +54,38 @@ class AlleviatePack(LabelPack):
             id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first(),
         )
 
-        print_bag(
-            label_context=bag_context,
-            title='ALLEVIATE Samples',
-            version='v3.0',
-            subheaders=[
-                '2 x 4.9ml Serum',
-                '2 x 4.9ml Litium Hep.',
-                '1 x 4.9ml EDTA',
-            ],
-            warnings=['Transfer to lab within 90 minutes']
-        )
-        for _ in range(2):
+        for subset in ['Baseline', '12 Weeks']:
+            print_bag(
+                label_context=bag_context,
+                title='ALLEVIATE Samples',
+                subset=subset,
+                version='v3.0',
+                subheaders=[
+                    '2 x 4.9ml Serum',
+                    '2 x 4.9ml Litium Hep.',
+                    '2 x 4.9ml EDTA',
+                ],
+                warnings=['Transfer to lab within 90 minutes']
+            )
+        for _ in range(4):
             print_sample(
                 label_context=sample_context,
                 title='4.9ml Serum'
             )
-        for _ in range(2):
+        for _ in range(4):
             print_sample(
                 label_context=sample_context,
                 title='4.9ml Lithium Hep.'
             )
 
-        print_sample(
-            label_context=sample_context,
-            title='4.9ml EDTA'
-        )
+        for _ in range(4):
+            print_sample(
+                label_context=sample_context,
+                title='4.9ml EDTA'
+            )
 
         print_barcode(
             printer=PRINTER_TMF_SAMPLE,
             barcode=participant_id,
-            count=10,
+            count=35,
         )
