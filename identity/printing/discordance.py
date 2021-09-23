@@ -2,7 +2,7 @@ from identity.setup.studies import StudyName
 from flask_login import current_user
 from identity.model.id import PseudoRandomIdProvider, StudyIdSpecification
 from .model import (
-    PRINTER_BRU_CRF_SAMPLE,
+    PRINTER_TMF_SAMPLE,
     SampleContext,
     LabelPack,
 )
@@ -36,7 +36,7 @@ class DiscordancePack(LabelPack):
         self.save_participant_id(participant_id)
 
         print_barcode(
-            printer=PRINTER_BRU_CRF_SAMPLE,
+            printer=PRINTER_TMF_SAMPLE,
             barcode=participant_id,
             count=6,
         )
