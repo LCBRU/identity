@@ -25,6 +25,9 @@ class EdgeSiteStudy(db.Model):
     recruited_org = db.Column(db.Integer)
     project_site_lead_nurses = db.Column(db.String)
 
+    planned_start_date = db.Column(db.Date)
+    planned_end_date = db.Column(db.Date)
+
     # calculated fields
     effective_recruitment_start_date = db.Column(db.Date)
     effective_recruitment_end_date = db.Column(db.Date)
@@ -94,6 +97,30 @@ class EdgeSiteStudy(db.Model):
                 self.rag_rating = 'danger'
             else:
                 self.rag_rating = 'warning'
+
+    def study_dates(self):
+        result = {}
+
+        if self.project_site_rand_submission_date is not None:
+            result['Project Site R&D Submission Date'] = self.project_site_rand_submission_date
+        if self.project_site_start_date_nhs_permission is not None:
+            result['Project Site Start Date (NHS Permission)'] = self.project_site_start_date_nhs_permission
+        if self.project_site_date_site_confirmed is not None:
+            result['Project Site Date Site Confirmed'] = self.project_site_date_site_confirmed
+        if self.project_site_planned_closing_date is not None:
+            result['Project Site Planned Closing Date'] = self.project_site_planned_closing_date
+        if self.project_site_closed_date is not None:
+            result['Project Site Closed Date'] = self.project_site_closed_date
+        if self.project_site_planned_recruitment_end_date is not None:
+            result['Project Site Planned Recruitment End Date'] = self.project_site_planned_recruitment_end_date
+        if self.project_site_actual_recruitment_end_date is not None:
+            result['Project Site Actual Recruitment End Date'] = self.project_site_actual_recruitment_end_date
+        if self.planned_start_date is not None:
+            result['Planned Start Date'] = self.planned_start_date
+        if self.planned_end_date is not None:
+            result['Planned End Date'] = self.planned_end_date
+
+        return {k: v for k, v in sorted(result.items(), key=lambda item: date(item[1].year, item[1].month, item[1].day))}
 
     @property
     def key_staff(self):

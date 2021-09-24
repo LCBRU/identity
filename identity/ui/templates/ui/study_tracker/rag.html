@@ -41,6 +41,16 @@
                             </tr>
                         </tbody>
                     </table>
+
+                    <div class="row">
+                        {% for k,v in s.study_dates().items() %}
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <dt>{{ k }}</dt>
+                                <dd>{{ v | date_format }}</dd>
+                            </div>
+                        {% endfor %}
+                    </div>
+
                 </div>
             </li>
         {% endfor %}
