@@ -32,7 +32,7 @@ def study_tracker_rag_pdf():
 
     ess = _get_edge_site_search_query(search_form).all()
 
-    return pdf_download("ui/study_tracker/rag_pdf.html", edge_site_studies=ess)
+    return pdf_download("ui/study_tracker/rag_pdf.html", title='study_tracker_rag', edge_site_studies=ess)
 
 
 def _get_edge_site_search_query(search_form):
