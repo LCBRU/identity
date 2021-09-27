@@ -9,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 import io
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from lbrc_flask.export import pdf_download
 
 
 @blueprint.route("/study_tracker/rag", methods=['GET', 'POST'])
@@ -23,6 +24,15 @@ def study_tracker_rag():
     )
 
     return render_template("ui/study_tracker/rag.html", search_form=search_form, edge_site_studies=ess)
+
+
+@blueprint.route("/study_tracker/rag/pdf")
+def study_tracker_rag_pdf():
+    search_form = TrackerSearchForm(formdata=request.args)
+
+    ess = _get_edge_site_search_query(search_form).all()
+
+    return pdf_download("ui/study_tracker/rag_pdf.html", edge_site_studies=ess)
 
 
 def _get_edge_site_search_query(search_form):

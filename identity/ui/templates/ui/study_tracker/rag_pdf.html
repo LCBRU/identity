@@ -1,0 +1,173 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>Study Tracker RAG Report</title>
+
+    <style>
+        @page {
+            size: A4 portrait;
+            
+            @bottom-right {
+                content: "Page " counter(page)
+                            " of " counter(pages);
+                font-size: 10px;
+            }                 
+
+            @bottom-left {
+                content: "Downloaded: {{ current_date }}";
+                font-size: 10px;
+            }
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: x-small;
+        }
+
+        h1, h2 {
+            margin: 0;
+            text-align: center;
+        }
+
+        h1 {
+            font-style: italic;
+            font-size: 2em;
+        }
+
+        h2 {
+            color: #777;
+            font-size: 1.5em;
+        }
+
+        h3 {
+            font-style: italic;
+            font-size: 1.2em;
+            margin: 0;
+        }
+
+        h4 {
+            color: #777;
+            font-size: 1em;
+            margin: 0;
+        }
+
+        dt {
+            font-weight: bold;
+            display: inline;
+        }
+
+        dd {
+            display: inline;
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        th {
+            text-align: center;
+        }
+
+        td {
+            text-align: right;
+        }
+
+        .tr-danger {
+            background-color: #d9534f;
+            font-weight: bold;
+            color: white;
+        }
+
+        .tr-success {
+            background-color: #5cb85c;
+            font-weight: bold;
+            color: white;
+        }
+
+        .tr-warning {
+            background-color: #f0ad4e;
+            font-weight: bold;
+            color: white;
+        }
+
+        .study {
+            padding: 20px;
+            border: 1px solid #ddd;
+            page-break-inside: avoid;
+        }
+
+        .study:nth-child(even){
+            background-color: #f2f2f2;
+        }
+
+</style>
+</head>
+
+<body>
+
+	<h1>Study Tracker</h1>
+	<h2>RAG Report</h2>
+
+    <div>
+        {% for s in edge_site_studies %}
+            <div class="study">
+                <div>
+                    <header>
+                        <div>
+                            <h3>{{s.project_short_title}} (Status: {{ s.project_site_status }})</h3>
+                            <h4>{{s.primary_clinical_management_areas}} {% if s.key_staff %}({{s.key_staff | blank_if_none }}){% endif %}</h4>
+                        </div>
+                    </header>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Start&nbsp;Date</th>
+                                <th rowspan="2">End&nbsp;date</th>
+                                <th rowspan="2">Target</th>
+                                <th rowspan="2">Recruited</th>
+                                <th colspan="2">Expected by {{ s.target_end_date_description | title_case }}</th>
+                            </tr>
+                            <tr>
+                                <th>Recruited</th>
+                                <th>Actual %</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="tr-{{ s.rag_rating }}">
+                                <td>{{ s.effective_recruitment_start_date | date_format | nbsp }}</td>
+                                <td>{{ s.effective_recruitment_end_date | date_format | nbsp }}</td>
+                                <td>{{ s.project_site_target_participants | blank_if_none }}</td>
+                                <td>{{ s.recruited_org | default_if_none(0) }}</td>
+                                <td>{{ s.target_requirement_by | blank_if_none }}</td>
+                                <td>{% if s.current_target_recruited_percent is not none %}{{ s.current_target_recruited_percent | int }}%{% endif %}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div>
+                        {% for k,v in s.study_dates().items() %}
+                            <div>
+                                <dt>{{ k | nbsp }}:</dt>&nbsp<dd>{{ v | date_format | nbsp }}</dd>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>

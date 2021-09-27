@@ -5,7 +5,19 @@
 <section>
     <h1>Study Tracker RAG Report</h1>
 
-    {{ render_search(search_form, 'ui.study_tracker_rag', placeholder='Search Title or EDGE Project ID') }}
+    {{ render_search(
+        search_form,
+        'ui.study_tracker_rag',
+        placeholder='Search Title or EDGE Project ID',
+        buttons=[
+            {
+                'id': 'download',
+                'text': 'Download',
+                'endpoint': 'ui.study_tracker_rag_pdf',
+                'add_form_fields': True,
+            },
+        ],
+    ) }}
 
     <ul class="list-group">
         {% for s in edge_site_studies.items %}
