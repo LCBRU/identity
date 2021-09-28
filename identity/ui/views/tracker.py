@@ -73,6 +73,66 @@ def study_tracker_gantt():
     return render_template("ui/study_tracker/gantt.html", search_form=search_form)
 
 
+@blueprint.route("/study_tracker/gantt2", methods=['GET', 'POST'])
+def study_tracker_gantt2():
+    if request.args:
+        search_form = TrackerSearchGanttForm(formdata=request.args)
+    else:
+        search_form = TrackerSearchGanttForm()
+
+    return render_template("ui/study_tracker/gantt2.html", search_form=search_form)
+
+
+@blueprint.route("/study_tracker/gantt/json")
+def study_tracker_gantt_json():
+    if request.args:
+        search_form = TrackerSearchGanttForm(formdata=request.args)
+    else:
+        search_form = TrackerSearchGanttForm()
+
+    print(request.args)
+
+    q = _get_edge_site_search_query(search_form)
+
+    start_year = int(search_form.start_year.data)
+    start_date = date(start_year, 1, 1)
+    years = int(search_form.period.data)
+    end_date = start_date + relativedelta(years=years)
+    
+    q = q.filter(EdgeSiteStudy.effective_recruitment_start_date != None)
+    q = q.filter(EdgeSiteStudy.effective_recruitment_start_date < end_date)
+    q = q.filter(EdgeSiteStudy.effective_recruitment_end_date != None)
+    q = q.filter(EdgeSiteStudy.effective_recruitment_end_date >= start_date)
+
+    result = {
+        'period': [p for p in range(start_year, end_date.year)],
+        'studies': [{
+            'name': s.project_short_title,
+            'start_date': s.effective_recruitment_start_date,
+            'pre_start_period': 1 if s.effective_recruitment_start_date < start_date else 0,
+            'start_period': max(s.effective_recruitment_start_date.year - start_date.year, 0),
+            'start_period_perc': _calc_period_perc(start_date.year, (end_date.year - 1), s.effective_recruitment_start_date),
+            'end_date': s.effective_recruitment_end_date,
+            'post_end_period': 1 if s.effective_recruitment_end_date > end_date else 0,
+            'end_period': min(s.effective_recruitment_end_date.year - start_date.year, years - 1),
+            'end_period_perc': _calc_period_perc(start_date.year, (end_date.year - 1), s.effective_recruitment_end_date),
+            'class': 'info',
+            'url': f'https://www.edge.nhs.uk/Project/Details/{s.project_id}',
+        } for s in q.all()],
+    }
+
+    return result
+
+
+def _calc_period_perc(start_period, end_period, the_date):
+    if the_date.year < start_period:
+        return 0
+    elif the_date.year > end_period:
+        return 100
+    else:
+        return int(the_date.timetuple().tm_yday * 100 / 365)
+
+
 @blueprint.route("/study_tracker/gantt/image")
 def study_tracker_gantt_image():
     if request.args:

@@ -1,0 +1,216 @@
+{% extends "ui/page.html" %}
+{% from "lbrc_flask/form_macros.html" import render_search, render_pagination %}
+
+{% block content %}
+<section>
+    <style>
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .gantt-chart {
+            border: 1px solid lightgrey;
+            overflow: hidden;
+        }
+
+        .gantt-chart .headers {
+            position: relative;
+            display: flex;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .gantt-chart .headers li {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .gantt-chart .headers li:not(:last-child) {
+            position: relative;
+        }
+
+        .gantt-chart .headers li:not(:last-child)::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            height: 10000px;
+            border-right: 1px solid lightgrey;
+        }
+
+        .gantt-chart .studies li.text {
+            position: relative;
+            font-size: 16px;
+            transition: all 0.65s linear 0.2s;
+        }
+
+        .gantt-chart .studies li.text {
+            position: relative;
+            font-size: 16px;
+            transition: all 0.65s linear 0.2s;
+        }
+
+        .gantt-chart .studies li.bar {
+            position: relative;
+            height: 30px;
+            margin-bottom: 15px;
+            width: 0;
+            transition: all 0.65s linear 0.2s;
+        }
+
+        .gantt-chart .studies li.bar.show_start {
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+        }
+
+        .gantt-chart .studies li.bar.show_end {
+            border-top-right-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+
+    </style>
+
+    <h1>Study Tracker Gantt Report</h1>
+
+    {{ render_search(search_form, 'ui.study_tracker_gantt2', placeholder='Search Title or EDGE Project ID') }}
+
+    {% set form_fields = dict() %}
+
+    {% for f in search_form | rejectattr("name", "eq", "page") | rejectattr("name", "eq", "csrf_token") | selectattr("data") %}
+        {% if form_fields.update({f.name: f.data}) %} {% endif %}
+    {% endfor %}
+
+    <div class="gantt-chart">
+        <ul class="headers"></ul>
+        <ul class="studies"></ul>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block js %}
+
+<script>
+    if (window.document.documentMode) {
+        alert('Internet Explorer is not supported.  Please use Edge or Chrome.');
+    }
+</script>
+
+{% set form_fields = dict() %}
+
+{% for f in search_form | rejectattr("name", "eq", "page") | rejectattr("name", "eq", "csrf_token") | selectattr("data") %}
+    {% if form_fields.update({f.name: f.data}) %} {% endif %}
+{% endfor %}
+
+<script>
+    function getTextWidth(text, font) {
+        // re-use canvas object for better performance
+        const canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
+        const context = canvas.getContext("2d");
+        context.font = font;
+        const metrics = context.measureText(text);
+        return metrics.width;
+    }
+
+    function getCssStyle(element, prop) {
+        return window.getComputedStyle(element, null).getPropertyValue(prop);
+    }
+
+    function getCanvasFontSize(el = document.body) {
+        const fontWeight = getCssStyle(el, 'font-weight') || 'normal';
+        const fontSize = getCssStyle(el, 'font-size') || '16px';
+        const fontFamily = getCssStyle(el, 'font-family') || 'Times New Roman';
+
+        return `${fontWeight} ${fontSize} ${fontFamily}`;
+    }
+
+    function createListItem(left, width, text, className) {
+        const li = document.createElement('li');
+
+        li.textContent = text;
+        li.className = className;
+        li.style.left = `${left}px`;
+        li.style.width = `${width}px`;
+
+        return li;
+    }
+
+    function displayGantt(e) {
+        document.querySelectorAll(".headers li").forEach(c => {
+            c.remove();
+        })
+
+        const header_container = document.querySelector('ul.headers');
+
+        window.data['period'].forEach(function(data, index) {
+            const newDivision = document.createElement('li');
+            newDivision.textContent = data;
+            header_container.appendChild(newDivision);
+        });
+
+        document.querySelectorAll(".studies li").forEach(c => {
+            c.remove();
+        })
+
+        const study_container = document.querySelector('ul.studies');
+
+        const days = document.querySelectorAll(".headers li");
+        const daysArray = [...days];
+
+        window.data['studies'].forEach(function(s, index) {
+            start_period = daysArray[s['start_period']];
+            end_period = daysArray[s['end_period']];
+            last_period = daysArray[daysArray.length - 1];
+
+            left = start_period.offsetLeft + (start_period.offsetWidth * s['start_period_perc']/ 100);
+            right = end_period.offsetLeft + (end_period.offsetWidth * s['end_period_perc']/ 100);
+            bar_width = right - left;
+
+            right_edge = last_period.offsetLeft + last_period.offsetWidth;
+            text_width = right_edge - left;
+            text_left = left;
+
+            const a = document.createElement('a');
+            a.href = s['url'];
+            a.target = '_blank';
+
+            study_container.appendChild(a);
+
+            text_width = getTextWidth(s['name'], "16px arial") * 1.1;
+            align = '';
+
+            if (text_width + left > right_edge) {
+                text_left = right_edge - text_width;
+                align = 'text-right';
+            }
+
+            show_start = '';
+            if (s['pre_start_period'] == 0) {
+                show_start = 'show_start';
+            }
+
+            show_end = '';
+            if (s['post_end_period'] == 0) {
+                show_end = 'show_end';
+            }
+
+            a.appendChild(createListItem(text_left, text_width, s['name'], `text text-${s['class']} ${align}`));
+            a.appendChild(createListItem(left, bar_width, '', `bar bg-${s['class']} ${show_start} ${show_end}`));
+        });
+    }
+
+    async function loadGantt(e) {
+        const response = await fetch("{{ url_for('ui.study_tracker_gantt_json', **form_fields) | safe }}");
+        window.data = await response.json();
+
+        displayGantt(e);
+    }
+
+    window.addEventListener("load", loadGantt);
+    window.addEventListener("resize", displayGantt);
+
+</script>
+
+{% endblock %}
