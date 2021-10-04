@@ -1,3 +1,4 @@
+from itertools import permutations
 from matplotlib.transforms import Bbox
 from datetime import date
 from operator import or_
@@ -10,6 +11,7 @@ import io
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from lbrc_flask.export import pdf_download
+from calendar import monthrange
 
 
 @blueprint.route("/study_tracker/rag", methods=['GET', 'POST'])
@@ -83,6 +85,69 @@ def study_tracker_gantt2():
     return render_template("ui/study_tracker/gantt2.html", search_form=search_form)
 
 
+class Periodiser:
+    def __init__(self, start_year, years):
+
+        self.start_year = start_year
+        self.start_date = date(self.start_year, 1, 1)
+        self.years = years
+        self.end_date = self.start_date + relativedelta(years=self.years)
+
+    def pre_start_period(self, the_date):
+        return 1 if the_date < self.start_date else 0
+    
+    def post_end_period(self, the_date):
+        return 1 if the_date >= self.end_date else 0
+    
+    def start_period(self, the_date):
+        if self.pre_start_period(the_date):
+            return 0
+        else:
+            if self.period(the_date) in self.periods:
+                return self.periods.index(self.period(the_date))
+
+    def end_period(self, the_date):
+        if self.post_end_period(the_date):
+            return len(self.periods) - 1
+        else:
+            if self.period(the_date) in self.periods:
+                return self.periods.index(self.period(the_date))
+
+    def calc_period_perc(self, the_date):
+        if self.pre_start_period(the_date):
+            return 0
+        elif self.post_end_period(the_date):
+            return 100
+        else:
+            return self._calc_period_perc(the_date)
+
+
+class PeriodiserYear(Periodiser):
+    def __init__(self, start_year, years):
+        super().__init__(start_year, years)
+
+        self.periods = [p for p in range(self.start_date.year, self.end_date.year)]
+
+    def period(self, the_date):
+        return the_date.year
+
+    def _calc_period_perc(self, the_date):
+        return int(the_date.timetuple().tm_yday * 100 / 365)
+
+
+class PeriodiserMonth(Periodiser):
+    def __init__(self, start_year, years):
+        super().__init__(start_year, years)
+
+        self.periods = [date(start_year, p, 1).strftime('%b') for p in range(1, 13)]
+
+    def period(self, the_date):
+        return the_date.strftime('%b')
+
+    def _calc_period_perc(self, the_date):
+        return int(the_date.day * 100 / monthrange(the_date.year, the_date.month)[1] )
+
+
 @blueprint.route("/study_tracker/gantt/json")
 def study_tracker_gantt_json():
     if request.args:
@@ -94,43 +159,36 @@ def study_tracker_gantt_json():
 
     q = _get_edge_site_search_query(search_form)
 
-    start_year = int(search_form.start_year.data)
-    start_date = date(start_year, 1, 1)
     years = int(search_form.period.data)
-    end_date = start_date + relativedelta(years=years)
-    
+
+    if years == 1:
+        p = PeriodiserMonth(start_year=int(search_form.start_year.data), years=years)
+    else:
+        p = PeriodiserYear(start_year=int(search_form.start_year.data), years=years)
+
     q = q.filter(EdgeSiteStudy.effective_recruitment_start_date != None)
-    q = q.filter(EdgeSiteStudy.effective_recruitment_start_date < end_date)
+    q = q.filter(EdgeSiteStudy.effective_recruitment_start_date < p.end_date)
     q = q.filter(EdgeSiteStudy.effective_recruitment_end_date != None)
-    q = q.filter(EdgeSiteStudy.effective_recruitment_end_date >= start_date)
+    q = q.filter(EdgeSiteStudy.effective_recruitment_end_date >= p.start_date)
 
     result = {
-        'period': [p for p in range(start_year, end_date.year)],
+        'period': p.periods,
         'studies': [{
             'name': s.project_short_title,
             'start_date': s.effective_recruitment_start_date,
-            'pre_start_period': 1 if s.effective_recruitment_start_date < start_date else 0,
-            'start_period': max(s.effective_recruitment_start_date.year - start_date.year, 0),
-            'start_period_perc': _calc_period_perc(start_date.year, (end_date.year - 1), s.effective_recruitment_start_date),
+            'pre_start_period': p.pre_start_period(s.effective_recruitment_start_date),
+            'start_period': p.start_period(s.effective_recruitment_start_date),
+            'start_period_perc': p.calc_period_perc(s.effective_recruitment_start_date),
             'end_date': s.effective_recruitment_end_date,
-            'post_end_period': 1 if s.effective_recruitment_end_date > end_date else 0,
-            'end_period': min(s.effective_recruitment_end_date.year - start_date.year, years - 1),
-            'end_period_perc': _calc_period_perc(start_date.year, (end_date.year - 1), s.effective_recruitment_end_date),
+            'post_end_period': p.post_end_period(s.effective_recruitment_end_date),
+            'end_period': p.end_period(s.effective_recruitment_end_date),
+            'end_period_perc': p.calc_period_perc(s.effective_recruitment_end_date),
             'class': 'info',
             'url': f'https://www.edge.nhs.uk/Project/Details/{s.project_id}',
         } for s in q.all()],
     }
 
     return result
-
-
-def _calc_period_perc(start_period, end_period, the_date):
-    if the_date.year < start_period:
-        return 0
-    elif the_date.year > end_period:
-        return 100
-    else:
-        return int(the_date.timetuple().tm_yday * 100 / 365)
 
 
 @blueprint.route("/study_tracker/gantt/image")
