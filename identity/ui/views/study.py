@@ -81,7 +81,7 @@ def study(id, page=1):
     unblinding_form = None
 
     if study.edge_id:
-        ess = EdgeSiteStudy.query.filter(EdgeSiteStudy.project_id == study.edge_id).one()
+        ess = EdgeSiteStudy.query.filter(EdgeSiteStudy.project_id == study.edge_id).one_or_none()
     else:
         ess = None
 
