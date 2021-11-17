@@ -7,7 +7,6 @@ from wtforms import (
     BooleanField,
     SelectMultipleField,
 )
-from wtforms.fields.html5 import DateField
 from wtforms.validators import Length, DataRequired
 from flask_wtf.file import FileRequired
 from lbrc_flask.forms import SearchForm, FlashingForm, FileField
