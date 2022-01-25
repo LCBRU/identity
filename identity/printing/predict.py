@@ -59,7 +59,7 @@ class PredictPack(LabelPack):
             title='PREDICT Samples',
             version='v3.0',
             subheaders=[
-                '2 x 4.9ml Serum',
+                '1 x 4.9ml Serum',
                 '1 x 2.7ml EDTA',
             ],
             warnings=['Transfer to lab within 90 minutes']
@@ -69,20 +69,20 @@ class PredictPack(LabelPack):
             title='PREDICT Samples',
             version='v3.0',
             subheaders=[
-                '1 x 4.9ml Litium Hep.',
+                '2 x 4.9ml Litium Hep.',
                 '1 x 4.9ml EDTA',
             ],
             warnings=['STORE ON ICE', 'Transfer to lab within 90 minutes']
         )
+        print_sample(
+            label_context=sample_context,
+            title='4.9ml Serum'
+        )
         for _ in range(2):
             print_sample(
                 label_context=sample_context,
-                title='4.9ml Serum'
+                title='4.9ml Lithium Hep.'
             )
-        print_sample(
-            label_context=sample_context,
-            title='4.9ml Lithium Hep.'
-        )
         print_sample(
             label_context=sample_context,
             title='4.9ml EDTA'
