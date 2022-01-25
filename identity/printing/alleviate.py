@@ -57,31 +57,51 @@ class AlleviatePack(LabelPack):
         for subset in ['Baseline', '12 Weeks']:
             print_bag(
                 label_context=bag_context,
-                title='ALLEVIATE Samples',
+                title='ALLEVIATE (room temp)',
                 subset=subset,
-                version='v3.0',
+                version='v4.0',
                 subheaders=[
-                    '2 x 4.9ml Serum',
-                    '2 x 4.9ml Litium Hep.',
-                    '2 x 4.9ml EDTA',
+                    '1 x 4.9ml Serum (brown)',
+                    '1 x 2.7ml EDTA (purple)',
                 ],
                 warnings=['Transfer to lab within 90 minutes']
             )
-        for _ in range(4):
+
+            print_bag(
+                label_context=bag_context,
+                title='ALLEVIATE (on ice)',
+                subset=subset,
+                version='v4.0',
+                subheaders=[
+                    '2 x 4.9ml Litium Hep. (orange)',
+                    '1 x 4.9ml EDTA (pink)',
+                ],
+                warnings=[
+                    'Put on ice',
+                    'Transfer to lab within 90 minutes'
+                ]
+            )
+        for _ in range(2):
             print_sample(
                 label_context=sample_context,
-                title='4.9ml Serum'
+                title='4.9ml Serum (brown)'
             )
         for _ in range(4):
             print_sample(
                 label_context=sample_context,
-                title='4.9ml Lithium Hep.'
+                title='4.9ml Lithium Hep. (orange)'
             )
 
-        for _ in range(4):
+        for _ in range(2):
             print_sample(
                 label_context=sample_context,
-                title='4.9ml EDTA'
+                title='4.9ml EDTA (pink)'
+            )
+
+        for _ in range(2):
+            print_sample(
+                label_context=sample_context,
+                title='2.7ml EDTA (purple)'
             )
 
         print_barcode(
