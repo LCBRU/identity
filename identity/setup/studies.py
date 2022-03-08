@@ -18,6 +18,7 @@ class StudyName():
     COHERE = {'name': 'COHERE', 'edge_id': 105410}
     COPD_COVID_19 = {'name': 'COPD_COVID_19', 'edge_id': 132765}
     COPD_INTROL = {'name': 'COPD INTROL'}
+    COSMIC = {'name': 'COSMIC'}
     CTO = {'name': 'CTO'}
     CVLPRIT = {'name': 'CVLPRIT', 'edge_id': 6439}
     Dal_Gene = {'name': 'Dal-Gene'}

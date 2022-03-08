@@ -8,6 +8,7 @@ from .cae import *
 from .cardiomet import *
 from .cia import *
 from .cmr_vs_ctffr import *
+from .cosmic import *
 from .discordance import *
 from .elastic_as import *
 from .fast import *
