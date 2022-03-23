@@ -56,30 +56,38 @@ class CosmicPack(LabelPack):
 
         print_bag(
             label_context=bag_context,
-            title='COSMIC Samples',
+            title='COSMIC Samples 1',
             version='v1.0',
             subheaders=[
-                '1 x 8.5ml Serum',
-                '1 x 10ml EDTA',
-                '1 x 3.5ml Citrate',
+                '1 x 9ml EDTA',
+                '1 x 4.3ml Sodium Citrate',
             ],
             warnings=['STORE ON ICE', 'Transfer to lab within 90 minutes']
         )
-        print_sample(
-            label_context=sample_context,
-            title='8.5ml Serum'
+        print_bag(
+            label_context=bag_context,
+            title='COSMIC Samples 2',
+            version='v1.0',
+            subheaders=[
+                '1 x 9ml Serum',
+            ],
+            warnings=['ROOM TEMPERATURE', 'Transfer to lab within 90 minutes']
         )
         print_sample(
             label_context=sample_context,
-            title='10ml EDTA'
+            title='9ml Serum (gold)'
         )
         print_sample(
             label_context=sample_context,
-            title='3.5ml Citrate'
+            title='9ml EDTA (pink)'
+        )
+        print_sample(
+            label_context=sample_context,
+            title='4.3ml Citrate (green)'
         )
 
         print_barcode(
             printer=PRINTER_TMF_SAMPLE,
             barcode=participant_id,
-            count=5,
+            count=6,
         )
