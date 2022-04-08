@@ -276,6 +276,8 @@ class PseudoRandomIdProvider(db.Model):
         previous_ordinal = db.session.query(db.func.max(PseudoRandomId.ordinal)).scalar() or 0
         result = self._create_pseudo_id(previous_ordinal + 1, user)
         db.session.add(result)
+        db.session.flush()
+        db.session.commit()
 
         return result
 
