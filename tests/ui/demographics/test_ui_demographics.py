@@ -115,7 +115,7 @@ def _test__ui_demographics_upload(client, faker, content, extension, headers, sk
     dr = assert_uploaded_file(user, filename, content, headers, skip_pmi)
 
     assert response.status_code == 302
-    assert response.location == url_for('ui.demographics_define_columns', id=dr.id, _external=True)
+    assert response.location == url_for('ui.demographics_define_columns', id=dr.id, _external=False)
 
     _assert_uploaded_file_on_index(
         client,
@@ -144,5 +144,5 @@ def _test__ui_demographics_upload_error(client, faker, content, extension, heade
     assert_uploaded_file_not_exists(user, filename, content, headers)
 
     assert response.status_code == 302
-    assert response.location == url_for('ui.demographics', _external=True)
+    assert response.location == url_for('ui.demographics', _external=False)
     assert assert__flash_messages_contains_error(client)

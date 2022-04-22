@@ -1,5 +1,4 @@
-import contextlib
-import os
+import pytest
 from flask import url_for
 from lbrc_flask.pytest.helpers import login, logout
 from tests.demographics import (
@@ -16,6 +15,7 @@ def _url(external=True, **kwargs):
     return url_for('ui.demographics_submit', _external=external, **kwargs)
 
 
+@pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
 def test__get__requires_login(client, faker):
     user = login(client, faker)
 
@@ -62,7 +62,7 @@ def test__ui_demographics_submit_post(client, faker):
     response = do_submit(client, dr.id)
 
     assert response.status_code == 302
-    assert response.location == url_for('ui.demographics', _external=True)
+    assert response.location == url_for('ui.demographics', _external=False)
 
     _assert_uploaded_file_on_index(client, dr.filename, dr.id, AWAITING_COMPLETION)
 
@@ -108,7 +108,7 @@ def test__ui_demographics_submit_get_submitted(client, faker):
     response = client.get(url_for('ui.demographics_submit', id=dr.id, _external=True))
 
     assert response.status_code == 302
-    assert response.location == url_for('ui.demographics', _external=True)
+    assert response.location == url_for('ui.demographics', _external=False)
     assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
@@ -122,7 +122,7 @@ def test__ui_demographics_submit_post_submitted(client, faker):
     response = do_submit(client, dr.id)
 
     assert response.status_code == 302
-    assert response.location == url_for('ui.demographics', _external=True)
+    assert response.location == url_for('ui.demographics', _external=False)
     assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
@@ -136,7 +136,7 @@ def test__ui_demographics_submit_get_deleted(client, faker):
     response = do_submit(client, dr.id)
 
     assert response.status_code == 302
-    assert response.location == url_for('ui.demographics', _external=True)
+    assert response.location == url_for('ui.demographics', _external=False)
     assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
@@ -150,7 +150,7 @@ def test__ui_demographics_submit_post_deleted(client, faker):
     response = do_submit(client, dr.id)
 
     assert response.status_code == 302
-    assert response.location == url_for('ui.demographics', _external=True)
+    assert response.location == url_for('ui.demographics', _external=False)
     assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
