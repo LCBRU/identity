@@ -21,7 +21,6 @@ Werkzeug
 xlrd
 xlwt
 xlutils
-flask-inputs
 jsonschema
 memoization
 altair

@@ -64,7 +64,7 @@ class TestConfig(BaseTestConfig, IdentityConfig):
     """Configuration for general testing"""
 
     PRINTING_SET_SLEEP=0
-    FILE_UPLOAD_DIRECTORY = '/home/richard/projects/identity/tests/file_uploads'
+    FILE_UPLOAD_DIRECTORY = '/home/richard/tbd/identity/tests/file_uploads'
     BROKER_URL=os.environ["BROKER_URL"] + '/test'
 
 
