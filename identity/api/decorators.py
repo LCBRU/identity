@@ -1,7 +1,6 @@
+import jsonschema
 from functools import wraps
 from flask import abort, current_app, request, jsonify
-from flask_inputs import Inputs
-from flask_inputs.validators import JsonSchema
 from .model import get_api_key
 
 
@@ -19,21 +18,15 @@ def assert_api_key():
     return decorator
 
 
-class JsonInputs(Inputs):
-    def __init__(self, schema, request):
-        self.json = [JsonSchema(schema=schema)]
-        super().__init__(request)
-
-
 def validate_json(schema):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            validator = JsonInputs(schema, request)
-
-            if not validator.validate():
-                current_app.logger.info(f'JSON Validation errors: {validator.errors}')
-                return jsonify(validator.errors), 400
+            try:
+                jsonschema.validate(request.json, schema)
+            except jsonschema.ValidationError as e:
+                current_app.logger.info(f'JSON Validation errors: {e.message}')
+                return jsonify(e.message), 400
 
             return f(*args, **kwargs)
 

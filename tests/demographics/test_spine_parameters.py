@@ -51,7 +51,7 @@ def test__get_spine_parameters__no_pmi__valid_except_gender(client, faker, mock_
 
     actual = get_spine_parameters(drd)
 
-    mock_convert_gender.assert_called_once_with(drd.gender)
+    mock_convert_gender.assert_called_once_with(drd.gender.lower())
 
     assert parse_date(actual.dob) == parse_date(drd.dob)
     assert actual.family_name == drd.family_name

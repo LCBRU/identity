@@ -84,7 +84,7 @@ def do_create_request(client, faker, user, headers=None, data=None, extension='c
     ).first()
 
     assert response.status_code == 302
-    assert response.location == url_for('ui.demographics_define_columns', id=dr.id, _external=True)
+    assert response.location == url_for('ui.demographics_define_columns', id=dr.id, _external=False)
 
     assert dr is not None
 
