@@ -50,9 +50,6 @@ class StudyView(AdminCustomView):
 
 
 class RedcapInstanceView(AdminCustomView):
-    can_delete = False
-    can_edit = False
-    can_create = False
     column_list = ['name', 'database_name', 'base_url', 'version']
     form_columns = ["name", "database_name", "base_url", 'version']
 
