@@ -712,7 +712,7 @@ class DemographicsRequestData(db.Model):
         if self.postcode:
             parts.append(similarity(self.postcode, self.response.postcode))
 
-        return round(sum(parts) / len(parts), 2)
+        return round(sum(parts) / max(len(parts), 1), 2)
 
     
     def __repr__(self):
