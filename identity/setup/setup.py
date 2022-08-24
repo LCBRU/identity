@@ -45,7 +45,6 @@ def create_base_data():
     system = get_system_user()
 
     create_providers(system)
-    create_studies(system)
     create_label_packs(system)
     create_blinding_sets(system)
     create_participant_id_types(system)
@@ -292,31 +291,6 @@ def create_providers(user):
                 prefix=prefix,
                 last_updated_by_user=user,
             ))
-
-    db.session.commit()
-
-
-def create_studies(user):
-    current_app.logger.info(f'Creating Studies')
-
-    for s in StudyName().all_studies():
-        study = Study.query.filter_by(name=s['name']).first()
-
-        if not study:
-            current_app.logger.info(f'Creating Study {s["name"]}')
-
-            study = Study(name=s['name'])
-
-        if 'edge_id' in s:
-            study.edge_id = s['edge_id']
-        else:
-            study.edge_id = None
-
-        db.session.add(study)
-
-        admin = get_admin_user()
-        admin.studies.append(study)
-        db.session.add(admin)
 
     db.session.commit()
 

@@ -200,6 +200,10 @@ class RedcapProject(EcrfSource):
     def __repr__(self):
         return f'<Project: "{self.name}" from instance "{self.redcap_instance.name}">'
 
+    def __str__(self):
+        return f'REDCap {self.redcap_instance.name}: {self.name}'
+
+
 
 class CustomEcrfSource(EcrfSource):
 
@@ -230,6 +234,9 @@ class CustomEcrfSource(EcrfSource):
 
     def __repr__(self):
         return f'<Custom Ecrf Source: "{self.name}"">'
+
+    def __str__(self):
+        return f'Custom {self.name}'
 
 
 class CiviCrmEcrfSource(EcrfSource):
@@ -380,6 +387,8 @@ class CiviCrmEcrfSource(EcrfSource):
     def __repr__(self):
         return f'<CiviCRM Ecrf Source: "{self.name}"">'
 
+    def __str__(self):
+        return f'CiviCRM: {self.name}'
 
 class ParticipantImportDefinition(db.Model):
     id = db.Column(db.Integer, primary_key=True)

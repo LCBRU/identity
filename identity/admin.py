@@ -68,8 +68,15 @@ class RedcapProjectView(AdminCustomView):
 
 
 class ParticipantImportDefinitionView(AdminCustomView):
-    column_searchable_list = [Study.name, EcrfSource.name]
-    column_list = ['study', 'ecrf_source', 'active']
+    column_labels = {
+        'study.name':'Study Name',
+        'ecrf_source.name': 'eCRF Source Name',
+        'ecrf_source': 'eCRF Source',
+    }
+    column_searchable_list = ['study.name', 'ecrf_source.name']
+    column_sortable_list = ['study.name', 'ecrf_source.name']
+    column_list = ['study.name', 'ecrf_source.name', 'active']
+    form_columns = ["study", "ecrf_source", 'active']
 
 
 class ApiKeyView(AdminCustomView):
