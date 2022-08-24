@@ -42,10 +42,7 @@ class UserView(AdminCustomView):
 
 
 class StudyView(AdminCustomView):
-    can_delete = False
-    can_edit = False
-    can_create = False
-    form_columns = ["name"]
+    form_columns = ["name", "edge_id"]
     column_searchable_list = [Study.name]
 
 
@@ -56,6 +53,7 @@ class RedcapInstanceView(AdminCustomView):
     def on_model_change(self, form, model, is_created):
         model.last_updated_datetime = datetime.datetime.utcnow()
         model.last_updated_by_user = current_user
+
 
 class RedcapProjectView(AdminCustomView):
     can_delete = False
@@ -70,10 +68,6 @@ class RedcapProjectView(AdminCustomView):
 
 
 class ParticipantImportDefinitionView(AdminCustomView):
-    can_delete = False
-    can_edit = False
-    can_create = False
-
     column_searchable_list = [Study.name, EcrfSource.name]
     column_list = ['study', 'ecrf_source', 'active']
 
