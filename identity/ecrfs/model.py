@@ -390,6 +390,7 @@ class CiviCrmEcrfSource(EcrfSource):
     def __str__(self):
         return f'CiviCRM: {self.name}'
 
+
 class ParticipantImportDefinition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
