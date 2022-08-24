@@ -7,7 +7,6 @@ from lbrc_flask.security import Role
 from identity.model import Study
 from identity.api.model import ApiKey
 from identity.ecrfs.model import (
-    EcrfSource,
     RedcapInstance,
     RedcapProject,
     ParticipantImportDefinition,
@@ -97,8 +96,16 @@ def init_admin(app, title):
             ApiKeyView(ApiKey, db.session),
             StudyView(Study, db.session),
             UserView(User, db.session),
+        ],
+    )
+    flask_init_admin(
+        app,
+        'CRFs',
+        [
             RedcapInstanceView(RedcapInstance, db.session),
             RedcapProjectView(RedcapProject, db.session),
             ParticipantImportDefinitionView(ParticipantImportDefinition, db.session),
-        ]
+        ],
+        url='/crfs',
+        endpoint='crfs'
     )
