@@ -10,10 +10,12 @@
             <h2>{{ study.name }}</h2>
 
             <dl class="page-header">
-                <dt>EDGE ID</dt>
-                <dd>{{ study.edge_id | blank_if_none }}</dd>
-                <dt>IRAS Number</dt>
-                <dd>{{ edge_site_study.iras_number | blank_if_none }}</dd>
+                {% if edge_site_study %}
+                    <dt>EDGE ID</dt>
+                    <dd><a href="https://www.edge.nhs.uk/Project/Details/{{ edge_site_study.project_id }}" target='_blank'>{{edge_site_study.project_id}} <i class="fas fa-external-link-alt fa-xs"></i></a></dd>
+                    <dt>IRAS Number</dt>
+                    <dd>{{ edge_site_study.iras_number | blank_if_none }}</dd>
+                {% endif %}
             </dl>
 
             {% if participants.items | length > 0 %}
