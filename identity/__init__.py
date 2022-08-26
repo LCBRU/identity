@@ -1,5 +1,7 @@
 from identity.setup.setup import create_base_data, import_ids
 from flask import Flask
+
+from identity.template_filters import init_template_filters
 from .ui import blueprint as ui_blueprint
 from .api import blueprint as api_blueprint
 from .admin import init_admin
@@ -27,6 +29,7 @@ def create_app(config=Config):
         init_printing(app)
         init_celery(app)
         init_redcap(app)
+        init_template_filters(app)
 
     app.register_blueprint(ui_blueprint)
     app.register_blueprint(api_blueprint, url_prefix='/api')

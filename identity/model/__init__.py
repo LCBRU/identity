@@ -23,7 +23,6 @@ class Study(db.Model):
         return result
 
 
-
 class StudyParticipant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     study_id = db.Column(db.Integer, db.ForeignKey(Study.id), nullable=False)
