@@ -8,7 +8,7 @@ def assert_study_user():
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if current_user.is_admin:
+            if not current_user.is_admin:
                 study_id = kwargs.get('id') or kwargs.get('study_id')
                 study = Study.query.get_or_404(study_id)
 
