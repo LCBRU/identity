@@ -7,7 +7,7 @@ def init_template_filters(app):
     def inject_stuff():
         user_studies = []
 
-        if not current_user.is_anonymous:
+        if current_user and not current_user.is_anonymous:
             if current_user.is_admin:
                 user_studies = Study.query.all()
             else:
