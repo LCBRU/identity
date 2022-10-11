@@ -1,6 +1,5 @@
 from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 from identity.setup.redcap_instances import REDCapInstanceDetail
-from identity.setup.studies import StudyName
 from sqlalchemy import create_engine
 from sqlalchemy.sql import text
 from flask import current_app

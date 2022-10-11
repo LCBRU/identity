@@ -3,6 +3,5 @@ __all__ = [
     "home",
     "labels",
     "study",
-    "imports",
     "tracker",
 ]
