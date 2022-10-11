@@ -1,4 +1,3 @@
-from identity.ecrfs.model import ParticipantImportDefinition, RedcapProject
 from flask import (
     render_template,
     redirect,
@@ -101,15 +100,5 @@ def study(id, page=1):
         blinding_form=blinding_form,
         unblinding_form=unblinding_form,
         participants=participants,
-        redcaps=_get_study_redcaps(study),
         edge_site_study=ess,
     )
-
-def _get_study_redcaps(study):
-    q = RedcapProject.query.join(
-        RedcapProject.participant_import_definitions
-    ).filter(
-        ParticipantImportDefinition.study_id == study.id
-    )
-
-    return q.all()

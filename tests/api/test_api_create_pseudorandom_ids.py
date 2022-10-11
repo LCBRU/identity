@@ -1,5 +1,4 @@
 import pytest
-from identity.printing.discordance import ID_TYPE_PARTICIPANT
 from identity.model.id import PseudoRandomId
 from tests.api import add_api_key_to_url
 
@@ -14,8 +13,9 @@ path = '/api/create_pseudorandom_ids'
     ],
 )
 def test__create_pseudorandom_ids__valid_json(client, faker, id_count):
+    prip = faker.get_test_pseudo_random_id_provider()
     resp = client.post(add_api_key_to_url(faker.get_api_key(), path), json=dict(
-        prefix=ID_TYPE_PARTICIPANT,
+        prefix=prip.prefix,
         id_count=id_count,
     ))
 
@@ -35,8 +35,9 @@ def test__create_pseudorandom_ids__no_prefix(client, faker):
 
 
 def test__create_pseudorandom_ids__no_id_count(client, faker):
+    prip = faker.get_test_pseudo_random_id_provider()
     resp = client.post(add_api_key_to_url(faker.get_api_key(), path), json=dict(
-        prefix=ID_TYPE_PARTICIPANT,
+        prefix=prip.prefix,
     ))
 
     assert resp.status_code == 400
@@ -59,8 +60,9 @@ def test__create_pseudorandom_ids__prefix_invalid(client, faker):
     ],
 )
 def test__create_pseudorandom_ids__invalid_id_count(client, faker, id_count):
+    prip = faker.get_test_pseudo_random_id_provider()
     resp = client.post(add_api_key_to_url(faker.get_api_key(), path), json=dict(
-        prefix=ID_TYPE_PARTICIPANT,
+        prefix=prip.prefix,
         id_count=id_count,
     ))
 

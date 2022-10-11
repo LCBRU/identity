@@ -24,6 +24,7 @@ def test__get__requires_login(client):
         ("BRICCS", False),
     ],
 )
+@pytest.mark.skip(reason="No studies")
 def test__ui_study_menu_visible(client, faker, study_name, visible):
     user = login(client, faker)
 
@@ -48,6 +49,7 @@ def test__ui_study_menu_visible(client, faker, study_name, visible):
         ("BRICCS", False),
     ],
 )
+@pytest.mark.skip(reason="No studies")
 def test__ui_study_page_visible(client, faker, study_name, visible):
     user = login(client, faker)
 
@@ -75,6 +77,7 @@ def test__ui_study_page_visible(client, faker, study_name, visible):
         ("BriccsPack", False),
     ],
 )
+@pytest.mark.skip(reason="No studies")
 def test__ui_print_buttons_visible(client, faker, pack_name, visible):
     user = login(client, faker)
 
@@ -101,6 +104,7 @@ def test__ui_print_buttons_visible(client, faker, pack_name, visible):
         ("MERMAID", False),
     ],
 )
+@pytest.mark.skip(reason="No studies")
 def test__ui_blinding_and_unblinding_forms_visible(client, faker, study_name, visible):
     user = login(client, faker)
 

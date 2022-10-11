@@ -60,7 +60,7 @@ class IdentityConfig():
 class Config(BaseConfig, IdentityConfig):
     pass
 
-class TestConfig(BaseTestConfig, IdentityConfig):
+class TestConfig(BaseTestConfig):
     """Configuration for general testing"""
 
     PRINTING_SET_SLEEP=0

@@ -16,6 +16,7 @@ def test_all_numbers_unique(client):
 
 
 @pytest.mark.slow
+# @pytest.mark.skip(reason="Not working for some reason")
 def test_compare_to_expected(client):
     test_data_dir = os.path.join(
         os.path.dirname(__file__),
@@ -32,6 +33,7 @@ def test_compare_to_expected(client):
                 assert iut._get_id(int(row[0])) == row[1]
 
 
+# @pytest.mark.skip(reason="Not working for some reason")
 def test_validate(client):
     iut = PseudoRandomIdProvider(prefix='TstPt')
 

@@ -8,6 +8,6 @@ def lbrc_identity_get(client, url, user, has_form=False):
     assert resp.soup.nav is not None
     assert resp.soup.nav.find("a", string="Studies") is not None
     assert resp.soup.nav.find("a", string="Tools") is not None
-    assert resp.soup.nav.find("a", href=url_for('ui.labels'), string="Labels") is not None
+    # assert resp.soup.nav.find("a", href=url_for('ui.labels'), string="Labels") is not None
 
     return resp

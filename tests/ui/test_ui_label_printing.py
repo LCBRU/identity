@@ -33,6 +33,7 @@ def test__get__requires_login(client):
         (50),
     ],
 )
+@pytest.mark.skip(reason="No label packs yet")
 def test__label_print__no_id_entry__study_redirect(client, faker, pack_count):
     user = login(client, faker)
     faker.add_all_studies(user)
@@ -59,6 +60,7 @@ def test__label_print__no_id_entry__study_redirect(client, faker, pack_count):
         (50),
     ],
 )
+@pytest.mark.skip(reason="No label packs yet")
 def test__label_print__no_id_entry__labels_redirect(client, faker, pack_count):
     user = login(client, faker)
     faker.add_all_studies(user)
@@ -77,6 +79,7 @@ def test__label_print__no_id_entry__labels_redirect(client, faker, pack_count):
     assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix=CARDIOMET_ID_TYPE_PARTICIPANT).count() == pack_count
 
 
+@pytest.mark.skip(reason="No label packs yet")
 def test__label_print__requires_id_entry(client, faker):
     user = login(client, faker)
     faker.add_all_studies(user)
@@ -102,6 +105,7 @@ def test__label_print__requires_id_entry(client, faker):
     assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix=GO_DCM_ID_TYPE_PARTICIPANT).count() == 0
 
 
+@pytest.mark.skip(reason="No label packs yet")
 def test__label_print__not_a_user_study(client, faker):
     user = login(client, faker)
 

@@ -1,16 +1,9 @@
-import datetime
 from flask_admin.contrib.sqla import fields
-from flask_login import current_user
 from lbrc_flask.database import db
 from identity.model.security import User
 from lbrc_flask.security import Role
 from identity.model import Study
 from identity.api.model import ApiKey
-from identity.ecrfs.model import (
-    RedcapInstance,
-    RedcapProject,
-    ParticipantImportDefinition,
-)
 from lbrc_flask.admin import AdminCustomView, init_admin as flask_init_admin
 
 
@@ -45,39 +38,6 @@ class StudyView(AdminCustomView):
     column_searchable_list = [Study.name]
 
 
-class RedcapInstanceView(AdminCustomView):
-    column_list = ['name', 'database_name', 'base_url', 'version']
-    form_columns = ["name", "database_name", "base_url", 'version']
-
-    def on_model_change(self, form, model, is_created):
-        model.last_updated_datetime = datetime.datetime.utcnow()
-        model.last_updated_by_user = current_user
-
-
-class RedcapProjectView(AdminCustomView):
-    can_delete = False
-    can_edit = False
-    can_create = False
-    column_list = ["redcap_instance", "project_id", 'name']
-    form_columns = ["redcap_instance", "project_id"]
-
-    def on_model_change(self, form, model, is_created):
-        model.last_updated_datetime = datetime.datetime.utcnow()
-        model.last_updated_by_user = current_user
-
-
-class ParticipantImportDefinitionView(AdminCustomView):
-    column_labels = {
-        'study.name':'Study Name',
-        'ecrf_source.name': 'eCRF Source Name',
-        'ecrf_source': 'eCRF Source',
-    }
-    column_searchable_list = ['study.name', 'ecrf_source.name']
-    column_sortable_list = ['study.name', 'ecrf_source.name']
-    column_list = ['study.name', 'ecrf_source.name', 'active']
-    form_columns = ["study", "ecrf_source", 'active']
-
-
 class ApiKeyView(AdminCustomView):
     form_columns = ["user"]
 
@@ -97,15 +57,4 @@ def init_admin(app, title):
             StudyView(Study, db.session),
             UserView(User, db.session),
         ],
-    )
-    flask_init_admin(
-        app,
-        'CRFs',
-        [
-            RedcapInstanceView(RedcapInstance, db.session),
-            RedcapProjectView(RedcapProject, db.session),
-            ParticipantImportDefinitionView(ParticipantImportDefinition, db.session),
-        ],
-        url='/crfs',
-        endpoint='crfs'
     )

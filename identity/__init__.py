@@ -7,7 +7,6 @@ from .admin import init_admin
 from .printing import init_printing
 from .celery import init_celery
 from .config import Config
-from .ecrfs import init_redcap
 from lbrc_flask import init_lbrc_flask, ReverseProxied
 from lbrc_flask.security import init_security, Role
 from .model import User
@@ -27,7 +26,6 @@ def create_app(config=Config):
         init_admin(app, TITLE)
         init_printing(app)
         init_celery(app)
-        init_redcap(app)
         init_template_filters(app)
 
     app.register_blueprint(ui_blueprint)
