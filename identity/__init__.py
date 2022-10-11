@@ -1,4 +1,3 @@
-from identity.setup.setup import create_base_data, import_ids
 from flask import Flask
 
 from identity.template_filters import init_template_filters
@@ -33,11 +32,5 @@ def create_app(config=Config):
 
     app.register_blueprint(ui_blueprint)
     app.register_blueprint(api_blueprint, url_prefix='/api')
-
-    @app.before_first_request
-    def init_data():
-        create_base_data()
-        if not app.config['TESTING'] and app.config['IMPORT_OLD_IDS']:
-            import_ids()
 
     return app
