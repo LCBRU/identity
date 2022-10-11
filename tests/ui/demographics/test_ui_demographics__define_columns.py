@@ -9,7 +9,11 @@ from tests.demographics import (
     do_submit,
     do_delete,
 )
-from lbrc_flask.pytest.asserts import assert__flash_messages_contains_error, assert__requires_login
+from lbrc_flask.pytest.asserts import (
+    assert__flash_messages_contains_error,
+    assert__requires_login,
+    assert__redirect
+)
 from tests import lbrc_identity_get
 from tests.ui.demographics import AWAITING_SUBMISSION, _remove_files, _assert_uploaded_file_on_index
 
@@ -18,7 +22,6 @@ def _url(external=True, **kwargs):
     return url_for('ui.demographics_define_columns', _external=external, **kwargs)
 
 
-@pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
 def test__get__requires_login(client, faker):
     user = login(client, faker)
     dr = do_create_request(
@@ -32,7 +35,6 @@ def test__get__requires_login(client, faker):
     assert__requires_login(client, _url(id=dr.id, external=False))
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_define_columns_get(client, faker):
     user = login(client, faker)
     headers = faker.column_headers(10)
@@ -52,7 +54,6 @@ def test__ui_demographics_define_columns_get(client, faker):
     _remove_files(dr)
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_define_columns_get__not_owner(client, faker):
     user = login(client, faker)
     headers = faker.column_headers(10)
@@ -83,7 +84,6 @@ def test__ui_demographics_define_columns_get__not_owner(client, faker):
         (-1, -1, 0, 1, 2, 3, 4, True),
     ],
 )
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_define_columns_post(client, faker, uhl_system_number_column_idx, nhs_column_idx, family_name_idx, given_name_idx, gender_idx, dob_idx, postcode_idx, is_valid):
     user = login(client, faker)
 
@@ -103,8 +103,7 @@ def test__ui_demographics_define_columns_post(client, faker, uhl_system_number_c
         assert response.status_code == 200
         assert response.soup.find(string=re.compile("Column specification is invalid")) is not None
     else:
-        assert response.status_code == 302
-        assert response.location == url_for('ui.demographics_submit', id=dr.id, _external=False)
+        assert__redirect(response, 'ui.demographics_submit', id=dr.id)
 
         dr = DemographicsRequest.query.get(dr.id)
         
@@ -164,7 +163,6 @@ def test__ui_demographics_define_columns_post(client, faker, uhl_system_number_c
     _remove_files(dr)
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_define_columns_post__not_owner(client, faker):
     user = login(client, faker)
     headers = faker.column_headers(10)
@@ -193,15 +191,13 @@ def test__ui_demographics_define_columns_post__not_owner(client, faker):
     _remove_files(dr)
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_define_columns_update(client, faker):
     user = login(client, faker)
 
     dr = do_create_request(client, faker, user)
     response = do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
-    assert response.status_code == 302
-    assert response.location == url_for('ui.demographics_submit', id=dr.id, _external=False)
+    assert__redirect(response, 'ui.demographics_submit', id=dr.id)
 
     response = client.get(url_for('ui.demographics_define_columns', id=dr.id, _external=False))
 
@@ -217,7 +213,6 @@ def test__ui_demographics_define_columns_update(client, faker):
     _remove_files(dr)
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_define_columns_get_404(client, faker):
     user = login(client, faker)
 
@@ -226,7 +221,6 @@ def test__ui_demographics_define_columns_get_404(client, faker):
     assert response.status_code == 404
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_define_columns_post_404(client, faker):
     user = login(client, faker)
 
@@ -235,7 +229,6 @@ def test__ui_demographics_define_columns_post_404(client, faker):
     assert response.status_code == 404
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_define_columns_get_submitted(client, faker):
     user = login(client, faker)
 
@@ -244,14 +237,13 @@ def test__ui_demographics_define_columns_get_submitted(client, faker):
     do_submit(client, dr.id)
     response = client.get(url_for('ui.demographics_define_columns', id=dr.id, _external=True))
 
-    assert response.status_code == 302
-    assert response.location == url_for('ui.demographics', _external=False)
+    assert__redirect(response, 'ui.demographics')
+
     assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_define_columns_post_submitted(client, faker):
     user = login(client, faker)
 
@@ -260,14 +252,13 @@ def test__ui_demographics_define_columns_post_submitted(client, faker):
     do_submit(client, dr.id)
     response = do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
 
-    assert response.status_code == 302
-    assert response.location == url_for('ui.demographics', _external=False)
+    assert__redirect(response, 'ui.demographics')
+
     assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_define_columns_get_deleted(client, faker):
     user = login(client, faker)
 
@@ -275,14 +266,13 @@ def test__ui_demographics_define_columns_get_deleted(client, faker):
     do_delete(client, dr.id)
     response = client.get(url_for('ui.demographics_define_columns', id=dr.id, _external=True))
 
-    assert response.status_code == 302
-    assert response.location == url_for('ui.demographics', _external=False)
+    assert__redirect(response, 'ui.demographics')
+
     assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_define_columns_post_deleted(client, faker):
     user = login(client, faker)
 
@@ -290,8 +280,8 @@ def test__ui_demographics_define_columns_post_deleted(client, faker):
     do_delete(client, dr.id)
     response = do_define_columns_post(client, dr.id, None, None, None, None, None, None, None)
 
-    assert response.status_code == 302
-    assert response.location == url_for('ui.demographics', _external=False)
+    assert__redirect(response, 'ui.demographics')
+
     assert assert__flash_messages_contains_error(client)
 
     _remove_files(dr)

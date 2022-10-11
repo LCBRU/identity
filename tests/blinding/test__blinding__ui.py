@@ -44,8 +44,6 @@ def _assert__blinding(blinding_set, resp):
         assert dd.string == b.pseudo_random_id.full_code
 
 
-
-@pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
 def test_url_requires_login_post(client, faker):
     s = faker.get_test_study()
     assert__requires_login(client, _url(study_id=s.id, external=False), post=True)

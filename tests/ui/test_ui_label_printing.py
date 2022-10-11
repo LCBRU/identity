@@ -1,8 +1,5 @@
 import pytest
 from flask import url_for
-from identity.printing.model import LabelPack
-from identity.printing.cardiomet import ID_TYPE_PARTICIPANT as CARDIOMET_ID_TYPE_PARTICIPANT
-from identity.printing.go_dcm import ID_TYPE_PARTICIPANT as GO_DCM_ID_TYPE_PARTICIPANT
 from identity.model.id import PseudoRandomId, PseudoRandomIdProvider
 from lbrc_flask.pytest.helpers import login
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__redirect
@@ -12,9 +9,8 @@ def _url(external=True, **kwargs):
     return url_for('ui.label_print', _external=external, **kwargs)
 
 
-@pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
-def test__get__requires_login(client):
-    pack = LabelPack.query.filter_by(type='CardiometPack').one()
+def test__get__requires_login(client, faker):
+    pack = faker.get_test_label_pack()
 
     assert__requires_login(client, _url(
         referrer='study',
@@ -33,12 +29,12 @@ def test__get__requires_login(client):
         (50),
     ],
 )
-@pytest.mark.skip(reason="No label packs yet")
+@pytest.mark.skip(reason="Cannot check PseudoRandomId as faker label pack contains no labels")
 def test__label_print__no_id_entry__study_redirect(client, faker, pack_count):
     user = login(client, faker)
-    faker.add_all_studies(user)
 
-    pack = LabelPack.query.filter_by(type='CardiometPack').one()
+    pack = faker.get_test_label_pack()
+    user.studies.append(pack.study)
 
     resp = client.get(_url(
         referrer='study',
@@ -49,7 +45,8 @@ def test__label_print__no_id_entry__study_redirect(client, faker, pack_count):
 
     assert__redirect(resp, 'ui.study', id=pack.study_id)
 
-    assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix=CARDIOMET_ID_TYPE_PARTICIPANT).count() == pack_count
+    # Replace prefix with what the actual prefix will be
+    assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix='prefix').count() == pack_count
 
 
 @pytest.mark.parametrize(
@@ -60,12 +57,12 @@ def test__label_print__no_id_entry__study_redirect(client, faker, pack_count):
         (50),
     ],
 )
-@pytest.mark.skip(reason="No label packs yet")
+@pytest.mark.skip(reason="Cannot check PseudoRandomId as faker label pack contains no labels")
 def test__label_print__no_id_entry__labels_redirect(client, faker, pack_count):
     user = login(client, faker)
-    faker.add_all_studies(user)
 
-    pack = LabelPack.query.filter_by(type='CardiometPack').one()
+    pack = faker.get_test_label_pack()
+    user.studies.append(pack.study)
 
     resp = client.get(_url(
         referrer='labels',
@@ -76,15 +73,16 @@ def test__label_print__no_id_entry__labels_redirect(client, faker, pack_count):
 
     assert__redirect(resp, 'ui.labels')
 
-    assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix=CARDIOMET_ID_TYPE_PARTICIPANT).count() == pack_count
+    # Replace prefix with what the actual prefix will be
+    assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix='prefix').count() == pack_count
 
 
-@pytest.mark.skip(reason="No label packs yet")
+@pytest.mark.skip(reason="Cannot check PseudoRandomId as faker label pack contains no labels")
 def test__label_print__requires_id_entry(client, faker):
     user = login(client, faker)
-    faker.add_all_studies(user)
 
-    pack = LabelPack.query.filter_by(type='GoDcmPack').one()
+    pack = faker.get_test_label_pack()
+    user.studies.append(pack.study)
 
     resp = client.get(_url(
         referrer='study',
@@ -102,14 +100,14 @@ def test__label_print__requires_id_entry(client, faker):
         count=1,
     )
 
-    assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix=GO_DCM_ID_TYPE_PARTICIPANT).count() == 0
+    # Replace prefix with what the actual prefix will be
+    assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix='prefix').count() == 0
 
 
-@pytest.mark.skip(reason="No label packs yet")
 def test__label_print__not_a_user_study(client, faker):
     user = login(client, faker)
 
-    pack = LabelPack.query.filter_by(type='GoDcmPack').one()
+    pack = faker.get_test_label_pack()
 
     resp = client.get(_url(
         referrer='study',

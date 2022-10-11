@@ -17,7 +17,6 @@ def _url(external=True, **kwargs):
     return url_for('ui.demographics_download_result', _external=external, **kwargs)
 
 
-@pytest.mark.skip(reason="Flask_Login is adding extra parameters to URL")
 def test__get__requires_login(client, faker):
     user = login(client, faker)
 
@@ -27,7 +26,6 @@ def test__get__requires_login(client, faker):
     assert__requires_login(client, _url(id=dr.id, external=False))
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_no_result_created(client, faker):
     user = login(client, faker)
 
@@ -42,7 +40,6 @@ def test__ui_demographics_no_result_created(client, faker):
     _remove_files(dr)
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_result_created__download(client, faker):
     user = login(client, faker)
 

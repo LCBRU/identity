@@ -23,6 +23,7 @@ from identity.demographics.model import (
 )
 from lbrc_flask.database import db
 from lbrc_flask.pytest.helpers import login
+from lbrc_flask.pytest.asserts import assert__redirect
 
 
 def assert_uploaded_file(user, filename, content, headers, skip_pmi):
@@ -83,8 +84,7 @@ def do_create_request(client, faker, user, headers=None, data=None, extension='c
         and DemographicsRequest.owner == user
     ).first()
 
-    assert response.status_code == 302
-    assert response.location == url_for('ui.demographics_define_columns', id=dr.id, _external=False)
+    assert__redirect(response, 'ui.demographics_define_columns', id=dr.id)
 
     assert dr is not None
 
