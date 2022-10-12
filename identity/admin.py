@@ -53,7 +53,6 @@ class BlindingTypeView(AdminCustomView):
     column_list = form_columns = [
         "study",
         "pseudo_random_id_provider",
-        "blinding_set",
         "name",
         "deleted",
     ]

@@ -8,40 +8,9 @@ from identity.model.id import (
 from identity.model.security import User
 
 
-class BlindingSet(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    study_id = db.Column(db.Integer, db.ForeignKey(Study.id), nullable=False)
-    study = db.relationship(Study, backref=db.backref("blinding_sets"))
-
-    def __repr__(self):
-        return self.name
-
-    def __lt__(self, other):
-        return self.name < other.name
-
-    def get_blind_ids(self, unblind_id, user):
-        result = []
-
-        for bt in self.blinding_types:
-            blind_id = bt.get_blind_id(unblind_id, user)
-            if blind_id:
-                result.append(blind_id)
-
-        return result
-
-    def get_unblind_id(self, blind_id):
-        for bt in self.blinding_types:
-            unblind_id = bt.get_unblind_id(blind_id)
-            if unblind_id:
-                return unblind_id
-
-
 class BlindingType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    blinding_set_id = db.Column(db.Integer, db.ForeignKey(BlindingSet.id), nullable=False)
-    blinding_set = db.relationship(BlindingSet, backref=db.backref("blinding_types"))
     pseudo_random_id_provider_id = db.Column(db.Integer, db.ForeignKey(PseudoRandomIdProvider.id), nullable=False)
     pseudo_random_id_provider = db.relationship(PseudoRandomIdProvider)
     deleted = db.Column(db.Boolean, nullable=False, default=False)

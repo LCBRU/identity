@@ -1,6 +1,6 @@
 from identity.printing.model import LabelPack
 from identity.model.id import PseudoRandomIdProvider
-from identity.blinding.model import Blinding, BlindingSet, BlindingType
+from identity.blinding.model import Blinding, BlindingType
 from identity.model.security import User
 import io
 import csv
@@ -67,29 +67,6 @@ class IdentityProvider(BaseProvider):
 
         return s
 
-    def blinding_set_details(self, name=None, study=None):
-        if name is None:
-            name = self.generator.pystr(min_chars=5, max_chars=100)
-        
-        result = BlindingSet(name=name)
-
-        if study is None:
-            result.study = self.study_details()
-        elif study.id is None:
-            result.study = study
-        else:
-            result.study_id = study.id
-
-        return result
-
-    def get_test_blinding_set(self,  **kwargs):
-        bs = self.blinding_set_details(**kwargs)
-
-        db.session.add(bs)
-        db.session.commit()
-
-        return bs
-
     def pseudo_random_id_provider_details(self, name=None, prefix=None):
         if name is None:
             name = self.generator.pystr(min_chars=5, max_chars=100)
@@ -107,18 +84,11 @@ class IdentityProvider(BaseProvider):
 
         return p
 
-    def blinding_type_details(self, name=None, blinding_set=None, pseudo_random_id_provider=None, deleted=False):
+    def blinding_type_details(self, name=None, pseudo_random_id_provider=None, deleted=False):
         if name is None:
             name = self.generator.pystr(min_chars=5, max_chars=100)
         
         result = BlindingType(name=name, deleted=deleted)
-
-        if blinding_set is None:
-            result.blinding_set = self.blinding_set_details()
-        elif blinding_set.id is None:
-            result.blinding_set = blinding_set
-        else:
-            result.blinding_set_id = blinding_set.id
 
         if pseudo_random_id_provider is None:
             result.pseudo_random_id_provider = self.pseudo_random_id_provider_details()
