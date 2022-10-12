@@ -8,7 +8,7 @@ from tests.demographics import (
     assert_uploaded_file_not_exists,
     do_upload,
 )
-from lbrc_flask.pytest.asserts import assert__flash_messages_contains_error, assert__requires_login
+from lbrc_flask.pytest.asserts import assert__flash_messages_contains_error, assert__requires_login, assert__redirect
 from tests.ui.demographics import AWAITING_DEFINE_COLUMNS, _assert_uploaded_file_on_index, _remove_files
 
 
@@ -20,7 +20,6 @@ def test__get__requires_login(client):
     assert__requires_login(client, _url(external=False))
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_upload_csv(client, faker):
     headers = faker.column_headers(10)
 
@@ -33,7 +32,6 @@ def test__ui_demographics_upload_csv(client, faker):
     )
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_upload_csv_invalid(client, faker):
     headers = faker.column_headers(10)
 
@@ -46,7 +44,6 @@ def test__ui_demographics_upload_csv_invalid(client, faker):
     )
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_upload_xslx(client, faker):
     headers = faker.column_headers(10)
 
@@ -59,7 +56,6 @@ def test__ui_demographics_upload_xslx(client, faker):
     )
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_upload_xslx_invalid(client, faker):
     headers = faker.column_headers(10)
 
@@ -72,7 +68,6 @@ def test__ui_demographics_upload_xslx_invalid(client, faker):
     )
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_upload_csv__skip_pmi(client, faker):
     headers = faker.column_headers(10)
 
@@ -86,7 +81,6 @@ def test__ui_demographics_upload_csv__skip_pmi(client, faker):
     )
 
 
-@pytest.mark.skip(reason="Not working")
 def test__ui_demographics_upload_xslx__skip_pmi(client, faker):
     headers = faker.column_headers(10)
 
@@ -100,7 +94,6 @@ def test__ui_demographics_upload_xslx__skip_pmi(client, faker):
     )
 
 
-@pytest.mark.skip(reason="Not working")
 def _test__ui_demographics_upload(client, faker, content, extension, headers, skip_pmi=False):
     user = login(client, faker)
 
@@ -120,8 +113,7 @@ def _test__ui_demographics_upload(client, faker, content, extension, headers, sk
 
     dr = assert_uploaded_file(user, filename, content, headers, skip_pmi)
 
-    assert response.status_code == 302
-    assert response.location == url_for('ui.demographics_define_columns', id=dr.id, _external=False)
+    assert__redirect(response, 'ui.demographics_define_columns', id=dr.id)
 
     _assert_uploaded_file_on_index(
         client,
@@ -133,7 +125,6 @@ def _test__ui_demographics_upload(client, faker, content, extension, headers, sk
     _remove_files(dr)
 
 
-@pytest.mark.skip(reason="Not working")
 def _test__ui_demographics_upload_error(client, faker, content, extension, headers):
     user = login(client, faker)
 
@@ -150,6 +141,6 @@ def _test__ui_demographics_upload_error(client, faker, content, extension, heade
 
     assert_uploaded_file_not_exists(user, filename, content, headers)
 
-    assert response.status_code == 302
-    assert response.location == url_for('ui.demographics', _external=False)
+    assert__redirect(response, 'ui.demographics')
+
     assert assert__flash_messages_contains_error(client)

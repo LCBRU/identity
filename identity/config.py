@@ -5,9 +5,6 @@ from lbrc_flask.config import BaseConfig, BaseTestConfig
 class IdentityConfig():
     IMPORT_OLD_IDS = os.getenv("IMPORT_OLD_IDS", "True") == 'True'
 
-    # To be deleted
-    ERROR_EMAIL_SUBJECT = "LBRC identity Error"
-
     PRINTER_CVRC_LAB_SAMPLE = os.environ["PRINTER_CVRC_LAB_SAMPLE"]
     PRINTER_BRU_CRF_SAMPLE = os.environ["PRINTER_BRU_CRF_SAMPLE"]
     PRINTER_BRU_CRF_BAG = os.environ["PRINTER_BRU_CRF_BAG"]
