@@ -3,8 +3,6 @@ from sqlalchemy import (
     Table,
     Column,
     Integer,
-    NVARCHAR,
-    ForeignKey,
 )
 from sqlalchemy.schema import ForeignKeyConstraint
 

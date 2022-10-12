@@ -46,6 +46,8 @@ class BlindingType(db.Model):
     pseudo_random_id_provider = db.relationship(PseudoRandomIdProvider)
     deleted = db.Column(db.Boolean, nullable=False, default=False)
     duplicate_number = db.Column(db.Integer, default=0, nullable=False)
+    study_id = db.Column(db.Integer, db.ForeignKey(Study.id), nullable=False)
+    study = db.relationship(Study, backref=db.backref("blinding_types"))
 
     def __repr__(self):
         return self.name
