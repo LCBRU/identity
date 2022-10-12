@@ -222,6 +222,9 @@ class PseudoRandomIdProvider(db.Model):
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)
 
+    def __repr__(self):
+        return f'{self.name} ({self.prefix})'
+
     def _permuteQPR(self, x):
         if x >= self._PRIME:
             return x  # The 5 integers out of range are mapped to themselves.

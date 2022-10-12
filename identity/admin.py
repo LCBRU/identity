@@ -1,5 +1,6 @@
 from flask_admin.contrib.sqla import fields
 from lbrc_flask.database import db
+from identity.blinding.model import BlindingSet, BlindingType
 from identity.model.security import User
 from lbrc_flask.security import Role
 from identity.model import Study
@@ -48,6 +49,19 @@ class ApiKeyView(AdminCustomView):
     }
 
 
+class BlindingSetView(AdminCustomView):
+    pass
+
+
+class BlindingTypeView(AdminCustomView):
+    column_list = form_columns = [
+        "blinding_set",
+        "pseudo_random_id_provider",
+        "name",
+        "deleted",
+    ]
+
+
 def init_admin(app, title):
     flask_init_admin(
         app,
@@ -56,5 +70,7 @@ def init_admin(app, title):
             ApiKeyView(ApiKey, db.session),
             StudyView(Study, db.session),
             UserView(User, db.session),
+            BlindingSetView(BlindingSet, db.session),
+            BlindingTypeView(BlindingType, db.session),
         ],
     )
