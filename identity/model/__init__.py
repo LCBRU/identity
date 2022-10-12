@@ -14,11 +14,10 @@ class Study(db.Model):
     def get_blind_ids(self, unblind_id, user):
         result = []
 
-        for bs in self.blinding_sets:
-            for bt in [t for t in bs.blinding_types if not t.deleted]:
-                blind_id = bt.get_blind_id(unblind_id, user)
-                if blind_id:
-                    result.append(blind_id)
+        for bt in [t for t in self.blinding_types if not t.deleted]:
+            blind_id = bt.get_blind_id(unblind_id, user)
+            if blind_id:
+                result.append(blind_id)
 
         return result
 

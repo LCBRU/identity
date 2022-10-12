@@ -49,7 +49,7 @@ def unblinding(id):
     if un_blinding_form.validate_on_submit():
         blinding = Blinding.query.join(PseudoRandomId).filter_by(full_code=un_blinding_form.id.data).first()
 
-        if blinding is None or blinding.blinding_type.blinding_set.study != study:
+        if blinding is None or blinding.blinding_type.study != study:
             flash(
                 'Blind ID "{}" not found for study {}'.format(
                     un_blinding_form.id.data,
@@ -59,8 +59,7 @@ def unblinding(id):
             )
         else:
             flash(
-                '{} {} ID "{}" is unblinded to "{}"'.format(
-                    blinding.blinding_type.blinding_set.name,
+                '{} ID "{}" is unblinded to "{}"'.format(
                     blinding.blinding_type.name,
                     blinding.pseudo_random_id.full_code,
                     blinding.unblind_id,
@@ -84,7 +83,7 @@ def study(id, page=1):
     else:
         ess = None
 
-    if study.blinding_sets:
+    if study.blinding_types:
         blinding_form = BlindingForm()
         unblinding_form = UnblindingForm()
 
