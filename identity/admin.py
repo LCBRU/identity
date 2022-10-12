@@ -49,13 +49,9 @@ class ApiKeyView(AdminCustomView):
     }
 
 
-class BlindingSetView(AdminCustomView):
-    pass
-
-
 class BlindingTypeView(AdminCustomView):
     column_list = form_columns = [
-        "blinding_set",
+        "study",
         "pseudo_random_id_provider",
         "name",
         "deleted",
