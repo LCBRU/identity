@@ -1,6 +1,6 @@
 
 from identity.model.id import PseudoRandomId
-from identity.blinding.model import Blinding
+from identity.model.blinding import Blinding
 from lbrc_flask.pytest.helpers import login
 from lbrc_flask.database import db
 

@@ -2,7 +2,7 @@ import pytest
 from lbrc_flask.pytest.asserts import assert__requires_login
 from flask import url_for
 from lbrc_flask.pytest.helpers import login
-from identity.blinding.model import (
+from identity.model.blinding import (
     Blinding,
 )
 from lbrc_flask.database import db

@@ -7,7 +7,7 @@ from flask import (
 )
 from flask_login import current_user
 from .. import blueprint, db
-from identity.blinding.model import Blinding
+from identity.model.blinding import Blinding
 from identity.model import Study, StudyParticipant
 from identity.model.id import PseudoRandomId
 from ..forms import BlindingForm, UnblindingForm

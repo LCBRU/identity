@@ -1,6 +1,6 @@
 from identity.printing.model import LabelPack
 from identity.model.id import PseudoRandomIdProvider
-from identity.blinding.model import Blinding, BlindingType
+from identity.model.blinding import Blinding, BlindingType
 from identity.model.security import User
 import io
 import csv

@@ -1,6 +1,6 @@
 from flask_admin.contrib.sqla import fields
 from lbrc_flask.database import db
-from identity.blinding.model import BlindingType
+from identity.model.blinding import BlindingType
 from identity.model.security import User
 from lbrc_flask.security import Role
 from identity.model import Study
