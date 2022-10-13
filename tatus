@@ -1,0 +1,56 @@
+[1mdiff --git a/identity/model/id.py b/identity/model/id.py[m
+[1mindex dbfa01d..ef025d9 100755[m
+[1m--- a/identity/model/id.py[m
+[1m+++ b/identity/model/id.py[m
+[36m@@ -5,6 +5,18 @@[m [mfrom .security import User[m
+ from . import Study[m
+ [m
+ [m
+[32m+[m[32mclass IdProvider(db.Model):[m
+[32m+[m[32m    id = db.Column(db.Integer, primary_key=True)[m
+[32m+[m[32m    name = db.Column(db.String(100), nullable=False)[m
+[32m+[m[32m    prefix = db.Column(db.String(10))[m
+[32m+[m[32m    type = db.Column(db.String(100))[m
+[32m+[m
+[32m+[m[32m    __mapper_args__ = {[m
+[32m+[m[32m        "polymorphic_identity": "id_provider",[m
+[32m+[m[32m        "polymorphic_on": type,[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m
+ class SequentialIdProvider(db.Model):[m
+     id = db.Column(db.Integer, primary_key=True)[m
+     name = db.Column(db.String(100), nullable=False)[m
+[1mdiff --git a/migrations/versions/096__Data__BlindingType__add__study_id.py b/migrations/versions/096__Data__BlindingType__add__study_id.py[m
+[1mindex 16c4892..4a22c3e 100644[m
+[1m--- a/migrations/versions/096__Data__BlindingType__add__study_id.py[m
+[1m+++ b/migrations/versions/096__Data__BlindingType__add__study_id.py[m
+[36m@@ -1,6 +1,7 @@[m
+ from sqlalchemy import ([m
+     MetaData,[m
+     Table,[m
+[32m+[m[32m    select,[m
+ )[m
+ [m
+ [m
+[36m@@ -9,14 +10,14 @@[m [mdef upgrade(migrate_engine):[m
+     meta.bind = migrate_engine[m
+     conn = migrate_engine.connect()[m
+ [m
+[31m-    bt = Table("blinding_type", meta, autoload=True)[m
+[31m-    bs = Table("blinding_set", meta, autoload=True)[m
+[32m+[m[32m    idp = Table("id_provider", meta, autoload=True)[m
+[32m+[m[32m    bidp = Table("bioresource_id_provider", meta, autoload=True)[m
+ [m
+[31m-    upd = bt.update()\[m
+[31m-        .values(study_id=bs.c.study_id)\[m
+[31m-        .where(bt.c.blinding_set_id == bs.c.id)[m
+[32m+[m[32m    sel = select(bidp.name, bidp.prefix)[m
+[32m+[m[32m    ins = idp.insert().from_select([idp.name, idp.prefix], sel)[m
+[32m+[m
+[32m+[m[32m    conn.execute(ins)[m
+ [m
+[31m-    conn.execute(upd)[m
+ [m
+ def downgrade(migrate_engine):[m
+     pass[m
