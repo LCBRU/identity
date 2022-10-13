@@ -84,11 +84,18 @@ class IdentityProvider(BaseProvider):
 
         return p
 
-    def blinding_type_details(self, name=None, pseudo_random_id_provider=None, deleted=False):
+    def blinding_type_details(self, name=None, study=None, pseudo_random_id_provider=None, deleted=False):
         if name is None:
             name = self.generator.pystr(min_chars=5, max_chars=100)
         
         result = BlindingType(name=name, deleted=deleted)
+
+        if study is None:
+            result.study = self.study_details()
+        elif study.id is None:
+            result.study = study
+        else:
+            result.study_id = study.id
 
         if pseudo_random_id_provider is None:
             result.pseudo_random_id_provider = self.pseudo_random_id_provider_details()
@@ -143,8 +150,7 @@ class IdentityProvider(BaseProvider):
             unblind_id = self.generator.pystr(min_chars=5, max_chars=100)
 
         s = self.get_test_study(owner=owner)
-        bs = self.get_test_blinding_set(study=s)
-        bt = self.get_test_blinding_type(blinding_set=bs)
+        bt = self.get_test_blinding_type(study=s)
         b = bt.get_blind_id(unblind_id, owner)
 
         db.session.add(b)

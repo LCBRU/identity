@@ -12,19 +12,18 @@ def _url(study_id, external=True):
     return url_for('ui.blinding', id=study_id, _external=external)
 
 
-def _blinding_post(client, blinding_set, unblind_id):
+def _blinding_post(client, study, unblind_id):
     return client.post(
-        _url(study_id=blinding_set.study.id, external=False),
+        _url(study_id=study.id, external=False),
         data={
             'id': unblind_id,
-            'blinding_set_id': blinding_set.id,
         },
         follow_redirects=True,
     )
 
 
-def _assert__blinding(blinding_set, resp):
-    for bt in blinding_set.blinding_types:
+def _assert__blinding(study, resp):
+    for bt in study.blinding_types:
         assert (
             Blinding.query
             .filter_by(blinding_type_id=bt.id)
@@ -55,16 +54,15 @@ def test__ui_blinding__blinding(client, faker, count):
     user = login(client, faker)
 
     s = faker.get_test_study(owner=user)
-    bs = faker.get_test_blinding_set(study=s)
 
     for _ in range(count):
-        faker.get_test_blinding_type(blinding_set=bs)
+        faker.get_test_blinding_type(study=s)
 
-    resp = _blinding_post(client, bs, 'hello')
+    resp = _blinding_post(client, s, 'hello')
 
     assert resp.status_code == 200
 
-    _assert__blinding(bs, resp)
+    _assert__blinding(s, resp)
 
 
 def test__ui_blinding__existing(client, faker):
@@ -72,7 +70,7 @@ def test__ui_blinding__existing(client, faker):
 
     b = faker.get_test_blinding_with_owner(owner=user)
 
-    resp = _blinding_post(client, b.blinding_type.blinding_set, b.unblind_id)
+    resp = _blinding_post(client, b.blinding_type.study, b.unblind_id)
 
     assert resp.status_code == 200
 
@@ -95,10 +93,9 @@ def test__ui_blinding__not_owner(client, faker):
     owner = faker.get_test_user()
 
     s = faker.get_test_study(owner=owner)
-    bs = faker.get_test_blinding_set(study=s)
 
-    faker.get_test_blinding_type(blinding_set=bs)
+    faker.get_test_blinding_type(study=s)
 
-    resp = _blinding_post(client, bs, 'hello')
+    resp = _blinding_post(client, s, 'hello')
 
     assert resp.status_code == 403

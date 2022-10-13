@@ -72,8 +72,8 @@ def test__ui_blinding_and_unblinding_forms_visible(client, faker):
     study_visible = faker.get_test_study()
     study_invisible = faker.get_test_study()
 
-    blind = faker.get_test_blinding_set(study=study_visible)
-    blind_invisible = faker.get_test_blinding_set(study=study_invisible)
+    blind = faker.get_test_blinding_type(study=study_visible)
+    blind_invisible = faker.get_test_blinding_type(study=study_invisible)
 
     user.studies.append(study_visible)
 

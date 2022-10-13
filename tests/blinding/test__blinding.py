@@ -38,57 +38,38 @@ def _assert_ids_created_correctly(unblind_id, ids, blinding_types):
         ).count() == 1
 
 
-def test__get_blind_ids___no_sets(client, faker):
+def test__get_blind_ids___no_types(client, faker):
     _test_blinding(client, faker, faker.get_test_study(), [])
-
-
-def test__get_blind_ids___sets_no_types(client, faker):
-    s = faker.get_test_study()
-    bs1 = faker.get_test_blinding_set(study=s)
-    bs2 = faker.get_test_blinding_set(study=s)
-
-    _test_blinding(client, faker, s, [])
 
 
 def test__get_blind_ids___one_type(client, faker):
     bt = faker.get_test_blinding_type()
 
-    _test_blinding(client, faker, bt.blinding_set.study, [bt])
+    _test_blinding(client, faker, bt.study, [bt])
 
 
-def test__get_blind_ids___two_types__one_set(client, faker):
-    bs = faker.get_test_blinding_set()
-
-    bts = [
-        faker.get_test_blinding_type(blinding_set=bs),
-        faker.get_test_blinding_type(blinding_set=bs),
-    ]
-
-    _test_blinding(client, faker, bs.study, bts)
-
-
-def test__get_blind_ids___two_sets__one_type_each(client, faker):
+def test__get_blind_ids___two_types(client, faker):
     s = faker.get_test_study()
 
     bts = [
-        faker.get_test_blinding_type(blinding_set=faker.get_test_blinding_set(study=s)),
-        faker.get_test_blinding_type(blinding_set=faker.get_test_blinding_set(study=s)),
+        faker.get_test_blinding_type(study=s),
+        faker.get_test_blinding_type(study=s),
     ]
 
     _test_blinding(client, faker, s, bts)
 
 
 def test__get_blind_ids___type_deleted(client, faker):
-    bs = faker.get_test_blinding_set()
+    s = faker.get_test_study()
 
     bts = [
-        faker.get_test_blinding_type(blinding_set=bs),
-        faker.get_test_blinding_type(blinding_set=bs),
+        faker.get_test_blinding_type(study=s),
+        faker.get_test_blinding_type(study=s),
     ]
 
     bt_deleted = faker.get_test_blinding_type(
-        blinding_set=bs,
+        study=s,
         deleted=True,
     )
 
-    _test_blinding(client, faker, bs.study, bts)
+    _test_blinding(client, faker, s, bts)
