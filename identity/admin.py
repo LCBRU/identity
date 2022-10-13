@@ -1,7 +1,7 @@
 from flask_admin.contrib.sqla import fields
 from lbrc_flask.database import db
 from identity.model.blinding import BlindingType
-from identity.model.id import BioresourceIdProvider, PseudoRandomIdProvider, SequentialIdProvider
+from identity.model.id import BioresourceIdProvider, LegacyIdProvider, PseudoRandomIdProvider, SequentialIdProvider
 from identity.model.security import User
 from lbrc_flask.security import Role
 from identity.model import Study
@@ -75,6 +75,15 @@ class BioresourceIdProviderView(AdminCustomView):
     ]
 
 
+class LegacyIdProviderView(AdminCustomView):
+    can_delete = False
+    column_list = form_columns = [
+        "name",
+        "prefix",
+        "number_fixed_length",
+    ]
+
+
 class SequentialIdProviderView(AdminCustomView):
     can_delete = False
     column_list = form_columns = [
@@ -97,5 +106,6 @@ def init_admin(app, title):
             BioresourceIdProviderView(BioresourceIdProvider, db.session, category="ID Providers"),
             PseudoRandomIdProviderView(PseudoRandomIdProvider, db.session, category="ID Providers"),
             SequentialIdProviderView(SequentialIdProvider, db.session, category="ID Providers"),
+            LegacyIdProviderView(LegacyIdProvider, db.session, category="ID Providers"),
         ],
     )
