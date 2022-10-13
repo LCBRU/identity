@@ -1,4 +1,3 @@
-from identity.setup.participant_identifier_types import ParticipantIdentifierTypeName
 import random
 from datetime import datetime
 from lbrc_flask.database import db
@@ -357,6 +356,7 @@ class StudyIdSpecification():
 
 
 class ParticipantIdentifierType(db.Model):
+    STUDY_PARTICIPANT_ID = 'study_participant_id'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -376,7 +376,7 @@ class ParticipantIdentifierType(db.Model):
 
     @staticmethod
     def get_study_participant_id():
-        return ParticipantIdentifierType.get_type(ParticipantIdentifierTypeName.STUDY_PARTICIPANT_ID)
+        return ParticipantIdentifierType.get_type(ParticipantIdentifierType.STUDY_PARTICIPANT_ID)
 
 
 participant_identifiers__participant_identifier_sources = db.Table(

@@ -1,10 +1,7 @@
 from identity.setup.studies import StudyName
-from flask_login import current_user
 from identity.model.id import (
     PseudoRandomIdProvider,
     StudyIdSpecification,
-    ParticipantIdentifier,
-    FixedIdProvider,
 )
 from .model import (
     PRINTER_TMF_SAMPLE,
