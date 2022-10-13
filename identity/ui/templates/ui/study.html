@@ -17,38 +17,6 @@
                     <dd>{{ edge_site_study.iras_number | blank_if_none }}</dd>
                 {% endif %}
             </dl>
-
-            {% if participants.items | length > 0 %}
-
-                <ul class="list-group">
-
-                    {% for p in participants.items %}
-                        <li class="list-group-item">
-                            <div class="row">
-                                <div class="col-12">
-                                    <h1></h1>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-sm-12 col-lg-6">
-                                    <h2>REDCap</h2>
-                                    <ul>
-                                    </ul>
-                                </div>
-                                <div class="col-sm-12 col-lg-6">
-                                    <h2>Identifiers</h2>
-                                    <ul>
-                                    </ul>
-                                </div>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-        
-            {% endif %}
-        
-            {{ formhelper.render_pagination(participants, 'ui.study', id=study.id) }}
-
         </section>                
     </div>
     <div class="col-md-5 col-lg-4 col-xl-3">

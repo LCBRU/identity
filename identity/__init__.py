@@ -9,7 +9,7 @@ from .celery import init_celery
 from .config import Config
 from lbrc_flask import init_lbrc_flask, ReverseProxied
 from lbrc_flask.security import init_security, Role
-from .model import User
+from .model.security import User
 
 
 def create_app(config=Config):

@@ -8,7 +8,7 @@ from flask import (
 from flask_login import current_user
 from .. import blueprint, db
 from identity.model.blinding import Blinding
-from identity.model import Study, StudyParticipant
+from identity.model import Study
 from identity.model.id import PseudoRandomId
 from ..forms import BlindingForm, UnblindingForm
 from ..decorators import assert_study_user
@@ -87,17 +87,10 @@ def study(id, page=1):
         blinding_form = BlindingForm()
         unblinding_form = UnblindingForm()
 
-    participants = StudyParticipant.query.filter_by(study_id=id).paginate(
-        page=page,
-        per_page=10,
-        error_out=False,
-    )
-
     return render_template(
         "ui/study.html",
         study=study,
         blinding_form=blinding_form,
         unblinding_form=unblinding_form,
-        participants=participants,
         edge_site_study=ess,
     )

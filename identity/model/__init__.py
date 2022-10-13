@@ -1,6 +1,4 @@
-from datetime import datetime
 from lbrc_flask.database import db
-from identity.model.security import User
 
 
 class Study(db.Model):
@@ -20,13 +18,3 @@ class Study(db.Model):
                 result.append(blind_id)
 
         return result
-
-
-class StudyParticipant(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    study_id = db.Column(db.Integer, db.ForeignKey(Study.id), nullable=False)
-    study = db.relationship(Study, backref=db.backref("participants"))
-
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
