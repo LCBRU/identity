@@ -8,6 +8,8 @@ from identity.model import Study
 from identity.api.model import ApiKey
 from lbrc_flask.admin import AdminCustomView, init_admin as flask_init_admin
 
+from identity.printing.model import LabelPack
+
 
 class QuerySelectMultipleFieldSet(fields.QuerySelectMultipleField):
     def populate_obj(self, obj, name):
@@ -94,6 +96,9 @@ class SequentialIdProviderView(AdminCustomView):
     ]
 
 
+class LabelPackView(AdminCustomView):
+    pass
+
 def init_admin(app, title):
     flask_init_admin(
         app,
@@ -107,5 +112,6 @@ def init_admin(app, title):
             PseudoRandomIdProviderView(PseudoRandomIdProvider, db.session, category="ID Providers"),
             SequentialIdProviderView(SequentialIdProvider, db.session, category="ID Providers"),
             LegacyIdProviderView(LegacyIdProvider, db.session, category="ID Providers"),
+            LabelPackView(LabelPack, db.session),
         ],
     )

@@ -1,4 +1,5 @@
 from flask import Flask
+from identity.setup import setup_data
 
 from identity.template_filters import init_template_filters
 from .ui import blueprint as ui_blueprint
@@ -27,6 +28,8 @@ def create_app(config=Config):
         init_printing(app)
         init_celery(app)
         init_template_filters(app)
+
+        setup_data()
 
     app.register_blueprint(ui_blueprint)
     app.register_blueprint(api_blueprint, url_prefix='/api')

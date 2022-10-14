@@ -6,10 +6,13 @@ from . import Study
 
 
 class IdProvider(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id_provider_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     prefix = db.Column(db.String(10))
     type = db.Column(db.String(100))
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    last_updated_by_user = db.relationship(User)
 
     __mapper_args__ = {
         "polymorphic_identity": "id_provider",
@@ -17,17 +20,15 @@ class IdProvider(db.Model):
     }
 
 
-class SequentialIdProvider(db.Model):
+class SequentialIdProvider(IdProvider):
+    __mapper_args__ = {
+        "polymorphic_identity": "sequential_id_provider",
+    }
+
     id = db.Column(db.Integer, primary_key=True)
-    id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id))
-    id_provider = db.relationship(IdProvider)
-    name = db.Column(db.String(100), nullable=False)
-    prefix = db.Column(db.String(10))
+    id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
     zero_fill_size = db.Column(db.Integer)
     last_number = db.Column(db.Integer, nullable=False, default=0)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
 
     def allocate_ids(self, count, user):
         start = self.last_number + 1
@@ -61,17 +62,14 @@ class SequentialId:
         return self.id
 
 
-class LegacyIdProvider(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id))
-    id_provider = db.relationship(IdProvider)
-    name = db.Column(db.String(100), nullable=False)
-    prefix = db.Column(db.String(10), nullable=False)
-    number_fixed_length = db.Column(db.Integer, nullable=False)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
+class LegacyIdProvider(IdProvider):
+    __mapper_args__ = {
+        "polymorphic_identity": "legacy_id_provider",
+    }
 
+    id = db.Column(db.Integer, primary_key=True)
+    id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
+    number_fixed_length = db.Column(db.Integer, nullable=False)
 
     def allocate_id(self, user):
         found = 1
@@ -133,15 +131,13 @@ class LegacyId(db.Model):
         )
 
 
-class BioresourceIdProvider(db.Model):
+class BioresourceIdProvider(IdProvider):
+    __mapper_args__ = {
+        "polymorphic_identity": "bioresource_id_provider",
+    }
+
     id = db.Column(db.Integer, primary_key=True)
-    id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id))
-    id_provider = db.relationship(IdProvider)
-    name = db.Column(db.String(100), nullable=False)
-    prefix = db.Column(db.String(10), nullable=False)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
+    id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
 
     def allocate_id(self, user):
         prospective_id = 0
@@ -226,19 +222,18 @@ class BioresourceId(db.Model):
         return self.full_code
 
 
-class PseudoRandomIdProvider(db.Model):
+class PseudoRandomIdProvider(IdProvider):
+    __mapper_args__ = {
+        "polymorphic_identity": "pseudo_random_id_provider",
+    }
+
     # See http://preshing.com/20121224/how-to-generate-a-sequence-of-unique-random-integers/
 
     _PRIME = 999983 # PRIME MOD 4 must equal 3
 
     id = db.Column(db.Integer, primary_key=True)
-    id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id))
+    id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
     id_provider = db.relationship(IdProvider)
-    name = db.Column(db.String(100), nullable=False)
-    prefix = db.Column(db.String(10), nullable=False)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
 
     def __repr__(self):
         return f'{self.name} ({self.prefix})'
@@ -334,30 +329,6 @@ class PseudoRandomId(db.Model):
     @property
     def barcode(self):
         return self.full_code
-
-
-class FixedIdProvider():
-
-    id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id))
-    id_provider = db.relationship(IdProvider)
-
-    def __init__(self, id):
-        self._id = id
-
-    def allocate_id(self, user):
-        return FixedId(self._id)
-
-    def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
-
-
-class FixedId():
-    def __init__(self, id):
-        self._id = id
-
-    @property
-    def barcode(self):
-        return self._id
 
 
 class StudyIdSpecification():
