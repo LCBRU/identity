@@ -19,6 +19,9 @@ class IdProvider(db.Model):
         "polymorphic_on": type,
     }
 
+    def __repr__(self):
+        return f'{self.type.title()}: {self.name} ({self.prefix})'
+
 
 class SequentialIdProvider(IdProvider):
     __mapper_args__ = {
@@ -48,9 +51,6 @@ class SequentialIdProvider(IdProvider):
 
     def allocate_id(self, user):
         return self.allocate_ids(1, user)[0]
-
-    def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
 
 
 class SequentialId:
@@ -103,9 +103,6 @@ class LegacyIdProvider(IdProvider):
             result.append(self.allocate_id(user))
 
         return result
-
-    def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
 
 
 class LegacyId(db.Model):
@@ -192,9 +189,6 @@ class BioresourceIdProvider(IdProvider):
 
         return result
 
-    def __repr__(self):
-        return str(self.__class__) + ": " + str(self.__dict__)
-
 
 class BioresourceId(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -234,9 +228,6 @@ class PseudoRandomIdProvider(IdProvider):
     id = db.Column(db.Integer, primary_key=True)
     id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
     id_provider = db.relationship(IdProvider)
-
-    def __repr__(self):
-        return f'{self.name} ({self.prefix})'
 
     def _permuteQPR(self, x):
         if x >= self._PRIME:

@@ -1,0 +1,37 @@
+from email.policy import default
+from sqlalchemy import (
+    Boolean,
+    MetaData,
+    Table,
+    Column,
+    Integer,
+    NVARCHAR,
+    ForeignKey,
+)
+
+meta = MetaData()
+
+
+def upgrade(migrate_engine):
+    meta.bind = migrate_engine
+
+    s = Table("study", meta, autoload=True)
+    i = Table("id_provider", meta, autoload=True)
+
+    t = Table(
+        "label_batch",
+        meta,
+        Column("id", Integer, primary_key=True, nullable=False),
+        Column("name", NVARCHAR(100), nullable=False),
+        Column("study_id", Integer, ForeignKey(s.c.id), index=True, nullable=False),
+        Column("participant_id_provider_id", Integer, ForeignKey(i.c.id_provider_id), index=True, nullable=False),
+        Column("sample_id_provider_id", Integer, ForeignKey(i.c.id_provider_id), index=True, nullable=False),
+        Column("disable_batch_printing", Boolean, nullable=False, default=False),
+    )
+    t.create()
+
+
+def downgrade(migrate_engine):
+    meta.bind = migrate_engine
+    t = Table("label_batch", meta, autoload=True)
+    t.drop()

@@ -1,6 +1,7 @@
 {% extends "ui/page.html" %}
 {% import "lbrc_flask/form_macros.html" as formhelper %}
 {% import "ui/study_labels.html" as study_labels %}
+{% import "ui/study_label_batches.html" as study_label_batches %}
 
 {% block content %}
 
@@ -43,6 +44,18 @@
 
                 <div class="card-body text-center">
                     {{ study_labels.study_label_list(study, 'study') }}
+                </div>        
+            </div>
+            
+        {% endif %}
+
+        {% if study.label_batches | length > 0 %}
+
+            <div class="card study-card">
+                <div class="card-header">Label Printing</div>
+
+                <div class="card-body text-center">
+                    {{ study_label_batches.study_label_list(study, 'study') }}
                 </div>        
             </div>
             

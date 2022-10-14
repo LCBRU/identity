@@ -10,6 +10,7 @@ from flask import (
     abort,
 )
 from flask_login import current_user
+from identity.printing import LabelBatch
 from identity.printing.model import LabelPack
 from .. import blueprint, db
 from ..decorators import assert_study_user
@@ -79,3 +80,18 @@ def redirect_to_referrer(referrer, study_id):
         return url_for('ui.study', id=study_id)
     else:
         return url_for("ui.labels")
+
+
+@blueprint.route("/labels/study/<int:study_id>/label_batch/<int:label_batch_id>/print/<int:count>/referrer/<string:referrer>")
+@assert_study_user()
+def label_batch_print(label_batch_id, referrer, study_id, count=1):
+    label_batch = LabelBatch.query.get_or_404(label_batch_id)
+
+    try:
+        label_batch.print(count)
+        flash('Labels have been sent to the printer')
+    except:
+        current_app.logger.error(traceback.format_exc())
+        flash("An error occurred while printing.  Check that the printer has paper and ink, and that a jam has not occurred.", "error")
+    finally:
+        return redirect(redirect_to_referrer(referrer, study_id))

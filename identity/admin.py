@@ -7,6 +7,8 @@ from lbrc_flask.security import Role
 from identity.model import Study
 from identity.api.model import ApiKey
 from lbrc_flask.admin import AdminCustomView, init_admin as flask_init_admin
+from identity.printing import LabelBatch, LabelBatchSet, SampleLabel
+from flask_admin.model.form import InlineFormAdmin
 
 from identity.printing.model import LabelPack
 
@@ -99,6 +101,21 @@ class SequentialIdProviderView(AdminCustomView):
 class LabelPackView(AdminCustomView):
     pass
 
+
+class LabelBatchView(AdminCustomView):
+    form_excluded_columns = ['sets']
+
+
+class FieldlineView(InlineFormAdmin):
+    pass
+
+
+class LabelBatchSetView(AdminCustomView):
+    form_excluded_columns = ['version_num']
+
+    inline_models = (FieldlineView(SampleLabel),)
+
+
 def init_admin(app, title):
     flask_init_admin(
         app,
@@ -112,6 +129,8 @@ def init_admin(app, title):
             PseudoRandomIdProviderView(PseudoRandomIdProvider, db.session, category="ID Providers"),
             SequentialIdProviderView(SequentialIdProvider, db.session, category="ID Providers"),
             LegacyIdProviderView(LegacyIdProvider, db.session, category="ID Providers"),
-            LabelPackView(LabelPack, db.session),
+            LabelPackView(LabelPack, db.session, category="Labels"),
+            LabelBatchView(LabelBatch, db.session, category="Labels"),
+            LabelBatchSetView(LabelBatchSet, db.session, category="Labels"),
         ],
     )

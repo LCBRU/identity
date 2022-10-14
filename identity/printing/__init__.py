@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+from email.policy import default
+from identity.model import Study
+from identity.model.id import IdProvider, ParticipantIdentifier, ParticipantIdentifierType
 from .alleviate import *
 from .bioresource import *
 from .brave import *
@@ -26,6 +29,108 @@ from .spiral import *
 
 def init_printing(app):
     pass
+
+
+class LabelBatch(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    study_id = db.Column(db.Integer, db.ForeignKey(Study.id))
+    study = db.relationship(Study, backref=db.backref("label_batches"))
+    participant_id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
+    participant_id_provider = db.relationship(IdProvider, foreign_keys=[participant_id_provider_id])
+    sample_id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
+    sample_id_provider = db.relationship(IdProvider, foreign_keys=[sample_id_provider_id])
+    disable_batch_printing = db.Column(db.Boolean)
+
+    def __repr__(self):
+        return f'{self.study.name}: {self.name}'
+
+    def print(self, count):
+        for _ in range(count):
+            self.print_batch()
+
+    def _get_participant_id(self):
+        result = self.participant_id_provider.allocate_id(current_user).barcode
+    
+        pit = ParticipantIdentifierType.get_study_participant_id()
+
+        pi = ParticipantIdentifier.query.filter_by(
+            participant_identifier_type_id=pit.id,
+            identifier=result,
+        ).one_or_none()
+
+        if pi is None:
+            db.session.add(ParticipantIdentifier(
+                participant_identifier_type_id=pit.id,
+                identifier=result,
+                last_updated_by_user_id=current_user.id,
+            ))
+
+        return result
+
+
+    def print_batch(self):
+        participant_id = self._get_participant_id()
+
+        for bs in self.sets:
+            bs.print(participant_id)
+
+
+class LabelBatchSet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    version_num = db.Column(db.Integer, nullable=False)
+    label_batch_id = db.Column(db.Integer, db.ForeignKey(LabelBatch.id))
+    label_batch = db.relationship(LabelBatch, backref=db.backref("sets"))
+    title = db.Column(db.String(100), nullable=False)
+    visit = db.Column(db.String(100), nullable=False)
+    subheaders = db.Column(db.Text, nullable=False)
+    warnings = db.Column(db.Text, nullable=False)
+
+    __mapper_args__ = {
+        "version_id_col": version_num,
+    }
+
+    def print(self, participant_id):
+
+        bag_context = BagContext(
+            printer=PRINTER_TMF_BAG,
+            participant_id=participant_id,
+            side_bar=self.label_batch.study.name,
+        )
+
+        print_bag(
+            label_context=bag_context,
+            title=self.title,
+            subset=self.visit,
+            version=f'v{self.version_num}',
+            subheaders=self.subheaders.splitlines(),
+            warnings=self.warnings.splitlines()
+        )
+
+
+class SampleLabel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    label_batch_set_id = db.Column(db.Integer, db.ForeignKey(LabelBatchSet.id))
+    label_batch_set = db.relationship(LabelBatchSet, backref=db.backref("samples"))
+    name = db.Column(db.String(100), nullable=False)
+    count = db.Column(db.Integer, nullable=False, default=1)
+
+    def print(self):
+
+        bag_context = BagContext(
+            printer=PRINTER_TMF_BAG,
+            participant_id=participant_id,
+            side_bar=self.label_batch.study.name,
+        )
+
+        print_bag(
+            label_context=bag_context,
+            title=self.title,
+            subset=self.visit,
+            version=f'v{self.version_num}',
+            subheaders=self.subheaders.splitlines(),
+            warnings=self.warnings.splitlines()
+        )
 
 
 class TestLabelPack(LabelPack):
