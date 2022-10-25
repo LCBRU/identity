@@ -17,7 +17,7 @@ def upgrade(migrate_engine):
     l = Table("label_batch", meta, autoload=True)
 
     t = Table(
-        "label_batch_set",
+        "sample_bag_label",
         meta,
         Column("id", Integer, primary_key=True, nullable=False),
         Column("version_num", Integer, nullable=False),
@@ -32,5 +32,5 @@ def upgrade(migrate_engine):
 
 def downgrade(migrate_engine):
     meta.bind = migrate_engine
-    t = Table("label_batch_set", meta, autoload=True)
+    t = Table("sample_bag_label", meta, autoload=True)
     t.drop()

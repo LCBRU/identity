@@ -7,7 +7,7 @@ from lbrc_flask.security import Role
 from identity.model import Study
 from identity.api.model import ApiKey
 from lbrc_flask.admin import AdminCustomView, init_admin as flask_init_admin
-from identity.printing import LabelBatch, LabelBatchSet, SampleLabel
+from identity.printing import AliquotLabel, LabelBatch, LabelPrinter, LabelPrinterSet, SampleBagLabel, SampleLabel
 from flask_admin.model.form import InlineFormAdmin
 
 from identity.printing.model import LabelPack
@@ -102,18 +102,22 @@ class LabelPackView(AdminCustomView):
     pass
 
 
-class LabelBatchView(AdminCustomView):
-    form_excluded_columns = ['sets']
-
-
-class FieldlineView(InlineFormAdmin):
+class LabelPrinterView(AdminCustomView):
     pass
 
 
-class LabelBatchSetView(AdminCustomView):
+class LabelPrinterSetView(AdminCustomView):
+    pass
+
+
+class LabelBatchView(AdminCustomView):
+    form_excluded_columns = ['bags']
+
+
+class SampleBagLabelView(AdminCustomView):
     form_excluded_columns = ['version_num']
 
-    inline_models = (FieldlineView(SampleLabel),)
+    inline_models = (InlineFormAdmin(SampleLabel), InlineFormAdmin(AliquotLabel))
 
 
 def init_admin(app, title):
@@ -131,6 +135,8 @@ def init_admin(app, title):
             LegacyIdProviderView(LegacyIdProvider, db.session, category="ID Providers"),
             LabelPackView(LabelPack, db.session, category="Labels"),
             LabelBatchView(LabelBatch, db.session, category="Labels"),
-            LabelBatchSetView(LabelBatchSet, db.session, category="Labels"),
+            SampleBagLabelView(SampleBagLabel, db.session, category="Labels"),
+            LabelPrinterView(LabelPrinter, db.session, category="Labels"),
+            LabelPrinterSetView(LabelPrinterSet, db.session, category="Labels"),
         ],
     )

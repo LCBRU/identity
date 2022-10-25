@@ -17,6 +17,7 @@ def upgrade(migrate_engine):
 
     s = Table("study", meta, autoload=True)
     i = Table("id_provider", meta, autoload=True)
+    p = Table("label_printer_set", meta, autoload=True)
 
     t = Table(
         "label_batch",
@@ -26,6 +27,7 @@ def upgrade(migrate_engine):
         Column("study_id", Integer, ForeignKey(s.c.id), index=True, nullable=False),
         Column("participant_id_provider_id", Integer, ForeignKey(i.c.id_provider_id), index=True, nullable=False),
         Column("sample_id_provider_id", Integer, ForeignKey(i.c.id_provider_id), index=True, nullable=False),
+        Column("label_printer_set_id", Integer, ForeignKey(p.c.id), index=True, nullable=False),
         Column("disable_batch_printing", Boolean, nullable=False, default=False),
     )
     t.create()
