@@ -232,7 +232,7 @@ class AliquotBottleLabel(SmallLabel):
 
 
 class BagSmallLabel(SmallLabel):
-    def __init__(self, label_context, title, **kwargs):
+    def __init__(self, title, **kwargs):
         super().__init__(**kwargs)
 
         self.add_title(text=title, x_pos=0, y_pos=30)
@@ -275,13 +275,14 @@ class BagLargeLabel(LargeLabel):
 
     def __init__(
         self,
-        label_context,
         title,
+        participant_id,
         version,
         subheaders=[],
         lines=[],
         warnings=[],
         subset='',
+        sidebar='',
         str_date='Date',
         str_time_sample_taken='Time Sample Taken',
         str_emergency_consent='Emergency Consent',
@@ -292,7 +293,7 @@ class BagLargeLabel(LargeLabel):
         super().__init__(**kwargs)
 
         self.add_title(text=title, x_pos=0, y_pos=_POS_TITLE_TOP, centered=True)
-        self.add_sidebar(text=label_context.side_bar + ' ' + subset)
+        self.add_sidebar(text=f'{sidebar} {subset}')
 
         y = _POS_CONTENT_TOP
 
@@ -326,7 +327,7 @@ class BagLargeLabel(LargeLabel):
             )
         )
 
-        self.add_barcode(barcode=label_context.participant_id, y_pos=1400, centered=True)
+        self.add_barcode(barcode=participant_id, y_pos=1400, centered=True)
         self.add_version(version)
 
 
@@ -372,7 +373,6 @@ class MedicalNotesStandardLabel(LargeLabel):
 
     def __init__(
         self,
-        label_context,
         study_a,
         chief_investigator,
         chief_investigator_email,
@@ -529,20 +529,15 @@ class SampleBagLabel(db.Model):
 
     def print(self, participant_id, context):
 
-        bag_context = BagContext(
-            printer=PRINTER_TMF_BAG,
-            participant_id=participant_id,
-            side_bar=self.label_batch.study.name,
-        )
-
         if self.small_format:
-            label = BagSmallLabel(label_context=bag_context, title=self.title, label_printer_set=context.label_printer_set)
+            label = BagSmallLabel(title=self.title, label_printer_set=context.label_printer_set)
             label.print()
         else:
             label = BagLargeLabel(
-                label_context=bag_context,
                 title=self.title,
+                participant_id=participant_id,
                 subset=self.visit,
+                sidebar=self.label_batch.study.name,
                 version=self.version_num,
                 subheaders=self.subheaders.splitlines(),
                 warnings=self.warnings.splitlines(),
@@ -578,14 +573,7 @@ class MedicalNotesLabel(db.Model):
 
     def print(self, participant_id, context):
 
-        bag_context = BagContext(
-            printer=PRINTER_TMF_BAG,
-            participant_id=participant_id,
-            side_bar=self.label_batch.study.name,
-        )
-
         label = MedicalNotesStandardLabel(
-            label_context=bag_context,
             study_a=self.study_name_line_1,
             study_b=self.study_name_line_2,
             chief_investigator=self.chief_investigator,
