@@ -38,12 +38,6 @@ from flask import current_app
 from flask_login import current_user
 
 
-FONT_TINY = 'P'
-FONT_SMALL = 'R'
-FONT_MEDIUM = 'T'
-FONT_LARGE = 'U'
-FONT_TITLE = 'V'
-
 _POS_BAG_LEFT_COL = 100
 _POS_TITLE_TOP = 100
 _POS_CONTENT_TOP = _POS_TITLE_TOP + 100
@@ -54,17 +48,215 @@ _WIDTH_SAMPLE = 600
 _LINE_HEIGHT = 55
 _TITLE_LINE_HEIGHT = 80
 
-_CODE_START = '^XA'
-_CODE_WIDTH = '^PW{width}'
-_CODE_NEXT_TEXT_CENTRED = '^FB{width},,,C'
-_CODE_TEXT = '^FO{x},{y}^A{font}^FD{text}^FS'
-_CODE_BARCODE = '^BY{width},3,{height}^FT{x},{y}^BCN,,Y,N^FD{barcode}^FS'
-_CODE_BARCODE_LARGE_TEXT = '^BY{width},3,{height}^FT{x},{y}^AU^BCN,,Y,N^FD{barcode}^FS'
-_CODE_BARCODE_ROTATED = '^BY{width},2.5,{height}^FT{x},{y}^AU^BCR,,Y,N^FD{barcode}^FS'
-_CODE_QUANTITY = '^PQ{quantity},0,1,Y'
-_CODE_LINE = '^FO{x},{y}^GB{width},0,5^FS'
-_CODE_SIDE_BAR = '^FO1100,0^AVR^FD{side_bar}^FS'
-_CODE_BAG_FORM = '''
+
+class Label:
+    FONT_TINY = 'P'
+    FONT_SMALL = 'R'
+    FONT_MEDIUM = 'T'
+    FONT_LARGE = 'U'
+    FONT_TITLE = 'V'
+
+    _CODE_START = '^XA'
+    _CODE_WIDTH = '^PW{width}'
+    _CODE_NEXT_TEXT_CENTRED = '^FB{width},,,C'
+    _CODE_TEXT = '^FO{x},{y}^A{font}^FD{text}^FS'
+    _CODE_BARCODE =            '^BY{width},3,{height}^FT{x},{y}^BCN,,Y,N^FD{barcode}^FS'
+    _CODE_BARCODE_LARGE_TEXT = '^BY{width},3,{height}^FT{x},{y}^AU^BCN,,Y,N^FD{barcode}^FS'
+    _CODE_BARCODE_ROTATED =    '^BY{width},2.5,{height}^FT{x},{y}^AU^BCR,,Y,N^FD{barcode}^FS'
+    _CODE_QUANTITY = '^PQ{quantity},0,1,Y'
+    _CODE_END = '^XZ'
+
+    WIDTH_BAG = _WIDTH_BAG
+    WIDTH_SAMPLE = _WIDTH_SAMPLE
+    HEIGHT_BAG = _HEIGHT_BAG
+
+    def __init__(self, label_printer_set, width, height=0, count=1, fonts=None):
+        self.fonts = fonts or {
+            self.FONT_TINY: self.FONT_TINY,
+            self.FONT_SMALL: self.FONT_SMALL,
+            self.FONT_MEDIUM: self.FONT_MEDIUM,
+            self.FONT_LARGE: self.FONT_LARGE,
+            self.FONT_TITLE: self.FONT_TITLE,
+        }
+
+        self.width = width
+        self.height = height
+        self.count = count
+        self.instructions = []
+        self.label_printer_set = label_printer_set
+    
+    def get_code(self):
+        code = []
+        code.append(self._CODE_START)
+        code.append(self._CODE_WIDTH.format(width=self.width))
+
+        code.extend(self.instructions)
+
+        code.append(self._CODE_QUANTITY.format(quantity=self.count))
+        code.append(self._CODE_END)
+
+        return ''.join(code)
+    
+    def add(self, code):
+        self.instructions.append(code)
+
+    def add_next_text_centred(self):
+        self.add(self._CODE_NEXT_TEXT_CENTRED.format(width=self.width))
+
+    def add_text(self, text, x_pos, y_pos, font, centered=False):
+        if centered:
+            self.add_next_text_centred()
+
+        self.add(self._CODE_TEXT.format(
+                x=x_pos,
+                y=y_pos,
+                font=font,
+                text=text,
+            ))
+
+    def add_title(self, **kwargs):
+        self.add_text(font=self.fonts[self.FONT_TITLE], **kwargs)
+
+    def add_large_text(self, **kwargs):
+        self.add_text(font=self.fonts[self.FONT_LARGE], **kwargs)
+
+    def add_medium_text(self, **kwargs):
+        self.add_text(font=self.fonts[self.FONT_MEDIUM], **kwargs)
+
+    def add_small_text(self, **kwargs):
+        self.add_text(font=self.fonts[self.FONT_SMALL], **kwargs)
+
+    def add_barcode(self, barcode, x_pos=0, y_pos=0, line_height=80, line_width=3, centered=False, rotated=False):
+        if centered:
+            x_pos = self._bar_code_centred_x(id=barcode, label_width=self.width)
+
+        if rotated:
+            code = self._CODE_BARCODE_ROTATED
+        else:
+            code = self._CODE_BARCODE
+
+        self.add(code.format(
+            width=line_width,
+            x=x_pos,
+            y=y_pos,
+            height=line_height,
+            barcode=self._encode_barcode(barcode),
+        ))
+
+    def add_barcode_large_text(self, barcode, x_pos=0, y_pos=0, line_height=80, line_width=3, centered=False):
+        if centered:
+            x_pos = self._bar_code_centred_x(id=barcode, label_width=self.width)
+
+        self.add(self._CODE_BARCODE_LARGE_TEXT.format(
+            width=line_width,
+            x=x_pos,
+            y=y_pos,
+            height=line_height,
+            barcode=self._encode_barcode(barcode),
+        ))
+
+    def add_version(self, version):
+        self.add_text(
+            text='v{version} printed {date}'.format(
+                    version=version,
+                    date=datetime.date.today().strftime("%d %B %Y"),
+                ),
+            x_pos=0,
+            y_pos=self.height - 25,
+            font=self.fonts[self.FONT_SMALL],
+            centered=True,
+        )
+
+    def _bar_code_centred_x(self, id, label_width):
+        bar_code_width = (len(id) * 16) + 120
+        return (label_width - bar_code_width) // 2
+
+    def _encode_barcode(self, barcode):
+        encoded_parts = []
+
+        encoded_parts.append('>:')
+
+        for p in re.split(r'(\d+)', barcode):
+            if p.isnumeric():
+                if len(p) % 2 == 1:
+                    encoded_parts.append('>5')
+                    encoded_parts.append(p[:-1])
+                    encoded_parts.append('>6')
+                    encoded_parts.append(p[-1:])
+                else:
+                    encoded_parts.append('>5')
+                    encoded_parts.append(p)
+                    encoded_parts.append('>6')
+            else:
+                encoded_parts.append(p)
+
+        return ''.join(encoded_parts)
+
+    def print_on_printer(self, printer):
+        printer.print_label(self.get_code())
+
+
+class SmallLabel(Label):
+    def __init__(self, **kwargs):
+        super().__init__(width=Label.WIDTH_SAMPLE, height=0, **kwargs)
+
+    def print(self):
+        self.print_on_printer(self.label_printer_set.sample_printer)
+
+
+class BarcodeLabel(SmallLabel):
+    def __init__(self, barcode, title='', **kwargs):
+        super().__init__(**kwargs)
+
+        self.add_small_text(text=title, x_pos=50, y_pos=60)
+        self.add_barcode_large_text(barcode=barcode, x_pos=50, y_pos=203)
+
+
+class RecruitedNoticeLabel(SmallLabel):
+    def __init__(self, study_name, **kwargs):
+        super().__init__(**kwargs)
+
+        self.add_medium_text(text='Patient recruited to research study:', x_pos=20, y_pos=30)
+        self.add_medium_text(text=study_name, x_pos=20, y_pos=90)
+        self.add_medium_text(text='Date Approached:', x_pos=20, y_pos=180)
+        self.add_medium_text(text='Date Consented:', x_pos=20, y_pos=240)
+
+
+class AliquotBottleLabel(SmallLabel):
+    def __init__(self, barcode, **kwargs):
+        super().__init__(**kwargs)
+
+        self.add_barcode(barcode=barcode, x_pos=100, y_pos=30, line_width=2, rotated=True)
+        self.add_barcode(barcode=barcode, x_pos=280, y_pos=30, line_width=2, rotated=True)
+        self.add_barcode(barcode=barcode, x_pos=460, y_pos=30, line_width=2, rotated=True)
+
+
+class BagSmallLabel(SmallLabel):
+    def __init__(self, label_context, title, **kwargs):
+        super().__init__(**kwargs)
+
+        self.add_title(text=title, x_pos=0, y_pos=30)
+        self.add_medium_text(text='Date:', x_pos=0, y_pos=120)
+        self.add_medium_text(text='Time:', x_pos=0, y_pos=180)
+        self.add_medium_text(text='Please affix participant ID label', x_pos=0, y_pos=240)
+
+
+class LargeLabel(Label):
+    _CODE_SIDE_BAR = '^FO1100,0^AVR^FD{side_bar}^FS'
+
+    def __init__(self, **kwargs):
+        super().__init__(width=Label.WIDTH_BAG, height=Label.HEIGHT_BAG, **kwargs)
+
+    def print(self):
+        self.print_on_printer(self.label_printer_set.bag_printer)
+
+    def add_sidebar(self, text):
+        self.add_next_text_centred()
+        self.add(self._CODE_SIDE_BAR.format(side_bar=text))
+
+
+class BagLargeLabel(LargeLabel):
+    _CODE_FORM = '''
 ^FO100,900^GB501,201,2^FS
 ^FB500,,,C
 ^FO100,910^A{font}^FD{str_date}^FS
@@ -80,7 +272,66 @@ _CODE_BAG_FORM = '''
 ^FB500,,,C
 ^FO600,1150^A{font}^FD{str_full_consent_b}^FS
 '''
-_CODE_NOTES_FORM = '''
+
+    def __init__(
+        self,
+        label_context,
+        title,
+        version,
+        subheaders=[],
+        lines=[],
+        warnings=[],
+        subset='',
+        str_date='Date',
+        str_time_sample_taken='Time Sample Taken',
+        str_emergency_consent='Emergency Consent',
+        str_full_consent='Full Consent',
+        str_full_consent_b='',
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+        self.add_title(text=title, x_pos=0, y_pos=_POS_TITLE_TOP, centered=True)
+        self.add_sidebar(text=label_context.side_bar + ' ' + subset)
+
+        y = _POS_CONTENT_TOP
+
+        for sh in subheaders:
+            self.add_large_text(text=sh, x_pos=0, y_pos=y, centered=True)
+            y += _LINE_HEIGHT
+
+        if subheaders:
+            y += _LINE_HEIGHT
+
+        for l in lines:
+            self.add_medium_text(text=l, x_pos=_POS_BAG_LEFT_COL, y_pos=y)
+            y += _LINE_HEIGHT
+
+        if lines:
+            y += _LINE_HEIGHT
+
+        for w in warnings:
+            y += _LINE_HEIGHT
+            self.add_large_text(text=w, x_pos=0, y_pos=y, centered=True)
+            y += _LINE_HEIGHT
+
+        self.add(
+            self._CODE_FORM.format(
+                str_date=str_date,
+                str_time_sample_taken=str_time_sample_taken,
+                str_emergency_consent=str_emergency_consent,
+                str_full_consent=str_full_consent,
+                str_full_consent_b=str_full_consent_b,
+                font=self.fonts[self.FONT_MEDIUM],
+            )
+        )
+
+        self.add_barcode(barcode=label_context.participant_id, y_pos=1400, centered=True)
+        self.add_version(version)
+
+
+class MedicalNotesStandardLabel(LargeLabel):
+    _CODE_FORM = '''
 ^FO100,700^GB501,201,2^FS
 ^FB500,,,C
 ^FO100,710^A{font}^FDVersion and date of PIS^FS
@@ -118,299 +369,8 @@ _CODE_NOTES_FORM = '''
 ^FB500,,,C
 ^FO600,1230^A{font}^FDY / N^FS
 '''
-_CODE_END = '^XZ'
 
-
-class Label:
-    WIDTH_BAG = _WIDTH_BAG
-    WIDTH_SAMPLE = _WIDTH_SAMPLE
-    HEIGHT_BAG = _HEIGHT_BAG
-
-    def __init__(self, width, height=0, count=1):
-        self.width = width
-        self.height = height
-        self.count = count
-        self.instructions = []
-    
-    def get_code(self):
-        code = []
-        code.append(_CODE_START)
-        code.append(_CODE_WIDTH.format(width=self.width))
-
-        code.extend(self.instructions)
-
-        code.append(_CODE_QUANTITY.format(quantity=self.count))
-        code.append(_CODE_END)
-
-        return ''.join(code)
-
-    def add_text(self, text, x_pos, y_pos, font, centered=False):
-        if centered:
-            self.instructions.append(_CODE_NEXT_TEXT_CENTRED.format(width=self.width))
-
-        self.instructions.append(_CODE_TEXT.format(
-                x=x_pos,
-                y=y_pos,
-                font=font,
-                text=text,
-            ))
-
-    def add_sidebar(self, text):
-        self.instructions.append(_CODE_NEXT_TEXT_CENTRED.format(width=self.height))
-        self.instructions.append(_CODE_SIDE_BAR.format(side_bar=text))
-
-    def add_barcode(self, barcode, x_pos=0, y_pos=0, line_height=80, line_width=3, centered=False, rotated=False):
-        if centered:
-            x_pos = self._bar_code_centred_x(id=barcode, label_width=self.width)
-
-        if rotated:
-            code = _CODE_BARCODE_ROTATED
-        else:
-            code = _CODE_BARCODE
-
-        self.instructions.append(code.format(
-                width=line_width,
-                x=x_pos,
-                y=y_pos,
-                height=line_height,
-                barcode=self._encode_barcode(barcode),
-            ))
-
-    def add_barcode_large_text(self, barcode, x_pos=0, y_pos=0, line_height=80, line_width=3, centered=False):
-        if centered:
-            x_pos = self._bar_code_centred_x(id=barcode, label_width=self.width)
-
-        self.instructions.append(_CODE_BARCODE_LARGE_TEXT.format(
-                width=line_width,
-                x=x_pos,
-                y=y_pos,
-                height=line_height,
-                barcode=self._encode_barcode(barcode),
-            ))
-
-    def add_bag_form(
-        self,
-        font,
-        str_date='Date',
-        str_time_sample_taken='Time Sample Taken',
-        str_emergency_consent='Emergency Consent',
-        str_full_consent='Full Consent',
-        str_full_consent_b=''
-    ):
-        self.instructions.append(
-            _CODE_BAG_FORM.format(
-                str_date=str_date,
-                str_time_sample_taken=str_time_sample_taken,
-                str_emergency_consent=str_emergency_consent,
-                str_full_consent=str_full_consent,
-                str_full_consent_b=str_full_consent_b,
-                font=font,
-            )
-        )
-    
-    def _bar_code_centred_x(self, id, label_width):
-        bar_code_width = (len(id) * 16) + 120
-        return (label_width - bar_code_width) // 2
-
-    def _encode_barcode(self, barcode):
-        encoded_parts = []
-
-        encoded_parts.append('>:')
-
-        for p in re.split(r'(\d+)', barcode):
-            if p.isnumeric():
-                if len(p) % 2 == 1:
-                    encoded_parts.append('>5')
-                    encoded_parts.append(p[:-1])
-                    encoded_parts.append('>6')
-                    encoded_parts.append(p[-1:])
-                else:
-                    encoded_parts.append('>5')
-                    encoded_parts.append(p)
-                    encoded_parts.append('>6')
-            else:
-                encoded_parts.append(p)
-
-        return ''.join(encoded_parts)
-
-
-class LabelPrinter(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    hostname_or_ip_address = db.Column(db.String(100), nullable=False)
-
-    def __repr__(self):
-        return self.name
-
-    def print_label(self, host, printer_code, port=9100):
-        if current_app.config['TESTING']:
-            #current_app.logger.info(f'Fake print of {printer_code} to host {host}')
-            current_app.logger.info(f'.')
-        else:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect((current_app.config[host], port))
-                s.sendall(printer_code.encode('ascii'))
-            time.sleep(0.1)
-
-
-    def print_barcode(self, printer, barcode, count=1, title=''):
-        label = Label(Label.WIDTH_SAMPLE, Label.HEIGHT_BAG, count=count)
-        label.add_text(title, 50, 60, FONT_SMALL)
-        label.add_barcode_large_text(barcode=barcode, x_pos=50)
-
-        self.print_label(
-            host=printer,
-            printer_code=label.get_code(),
-        )
-
-
-    def print_sample(self, label_context, count=1, title=''):
-        print_barcode(
-            printer=label_context.sample_printer,
-            barcode=label_context.sample_id_provider.allocate_id(current_user).barcode,
-            count=count,
-            title=title,
-        )
-
-
-    def print_recruited_notice(self, printer, study_name, count=1):
-        label = Label(Label.WIDTH_SAMPLE, Label.HEIGHT_BAG, count=count)
-        label.add_text('Patient recruited to research study:', 20, 30, FONT_MEDIUM)
-        label.add_text(study_name, 20, 90, FONT_TITLE)
-        label.add_text('Date Approached:', 20, 180, FONT_MEDIUM)
-        label.add_text('Date Consented:', 20, 240, FONT_MEDIUM)
-
-        self.print_label(
-            host=printer,
-            printer_code=label.get_code(),
-        )
-
-
-    def print_aliquot(self, printer, barcode, count=1):
-        label = Label(Label.WIDTH_SAMPLE, Label.HEIGHT_BAG, count=count)
-        label.add_barcode(barcode=barcode, x_pos=100, y_pos=30, line_width=2, rotated=True)
-        label.add_barcode(barcode=barcode, x_pos=280, y_pos=30, line_width=2, rotated=True)
-        label.add_barcode(barcode=barcode, x_pos=460, y_pos=30, line_width=2, rotated=True)
-
-        self.print_label(
-            host=printer,
-            printer_code=label.get_code(),
-        )
-
-
-    def print_bag(
-        self,
-        label_context,
-        title,
-        version,
-        subheaders=[],
-        lines=[],
-        warnings=[],
-        subset='',
-        count=1,
-        str_date='Date',
-        str_time_sample_taken='Time Sample Taken',
-        str_emergency_consent='Emergency Consent',
-        str_full_consent='Full Consent',
-        str_full_consent_b='',
-    ):
-        label = Label(Label.WIDTH_BAG, Label.HEIGHT_BAG, count=count)
-        label.add_text(title, 0, _POS_TITLE_TOP, label_context.FONT_TITLE, centered=True)
-        label.add_sidebar(text=label_context.side_bar + ' ' + subset)
-
-        y = _POS_CONTENT_TOP
-
-        for sh in subheaders:
-            label.add_text(text=sh, x_pos=0, y_pos=y, font=label_context.FONT_LARGE, centered=True)
-            y += _LINE_HEIGHT
-
-        if subheaders:
-            y += _LINE_HEIGHT
-
-        for l in lines:
-            label.add_text(text=l, x_pos=_POS_BAG_LEFT_COL, y_pos=y, font=label_context.FONT_MEDIUM)
-            y += _LINE_HEIGHT
-
-        if lines:
-            y += _LINE_HEIGHT
-
-        for w in warnings:
-            y += _LINE_HEIGHT
-            label.add_text(text=w, x_pos=0, y_pos=y, font=label_context.FONT_LARGE, centered=True)
-            y += _LINE_HEIGHT
-
-        label.add_bag_form(
-            font=label_context.FONT_MEDIUM,
-            str_date=str_date,
-            str_time_sample_taken=str_time_sample_taken,
-            str_emergency_consent=str_emergency_consent,
-            str_full_consent=str_full_consent,
-            str_full_consent_b=str_full_consent_b,
-        )
-
-        label.add_barcode(barcode=label_context.participant_id, y_pos=1400, centered=True)
-        label.add_text(
-            text='{version} printed {date}'.format(
-                    version=version,
-                    date=datetime.date.today().strftime("%d %B %Y"),
-                ),
-            x_pos=0,
-            y_pos=1475,
-            font=label_context.FONT_SMALL,
-            centered=True,
-        )
-
-        self.print_label(
-            host=label_context.bag_printer,
-            printer_code=label.get_code(),
-        )
-
-
-    def print_bag_small(
-        self,
-        printer,
-        title,
-        line_1,
-        line_2,
-        count=1,
-    ):
-        code = [
-            _CODE_START,
-            _CODE_TEXT.format(
-                x=0,
-                y=30,
-                font=FONT_TITLE,
-                text=title,
-            ),
-            _CODE_TEXT.format(
-                x=0,
-                y=120,
-                font=FONT_MEDIUM,
-                text=line_1,
-            ),
-            _CODE_TEXT.format(
-                x=0,
-                y=180,
-                font=FONT_MEDIUM,
-                text=line_2,
-            ),
-            _CODE_TEXT.format(
-                x=0,
-                y=240,
-                font=FONT_MEDIUM,
-                text='Please affix participant ID label',
-            ),
-            _CODE_QUANTITY.format(quantity=count),
-            _CODE_END,
-        ]
-
-        self.print_label(
-            host=printer,
-            printer_code=''.join(code),
-        )
-
-
-    def print_notes_label(
+    def __init__(
         self,
         label_context,
         study_a,
@@ -421,117 +381,68 @@ class LabelPrinter(db.Model):
         version,
         participant_id,
         study_b='',
+        **kwargs,
     ):
+        super().__init__(**kwargs)
+
         y = _POS_TITLE_TOP
 
-        code = [
-            _CODE_START,
-            _CODE_WIDTH.format(width=_WIDTH_BAG),
-            _CODE_NEXT_TEXT_CENTRED.format(width=_WIDTH_BAG),
-            _CODE_TEXT.format(
-                x=0,
-                y=y,
-                font=label_context.FONT_MEDIUM,
-                text='Participant in the following research study:',
-            ),
-        ]
+        self.add_medium_text(text='Participant in the following research study:', x_pos=0, y_pos=y, centered=True)
+
         y += _TITLE_LINE_HEIGHT
 
-        code.extend([
-            _CODE_NEXT_TEXT_CENTRED.format(width=_WIDTH_BAG),
-            _CODE_TEXT.format(
-                x=0,
-                y=y,
-                font=label_context.FONT_TITLE,
-                text=study_a,
-            ),
-        ])
+        self.add_title(text=study_a, x_pos=0, y_pos=y, centered=True)
+
         y += _TITLE_LINE_HEIGHT
 
-        code.extend([
-            _CODE_NEXT_TEXT_CENTRED.format(width=_WIDTH_BAG),
-            _CODE_TEXT.format(
-                x=0,
-                y=y,
-                font=label_context.FONT_TITLE,
-                text=study_b,
-            ),
-        ])
+        self.add_title(text=study_b, x_pos=0, y_pos=y, centered=True)
+
         y += _TITLE_LINE_HEIGHT
         y += _TITLE_LINE_HEIGHT
 
-        code.extend([
-            _CODE_TEXT.format(
-                x=_POS_BAG_LEFT_COL,
-                y=y,
-                font=label_context.FONT_MEDIUM,
-                text='Participant ID:' + participant_id,
-            ),
-        ])
+        self.add_medium_text(text=f'Participant ID: {participant_id}', x_pos=_POS_BAG_LEFT_COL, y_pos=y)
+
         y += _LINE_HEIGHT
 
-        code.extend([
-            _CODE_TEXT.format(
-                x=_POS_BAG_LEFT_COL,
-                y=y,
-                font=label_context.FONT_MEDIUM,
-                text='Chief Investigator:' + chief_investigator,
-            ),
-        ])
+        self.add_medium_text(text=f'Chief Investigator (CI): {chief_investigator}', x_pos=_POS_BAG_LEFT_COL, y_pos=y)
+
         y += _LINE_HEIGHT
 
-        code.extend([
-            _CODE_TEXT.format(
-                x=_POS_BAG_LEFT_COL,
-                y=y,
-                font=label_context.FONT_MEDIUM,
-                text='Chief Email:' + chief_investigator_email,
-            ),
-        ])
+        self.add_medium_text(text=f'CI Email: {chief_investigator_email}', x_pos=_POS_BAG_LEFT_COL, y_pos=y)
+
         y += _LINE_HEIGHT
 
-        code.extend([
-            _CODE_TEXT.format(
-                x=_POS_BAG_LEFT_COL,
-                y=y,
-                font=label_context.FONT_MEDIUM,
-                text='Study Sponsor:' + study_sponsor,
-            ),
-        ])
+        self.add_medium_text(text=f'Study Sponsor: {study_sponsor}', x_pos=_POS_BAG_LEFT_COL, y_pos=y)
+
         y += _LINE_HEIGHT
 
-        code.extend([
-            _CODE_TEXT.format(
-                x=_POS_BAG_LEFT_COL,
-                y=y,
-                font=label_context.FONT_MEDIUM,
-                text='IRAS ID:' + iras_id,
-            ),
-        ])
-        y += _LINE_HEIGHT
+        self.add_medium_text(text=f'IRAS ID: {iras_id}', x_pos=_POS_BAG_LEFT_COL, y_pos=y)
 
-        code.extend([
-            _CODE_NOTES_FORM.format(
-                font=label_context.FONT_MEDIUM,
-            ),
-            _CODE_NEXT_TEXT_CENTRED.format(width=_WIDTH_BAG),
-            _CODE_TEXT.format(
-                x=0,
-                y=1475,
-                font=label_context.FONT_SMALL,
-                text='{version} printed {date}'.format(
-                    version=version,
-                    date=datetime.date.today().strftime("%d %B %Y"),
-                ),
-            ),
-            _CODE_QUANTITY.format(quantity=1),
-            _CODE_END,
-        ])
-
-        self.print_label(
-            host=label_context.bag_printer,
-            printer_code=''.join(code),
+        self.add(
+            self._CODE_FORM.format(font=self.fonts[self.FONT_MEDIUM])
         )
+    
+        self.add_version(version)
+
+
+class LabelPrinter(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    hostname_or_ip_address = db.Column(db.String(100), nullable=False)
+
+    def __repr__(self):
+        return self.name
+
+    def print_label(self, printer_code):
+        if current_app.config['TESTING']:
+            #current_app.logger.info(f'Fake print of {printer_code} to host {host}')
+            current_app.logger.info(f'.')
+        else:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect((self.hostname_or_ip_address, 9100))
+                s.sendall(printer_code.encode('ascii'))
+            time.sleep(0.1)
+
 
 class LabelPrinterSet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -567,9 +478,6 @@ class LabelBatch(db.Model):
     def print(self, count):
         for _ in range(count):
             self.print_batch()
-        
-        if self.print_recruited_notice:
-            self.label_printer_set.sample_printer.print_recruited_notice(printer=PRINTER_TMF_SAMPLE, study_name=self.study.name)
 
     def _get_participant_id(self):
         result = self.participant_id_provider.allocate_id(current_user).barcode
@@ -596,6 +504,13 @@ class LabelBatch(db.Model):
         for bs in self.bags:
             bs.print(participant_id, self)
 
+        if self.print_recruited_notice:
+            label = RecruitedNoticeLabel(study_name=self.study.name, label_printer_set=self.label_printer_set)
+            label.print()
+
+        if self.medical_notes_label:
+            self.medical_notes_label.print(participant_id, self)
+
 
 class SampleBagLabel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -606,6 +521,7 @@ class SampleBagLabel(db.Model):
     visit = db.Column(db.String(100), nullable=False)
     subheaders = db.Column(db.Text, nullable=False)
     warnings = db.Column(db.Text, nullable=False)
+    small_format = db.Column(db.Boolean, nullable=False)
 
     __mapper_args__ = {
         "version_id_col": version_num,
@@ -619,14 +535,20 @@ class SampleBagLabel(db.Model):
             side_bar=self.label_batch.study.name,
         )
 
-        context.label_printer_set.bag_printer.print_bag(
-            label_context=bag_context,
-            title=self.title,
-            subset=self.visit,
-            version=f'v{self.version_num}',
-            subheaders=self.subheaders.splitlines(),
-            warnings=self.warnings.splitlines()
-        )
+        if self.small_format:
+            label = BagSmallLabel(label_context=bag_context, title=self.title, label_printer_set=context.label_printer_set)
+            label.print()
+        else:
+            label = BagLargeLabel(
+                label_context=bag_context,
+                title=self.title,
+                subset=self.visit,
+                version=self.version_num,
+                subheaders=self.subheaders.splitlines(),
+                warnings=self.warnings.splitlines(),
+                label_printer_set=context.label_printer_set,
+            )
+            label.print()
 
         for s in self.samples:
             s.print(context)
@@ -638,6 +560,45 @@ class SampleBagLabel(db.Model):
                 a.print(aliquot_id, context)
 
 
+class MedicalNotesLabel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    version_num = db.Column(db.Integer, nullable=False)
+    label_batch_id = db.Column(db.Integer, db.ForeignKey(LabelBatch.id))
+    label_batch = db.relationship(LabelBatch, backref=db.backref("medical_notes_label", uselist=False))
+    study_name_line_1 = db.Column(db.String(100), nullable=False)
+    study_name_line_2 = db.Column(db.String(100), nullable=False)
+    chief_investigator = db.Column(db.String(100), nullable=False)
+    chief_investigator_email = db.Column(db.String(100), nullable=False)
+    study_sponsor = db.Column(db.String(100), nullable=False)
+    iras_id = db.Column(db.String(100), nullable=False)
+
+    __mapper_args__ = {
+        "version_id_col": version_num,
+    }
+
+    def print(self, participant_id, context):
+
+        bag_context = BagContext(
+            printer=PRINTER_TMF_BAG,
+            participant_id=participant_id,
+            side_bar=self.label_batch.study.name,
+        )
+
+        label = MedicalNotesStandardLabel(
+            label_context=bag_context,
+            study_a=self.study_name_line_1,
+            study_b=self.study_name_line_2,
+            chief_investigator=self.chief_investigator,
+            chief_investigator_email=self.chief_investigator_email,
+            study_sponsor=self.study_sponsor,
+            iras_id=self.iras_id,
+            version=self.version_num,
+            participant_id=participant_id,
+            label_printer_set=context.label_printer_set,
+        )
+        label.print()
+
+
 class SampleLabel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sample_bag_label_id = db.Column(db.Integer, db.ForeignKey(SampleBagLabel.id))
@@ -646,16 +607,13 @@ class SampleLabel(db.Model):
     count = db.Column(db.Integer, nullable=False, default=1)
 
     def print(self, context):
-        sample_context = SampleContext(
-            printer=PRINTER_TMF_SAMPLE,
-            id_provider=context.sample_id_provider,
-        )
-
         for _ in range(self.count):
-            context.label_printer_set.sample_printer.print_sample(
-                label_context=sample_context,
-                title=self.name
+            label = BarcodeLabel(
+                barcode=context.sample_id_provider.allocate_id(current_user).barcode,
+                title=self.name,
+                label_printer_set=context.label_printer_set,
             )
+            label.print()
 
 
 class AliquotLabel(db.Model):
@@ -668,16 +626,17 @@ class AliquotLabel(db.Model):
     def print(self, aliquot_id, context):
         if self.count > 1:
             for i in range(1, self.count + 1):
-                context.label_printer_set.sample_printer.print_aliquot(
-                    printer=PRINTER_TMF_SAMPLE,
+                label = AliquotBottleLabel(
                     barcode=f'{self.prefix}{aliquot_id}-{i}',
+                    label_printer_set=context.label_printer_set,
                 )
+                label.print()
         else:
-            context.label_printer_set.sample_printer.print_aliquot(
-                printer=PRINTER_TMF_SAMPLE,
+            label = AliquotBottleLabel(
                 barcode=f'{self.prefix}{aliquot_id}',
+                label_printer_set=context.label_printer_set,
             )
-
+            label.print()
 
 
 class TestLabelPack(LabelPack):
@@ -702,60 +661,79 @@ class TestLabelPack(LabelPack):
             id_provider=PseudoRandomIdProvider.query.filter_by(prefix="AllSa").first(),
         )
 
-        print_bag(
+        print_notes_label(
             label_context=bag_context,
-            title='ALLEVIATE (room temp)',
-            subset='Subset',
-            version='v1.0',
-            subheaders=[
-                '1 x 4.9ml Serum (brown)',
-                '1 x 2.7ml EDTA (purple)',
-            ],
-            warnings=['Transfer to lab within 90 minutes']
+            study_a='Causes of Acute Coronary Syndrome',
+            study_b='in People with SCAD or CAE',
+            chief_investigator='Dave Adlam',
+            chief_investigator_email='da134@le.ac.uk / dave.adlam@uhl-tr.nhs.uk',
+            study_sponsor='University of Leicester',
+            iras_id='182079',
+            version='1.0',
+            participant_id=participant_id,
         )
 
-        print_sample(
-            label_context=sample_context,
-            title='4.9ml Serum (brown)'
-        )
+        # print_bag(
+        #     label_context=bag_context,
+        #     title='ALLEVIATE (room temp)',
+        #     subset='Subset',
+        #     version='v1.0',
+        #     subheaders=[
+        #         '1 x 4.9ml Serum (brown)',
+        #         '1 x 2.7ml EDTA (purple)',
+        #     ],
+        #     warnings=['Transfer to lab within 90 minutes']
+        # )
 
-        print_barcode(
-            printer=PRINTER_TMF_SAMPLE,
-            barcode=participant_id,
-            count=2,
-        )
+        # print_bag_small_x(
+        #     printer=PRINTER_TMF_SAMPLE,
+        #     title='LIMb EDTA Bag',
+        #     line_1='Date:',
+        #     line_2='Time:',
+        # )
 
-        pid2_provider = SequentialIdProvider.query.filter_by(prefix="ScadReg").first()
-        pid2 = pid2_provider.allocate_id(current_user).barcode
+        # print_sample(
+        #     label_context=sample_context,
+        #     title='4.9ml Serum (brown)'
+        # )
 
-        self.save_participant_id(pid2)
+        # print_barcode(
+        #     printer=PRINTER_TMF_SAMPLE,
+        #     barcode=participant_id,
+        #     count=2,
+        # )
 
-        print_barcode(
-            printer=PRINTER_TMF_SAMPLE,
-            barcode=pid2,
-        )
+        # pid2_provider = SequentialIdProvider.query.filter_by(prefix="ScadReg").first()
+        # pid2 = pid2_provider.allocate_id(current_user).barcode
 
-        pid3_provider = LegacyIdProvider.query.filter_by(prefix="BPt").first()
-        pid3 = pid3_provider.allocate_id(current_user).barcode
+        # self.save_participant_id(pid2)
 
-        self.save_participant_id(pid3)
+        # print_barcode(
+        #     printer=PRINTER_TMF_SAMPLE,
+        #     barcode=pid2,
+        # )
 
-        print_barcode(
-            printer=PRINTER_TMF_SAMPLE,
-            barcode=pid3,
-        )
+        # pid3_provider = LegacyIdProvider.query.filter_by(prefix="BPt").first()
+        # pid3 = pid3_provider.allocate_id(current_user).barcode
 
-        pid4_provider = BioresourceIdProvider.query.filter_by(prefix="BR").first()
-        pid4 = pid4_provider.allocate_id(current_user).barcode
+        # self.save_participant_id(pid3)
 
-        self.save_participant_id(pid4)
+        # print_barcode(
+        #     printer=PRINTER_TMF_SAMPLE,
+        #     barcode=pid3,
+        # )
 
-        print_barcode(
-            printer=PRINTER_TMF_SAMPLE,
-            barcode=pid4,
-        )
+        # pid4_provider = BioresourceIdProvider.query.filter_by(prefix="BR").first()
+        # pid4 = pid4_provider.allocate_id(current_user).barcode
 
-        print_recruited_notice(
-            printer=PRINTER_TMF_SAMPLE,
-            study_name='ELASTIC-AS',
-        )
+        # self.save_participant_id(pid4)
+
+        # print_barcode(
+        #     printer=PRINTER_TMF_SAMPLE,
+        #     barcode=pid4,
+        # )
+
+        # print_recruited_notice(
+        #     printer=PRINTER_TMF_SAMPLE,
+        #     study_name='ELASTIC-AS',
+        # )

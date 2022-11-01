@@ -1,4 +1,5 @@
 from sqlalchemy import (
+    BOOLEAN,
     MetaData,
     Table,
     Column,
@@ -26,6 +27,7 @@ def upgrade(migrate_engine):
         Column("visit", NVARCHAR(100), nullable=False),
         Column("subheaders", Text, nullable=False),
         Column("warnings", Text, nullable=False),
+        Column("small_format", BOOLEAN, nullable=False),
     )
     t.create()
 
