@@ -39,7 +39,7 @@ class IndapamidePack(LabelPack):
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="IndPt").first()
-        participant_id = participant_id_provider.allocate_id(current_user).barcode
+        participant_id = participant_id_provider.allocate_id().barcode
 
         self.save_participant_id(participant_id)
 

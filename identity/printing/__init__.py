@@ -662,7 +662,7 @@ class TestLabelPack(LabelPack):
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="AllPt").first()
-        participant_id = participant_id_provider.allocate_id(current_user).barcode
+        participant_id = participant_id_provider.allocate_id().barcode
 
         self.save_participant_id(participant_id)
 
@@ -720,7 +720,7 @@ class TestLabelPack(LabelPack):
         # )
 
         # pid2_provider = SequentialIdProvider.query.filter_by(prefix="ScadReg").first()
-        # pid2 = pid2_provider.allocate_id(current_user).barcode
+        # pid2 = pid2_provider.allocate_id().barcode
 
         # self.save_participant_id(pid2)
 
@@ -730,7 +730,7 @@ class TestLabelPack(LabelPack):
         # )
 
         # pid3_provider = LegacyIdProvider.query.filter_by(prefix="BPt").first()
-        # pid3 = pid3_provider.allocate_id(current_user).barcode
+        # pid3 = pid3_provider.allocate_id().barcode
 
         # self.save_participant_id(pid3)
 
@@ -740,7 +740,7 @@ class TestLabelPack(LabelPack):
         # )
 
         # pid4_provider = BioresourceIdProvider.query.filter_by(prefix="BR").first()
-        # pid4 = pid4_provider.allocate_id(current_user).barcode
+        # pid4 = pid4_provider.allocate_id().barcode
 
         # self.save_participant_id(pid4)
 

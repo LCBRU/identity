@@ -32,7 +32,7 @@ class BlindingType(db.Model):
             .first()
         )
         if not blinding:
-            pseudo_random_id = self.pseudo_random_id_provider.allocate_id(user)
+            pseudo_random_id = self.pseudo_random_id_provider.allocate_id()
 
             blinding = Blinding(
                 unblind_id=unblind_id,

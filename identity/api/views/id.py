@@ -22,7 +22,7 @@ def create_pseudorandom_ids():
 
     api_key = get_api_key(request)
 
-    results = id_provider.allocate_ids(request.json.get('id_count'), api_key.user)
+    results = id_provider.allocate_ids(request.json.get('id_count'))
 
     barcodes = [r.barcode for r in results]
 

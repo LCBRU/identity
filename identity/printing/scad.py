@@ -57,7 +57,7 @@ class ScadPack(LabelPack):
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
-        participant_id = participant_id_provider.allocate_id(current_user).barcode
+        participant_id = participant_id_provider.allocate_id().barcode
         sample_id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first()
 
         self.save_participant_id(participant_id)
@@ -92,7 +92,7 @@ class ScadPack(LabelPack):
             participant_id=participant_id,
         )
         
-        print_barcode(printer=PRINTER_BRU_CRF_SAMPLE, barcode=sample_id_provider.allocate_id(current_user).barcode)
+        print_barcode(printer=PRINTER_BRU_CRF_SAMPLE, barcode=sample_id_provider.allocate_id().barcode)
 
 
 class ScadBloodOnlyPack(LabelPack):
@@ -104,7 +104,7 @@ class ScadBloodOnlyPack(LabelPack):
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
-        participant_id = participant_id_provider.allocate_id(current_user).barcode
+        participant_id = participant_id_provider.allocate_id().barcode
         sample_id_provider=PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first()
 
         self.save_participant_id(participant_id)
@@ -117,7 +117,7 @@ class ScadBloodOnlyPack(LabelPack):
         for _ in range(3):
             print_barcode(
                 printer=PRINTER_BRU_CRF_SAMPLE,
-                barcode=sample_id_provider.allocate_id(current_user).barcode,
+                barcode=sample_id_provider.allocate_id().barcode,
             )
 
 
@@ -130,7 +130,7 @@ class ScadFamilyPack(LabelPack):
 
     def _do_print(self):
         family_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_FAMILY).first()
-        family_id = family_id_provider.allocate_id(current_user).barcode
+        family_id = family_id_provider.allocate_id().barcode
 
         print_barcode(
             printer=PRINTER_BRU_CRF_SAMPLE,
@@ -148,7 +148,7 @@ class ScadRegistryPack(LabelPack):
 
     def _do_print(self):
         registry_id_provider = SequentialIdProvider.query.filter_by(name=ID_NAME_SCAD_REG).first()
-        registry_id = registry_id_provider.allocate_id(current_user).barcode
+        registry_id = registry_id_provider.allocate_id().barcode
 
         print_barcode(
             printer=PRINTER_BRU_CRF_SAMPLE,

@@ -177,10 +177,10 @@ class BioresourceIdProvider(IdProvider):
 
         return "ZABCDEFGHJKLMNPQRSTVWXY"[id % 23]
 
-    def allocate_ids(self, count, user):
+    def allocate_ids(self, count):
         result = []
         for _ in range(count):
-            result.append(self.allocate_id(user))
+            result.append(self.allocate_id())
 
         return result
 

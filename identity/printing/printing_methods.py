@@ -152,7 +152,7 @@ def _encode_barcode(barcode):
 def print_sample(label_context, count=1, title=''):
     print_barcode(
         printer=label_context.sample_printer,
-        barcode=label_context.sample_id_provider.allocate_id(current_user).barcode,
+        barcode=label_context.sample_id_provider.allocate_id().barcode,
         count=count,
         title=title,
     )

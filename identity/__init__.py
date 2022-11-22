@@ -29,7 +29,10 @@ def create_app(config=Config):
         init_celery(app)
         init_template_filters(app)
 
+    @app.before_first_request
+    def sd():
         setup_data()
+
 
     app.register_blueprint(ui_blueprint)
     app.register_blueprint(api_blueprint, url_prefix='/api')

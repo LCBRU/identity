@@ -37,13 +37,13 @@ class LimbPack(LabelPack):
 
     def _do_print(self):
         participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_PARTICIPANT).first()
-        participant_id = participant_id_provider.allocate_id(current_user).barcode
+        participant_id = participant_id_provider.allocate_id().barcode
 
         self.save_participant_id(participant_id)
 
         sample_id_provider = PseudoRandomIdProvider.query.filter_by(prefix=ID_TYPE_SAMPLE).first()
-        edta_id = sample_id_provider.allocate_id(current_user).barcode
-        serum_id = sample_id_provider.allocate_id(current_user).barcode
+        edta_id = sample_id_provider.allocate_id().barcode
+        serum_id = sample_id_provider.allocate_id().barcode
 
         print_bag_small(
             printer=PRINTER_LIMB,

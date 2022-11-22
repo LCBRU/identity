@@ -44,7 +44,7 @@ class BriccsIdSpecification(StudyIdSpecification):
 class BriccsBags():
     def print_pack(self, study_name, additional_sample_label_count):
         participant_id_provider = LegacyIdProvider.query.filter_by(name=ID_NAME_BRICCS_PARTICIPANT).first()
-        participant_id = participant_id_provider.allocate_id(current_user).barcode
+        participant_id = participant_id_provider.allocate_id().barcode
 
         bag_context = BagContext(
             printer=PRINTER_BRU_CRF_BAG,
@@ -215,7 +215,7 @@ class BriccsKetteringPack(LabelPack):
 
     def print_pack(self, site_prefix, site_name, additional_sample_label_count=0):
         participant_id_provider = LegacyIdProvider.query.filter_by(name=ID_NAME_BRICCS_PARTICIPANT).first()
-        participant_id = participant_id_provider.allocate_id(current_user).barcode
+        participant_id = participant_id_provider.allocate_id().barcode
 
         bag_context = BagContext(
             printer=PRINTER_BRU_CRF_BAG,
@@ -238,7 +238,7 @@ class BriccsKetteringPack(LabelPack):
         )
 
         aliquote_id_provider = SequentialIdProvider.query.filter_by(name=site_name.upper() + ' ' + ID_NAME_BRICCS_ALIQUOT).first()
-        alliquot_id = aliquote_id_provider.allocate_id(current_user)
+        alliquot_id = aliquote_id_provider.allocate_id()
 
         for i in range(8):
             print_aliquot(
