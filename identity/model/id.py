@@ -3,16 +3,14 @@ from datetime import datetime
 from lbrc_flask.database import db
 from .security import User
 from . import Study
+from lbrc_flask.security.model import AuditMixin
 
 
-class IdProvider(db.Model):
+class IdProvider(db.Model, AuditMixin):
     id_provider_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     prefix = db.Column(db.String(10))
     type = db.Column(db.String(100))
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
 
     __mapper_args__ = {
         "polymorphic_identity": "id_provider",
@@ -33,12 +31,10 @@ class SequentialIdProvider(IdProvider):
     zero_fill_size = db.Column(db.Integer)
     last_number = db.Column(db.Integer, nullable=False, default=0)
 
-    def allocate_ids(self, count, user):
+    def allocate_ids(self, count):
         start = self.last_number + 1
 
         self.last_number = self.last_number + count
-        self.last_updated_by_user = user
-        self.last_updated_datetime = datetime.utcnow()
 
         format_string = self.prefix or ""
 
@@ -49,8 +45,8 @@ class SequentialIdProvider(IdProvider):
 
         return [SequentialId(format_string.format(i)) for i in range(start, self.last_number + 1)]
 
-    def allocate_id(self, user):
-        return self.allocate_ids(1, user)[0]
+    def allocate_id(self):
+        return self.allocate_ids(1)[0]
 
 
 class SequentialId:
@@ -71,7 +67,7 @@ class LegacyIdProvider(IdProvider):
     id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
     number_fixed_length = db.Column(db.Integer, nullable=False)
 
-    def allocate_id(self, user):
+    def allocate_id(self):
         found = 1
         tries = 0
         prospective_id = 0
@@ -89,7 +85,6 @@ class LegacyIdProvider(IdProvider):
         actual_id = LegacyId(
             legacy_id_provider=self,
             number=prospective_id,
-            last_updated_by_user=user,
         )
 
         db.session.add(actual_id)
@@ -97,10 +92,10 @@ class LegacyIdProvider(IdProvider):
         return actual_id
 
 
-    def allocate_ids(self, count, user):
+    def allocate_ids(self, count):
         result = []
         for _ in range(count):
-            result.append(self.allocate_id(user))
+            result.append(self.allocate_id())
 
         return result
 
@@ -263,7 +258,7 @@ class PseudoRandomIdProvider(IdProvider):
 
         return "ABCDEFGHJKLMNPQRSTVWXYZ"[numerified % 23]
     
-    def _create_pseudo_id(self, ordinal, user):
+    def _create_pseudo_id(self, ordinal):
         unique_code = self._create_unique_id(ordinal)
         formatted_code = "{}{:0>7d}".format(self.prefix, unique_code)
         check_character = self._get_checkdigit(formatted_code)
@@ -275,20 +270,19 @@ class PseudoRandomIdProvider(IdProvider):
             unique_code=unique_code,
             check_character=check_character,
             full_code=full_code,
-            last_updated_by_user_id=user.id,
         )
 
 
-    def allocate_id(self, user):
+    def allocate_id(self):
         previous_ordinal = db.session.query(db.func.max(PseudoRandomId.ordinal)).scalar() or 0
-        result = self._create_pseudo_id(previous_ordinal + 1, user)
+        result = self._create_pseudo_id(previous_ordinal + 1)
         db.session.add(result)
         db.session.flush()
         db.session.commit()
 
         return result
 
-    def allocate_ids(self, count, user):
+    def allocate_ids(self, count):
         # Bulk inserts objects for speed that does not populate
         # the object ID, so may cause problems if the object is
         # used later on.
@@ -297,7 +291,7 @@ class PseudoRandomIdProvider(IdProvider):
         previous_ordinal = db.session.query(db.func.max(PseudoRandomId.ordinal)).scalar() or 0
 
         for ordinal in range(previous_ordinal + 1, previous_ordinal + count + 1):
-            result.append(self._create_pseudo_id(ordinal, user))
+            result.append(self._create_pseudo_id(ordinal))
 
         db.session.bulk_save_objects(result)
         db.session.commit()

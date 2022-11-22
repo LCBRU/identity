@@ -88,7 +88,12 @@ def label_batch_print(label_batch_id, referrer, study_id, count=1):
     label_batch = LabelBatch.query.get_or_404(label_batch_id)
 
     try:
-        label_batch.print(count)
+        labels = label_batch.get_labels(count)
+        db.session.commit()
+
+        for l in labels:
+            l.print()
+
         flash('Labels have been sent to the printer')
     except:
         current_app.logger.error(traceback.format_exc())

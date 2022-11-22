@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from email.policy import default
 from identity.model import Study
 from identity.model.id import IdProvider, ParticipantIdentifier, ParticipantIdentifierType
 from .alleviate import *
@@ -475,12 +474,16 @@ class LabelBatch(db.Model):
     def __repr__(self):
         return f'{self.study.name}: {self.name}'
 
-    def print(self, count):
+    def get_labels(self, count):
+        labels = []
+
         for _ in range(count):
-            self.print_batch()
+            labels.extend(self.get_label_batch())
+
+        return labels
 
     def _get_participant_id(self):
-        result = self.participant_id_provider.allocate_id(current_user).barcode
+        result = self.participant_id_provider.allocate_id().barcode
     
         pit = ParticipantIdentifierType.get_study_participant_id()
 
@@ -498,18 +501,21 @@ class LabelBatch(db.Model):
 
         return result
 
-    def print_batch(self):
+    def get_label_batch(self):
+        labels = []
+
         participant_id = self._get_participant_id()
 
         for bs in self.bags:
-            bs.print(participant_id, self)
+            labels.extend(bs.get_labels(participant_id))
 
         if self.print_recruited_notice:
-            label = RecruitedNoticeLabel(study_name=self.study.name, label_printer_set=self.label_printer_set)
-            label.print()
+            labels.append(RecruitedNoticeLabel(study_name=self.study.name, label_printer_set=self.label_printer_set))
 
         if self.medical_notes_label:
-            self.medical_notes_label.print(participant_id, self)
+            labels.extend(self.medical_notes_label.get_labels(participant_id))
+
+        return labels
 
 
 class SampleBagLabel(db.Model):
@@ -527,13 +533,19 @@ class SampleBagLabel(db.Model):
         "version_id_col": version_num,
     }
 
-    def print(self, participant_id, context):
+    def _label_printer_set(self):
+        return self.label_batch.label_printer_set
+
+    def _aliquot_id_provider(self):
+        return self.label_batch.aliquot_id_provider
+
+    def get_labels(self, participant_id):
+        labels = []
 
         if self.small_format:
-            label = BagSmallLabel(title=self.title, label_printer_set=context.label_printer_set)
-            label.print()
+            labels.append(BagSmallLabel(title=self.title, label_printer_set=self._label_printer_set()))
         else:
-            label = BagLargeLabel(
+            labels.append(BagLargeLabel(
                 title=self.title,
                 participant_id=participant_id,
                 subset=self.visit,
@@ -541,18 +553,19 @@ class SampleBagLabel(db.Model):
                 version=self.version_num,
                 subheaders=self.subheaders.splitlines(),
                 warnings=self.warnings.splitlines(),
-                label_printer_set=context.label_printer_set,
-            )
-            label.print()
+                label_printer_set=self._label_printer_set(),
+            ))
 
         for s in self.samples:
-            s.print(context)
+            labels.extend(s.get_labels())
         
         if len(self.aliquots) > 0:
-            aliquot_id = context.aliquot_id_provider.allocate_id(current_user).id
+            aliquot_id = self._aliquot_id_provider().allocate_id().id
 
             for a in self.aliquots:
-                a.print(aliquot_id, context)
+                labels.extend(a.get_labels(aliquot_id))
+            
+        return labels
 
 
 class MedicalNotesLabel(db.Model):
@@ -571,9 +584,11 @@ class MedicalNotesLabel(db.Model):
         "version_id_col": version_num,
     }
 
-    def print(self, participant_id, context):
+    def _label_printer_set(self):
+        return self.label_batch.label_printer_set
 
-        label = MedicalNotesStandardLabel(
+    def get_labels(self, participant_id):
+        return [MedicalNotesStandardLabel(
             study_a=self.study_name_line_1,
             study_b=self.study_name_line_2,
             chief_investigator=self.chief_investigator,
@@ -582,9 +597,8 @@ class MedicalNotesLabel(db.Model):
             iras_id=self.iras_id,
             version=self.version_num,
             participant_id=participant_id,
-            label_printer_set=context.label_printer_set,
-        )
-        label.print()
+            label_printer_set=self._label_printer_set(),
+        )]
 
 
 class SampleLabel(db.Model):
@@ -594,14 +608,23 @@ class SampleLabel(db.Model):
     name = db.Column(db.String(100), nullable=False)
     count = db.Column(db.Integer, nullable=False, default=1)
 
-    def print(self, context):
+    def _label_printer_set(self):
+        return self.sample_bag_label._label_printer_set()
+
+    def _sample_id_provider(self):
+        return self.sample_bag_label.label_batch.sample_id_provider
+
+    def get_labels(self):
+        labels = []
+
         for _ in range(self.count):
-            label = BarcodeLabel(
-                barcode=context.sample_id_provider.allocate_id(current_user).barcode,
+            labels.append(BarcodeLabel(
+                barcode=self._sample_id_provider().allocate_id().barcode,
                 title=self.name,
-                label_printer_set=context.label_printer_set,
-            )
-            label.print()
+                label_printer_set=self._label_printer_set(),
+            ))
+
+        return labels
 
 
 class AliquotLabel(db.Model):
@@ -611,20 +634,25 @@ class AliquotLabel(db.Model):
     prefix = db.Column(db.String(10), nullable=False)
     count = db.Column(db.Integer, nullable=False, default=1)
 
-    def print(self, aliquot_id, context):
+    def _label_printer_set(self):
+        return self.sample_bag_label._label_printer_set()
+
+    def get_labels(self, aliquot_id):
+        labels = []
+
         if self.count > 1:
             for i in range(1, self.count + 1):
-                label = AliquotBottleLabel(
+                labels.append(AliquotBottleLabel(
                     barcode=f'{self.prefix}{aliquot_id}-{i}',
-                    label_printer_set=context.label_printer_set,
-                )
-                label.print()
+                    label_printer_set=self._label_printer_set(),
+                ))
         else:
-            label = AliquotBottleLabel(
+            labels.append(AliquotBottleLabel(
                 barcode=f'{self.prefix}{aliquot_id}',
-                label_printer_set=context.label_printer_set,
-            )
-            label.print()
+                label_printer_set=self._label_printer_set(),
+            ))
+
+        return labels
 
 
 class TestLabelPack(LabelPack):
