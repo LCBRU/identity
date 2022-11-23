@@ -25,7 +25,8 @@ from identity.printing.preeclampsia import PreeclampsiaPack
 from identity.printing.scad import ScadBloodOnlyPack, ScadFamilyPack, ScadPack, ScadRegistryPack
 from identity.printing.spiral import SpiralPack
 from identity.model.id import ParticipantIdentifier, ParticipantIdentifierType
-from tests import login
+from lbrc_flask.pytest.helpers import login
+
 
 
 @pytest.yield_fixture(scope="function")
