@@ -21,6 +21,7 @@ from .printing_methods import (
 
 
 
+PRINTER_DEV = 'PRINTER_DEV'
 PRINTER_CVRC_LAB_SAMPLE = 'PRINTER_CVRC_LAB_SAMPLE'
 PRINTER_BRU_CRF_SAMPLE = 'PRINTER_BRU_CRF_SAMPLE'
 PRINTER_BRU_CRF_BAG = 'PRINTER_BRU_CRF_BAG'
@@ -77,7 +78,7 @@ class LabelPack(db.Model):
 
     def print(self, count):
         for _ in range(count):
-            current_app.logger.info(f'Printing label for study {self.study.name}')
+            current_app.logger.info(f'Printing label for study {self.__study_name__}')
 
             self._do_print()
 

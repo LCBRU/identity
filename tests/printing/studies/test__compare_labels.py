@@ -29,19 +29,19 @@ from lbrc_flask.pytest.helpers import login
 
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def mock_print_label(app):
     with patch('identity.printing.printing_methods.print_label') as mock:
         yield mock
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def mock_datetime(app):
     with patch('identity.printing.printing_methods.datetime') as mock:
         yield mock
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def mock_bioresource_id_provider(app):
     with patch('identity.printing.bioresource.BioresourceIdProvider') as mock:
         mid = MagicMock(name='Mock ID Provider')
@@ -49,7 +49,7 @@ def mock_bioresource_id_provider(app):
         yield mid
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture(scope="function")
 def mock_briccs_id_provider(app):
     with patch('identity.printing.briccs.LegacyIdProvider') as mock:
         mid = MagicMock(name='BRICCS ID Provider')

@@ -470,6 +470,7 @@ class LabelBatch(db.Model):
     label_printer_set = db.relationship(LabelPrinterSet)
     disable_batch_printing = db.Column(db.Boolean)
     print_recruited_notice = db.Column(db.Boolean)
+    participant_label_count = db.Column(db.Integer)
 
     def __repr__(self):
         return f'{self.study.name}: {self.name}'
@@ -653,103 +654,3 @@ class AliquotLabel(db.Model):
             ))
 
         return labels
-
-
-class TestLabelPack(LabelPack):
-    __mapper_args__ = {
-        "polymorphic_identity": 'TestPack',
-    }
-
-    def _do_print(self):
-        participant_id_provider = PseudoRandomIdProvider.query.filter_by(prefix="AllPt").first()
-        participant_id = participant_id_provider.allocate_id().barcode
-
-        self.save_participant_id(participant_id)
-
-        bag_context = BagContext(
-            printer=PRINTER_TMF_BAG,
-            participant_id=participant_id,
-            side_bar='Test',
-        )
-
-        sample_context = SampleContext(
-            printer=PRINTER_TMF_SAMPLE,
-            id_provider=PseudoRandomIdProvider.query.filter_by(prefix="AllSa").first(),
-        )
-
-        print_notes_label(
-            label_context=bag_context,
-            study_a='Causes of Acute Coronary Syndrome',
-            study_b='in People with SCAD or CAE',
-            chief_investigator='Dave Adlam',
-            chief_investigator_email='da134@le.ac.uk / dave.adlam@uhl-tr.nhs.uk',
-            study_sponsor='University of Leicester',
-            iras_id='182079',
-            version='1.0',
-            participant_id=participant_id,
-        )
-
-        # print_bag(
-        #     label_context=bag_context,
-        #     title='ALLEVIATE (room temp)',
-        #     subset='Subset',
-        #     version='v1.0',
-        #     subheaders=[
-        #         '1 x 4.9ml Serum (brown)',
-        #         '1 x 2.7ml EDTA (purple)',
-        #     ],
-        #     warnings=['Transfer to lab within 90 minutes']
-        # )
-
-        # print_bag_small_x(
-        #     printer=PRINTER_TMF_SAMPLE,
-        #     title='LIMb EDTA Bag',
-        #     line_1='Date:',
-        #     line_2='Time:',
-        # )
-
-        # print_sample(
-        #     label_context=sample_context,
-        #     title='4.9ml Serum (brown)'
-        # )
-
-        # print_barcode(
-        #     printer=PRINTER_TMF_SAMPLE,
-        #     barcode=participant_id,
-        #     count=2,
-        # )
-
-        # pid2_provider = SequentialIdProvider.query.filter_by(prefix="ScadReg").first()
-        # pid2 = pid2_provider.allocate_id().barcode
-
-        # self.save_participant_id(pid2)
-
-        # print_barcode(
-        #     printer=PRINTER_TMF_SAMPLE,
-        #     barcode=pid2,
-        # )
-
-        # pid3_provider = LegacyIdProvider.query.filter_by(prefix="BPt").first()
-        # pid3 = pid3_provider.allocate_id().barcode
-
-        # self.save_participant_id(pid3)
-
-        # print_barcode(
-        #     printer=PRINTER_TMF_SAMPLE,
-        #     barcode=pid3,
-        # )
-
-        # pid4_provider = BioresourceIdProvider.query.filter_by(prefix="BR").first()
-        # pid4 = pid4_provider.allocate_id().barcode
-
-        # self.save_participant_id(pid4)
-
-        # print_barcode(
-        #     printer=PRINTER_TMF_SAMPLE,
-        #     barcode=pid4,
-        # )
-
-        # print_recruited_notice(
-        #     printer=PRINTER_TMF_SAMPLE,
-        #     study_name='ELASTIC-AS',
-        # )
