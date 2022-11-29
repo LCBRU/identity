@@ -20,7 +20,7 @@ def upgrade(migrate_engine):
     p = Table("label_printer_set", meta, autoload=True)
 
     t = Table(
-        "label_batch",
+        "label_bundle",
         meta,
         Column("id", Integer, primary_key=True, nullable=False),
         Column("name", NVARCHAR(100), nullable=False),
@@ -35,5 +35,5 @@ def upgrade(migrate_engine):
 
 def downgrade(migrate_engine):
     meta.bind = migrate_engine
-    t = Table("label_batch", meta, autoload=True)
+    t = Table("label_bundle", meta, autoload=True)
     t.drop()

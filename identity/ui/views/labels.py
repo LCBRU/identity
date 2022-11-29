@@ -10,7 +10,7 @@ from flask import (
     abort,
 )
 from flask_login import current_user
-from identity.printing import LabelBatch
+from identity.printing import LabelBundle
 from identity.printing.model import LabelPack
 from .. import blueprint, db
 from ..decorators import assert_study_user
@@ -85,7 +85,7 @@ def redirect_to_referrer(referrer, study_id):
 @blueprint.route("/labels/study/<int:study_id>/label_batch/<int:label_batch_id>/print/<int:count>/referrer/<string:referrer>")
 @assert_study_user()
 def label_batch_print(label_batch_id, referrer, study_id, count=1):
-    label_batch = LabelBatch.query.get_or_404(label_batch_id)
+    label_batch = LabelBundle.query.get_or_404(label_batch_id)
 
     try:
         labels = label_batch.get_labels(count)

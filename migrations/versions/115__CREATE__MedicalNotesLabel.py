@@ -15,14 +15,14 @@ meta = MetaData()
 def upgrade(migrate_engine):
     meta.bind = migrate_engine
 
-    b = Table("label_batch", meta, autoload=True)
+    b = Table("label_bundle", meta, autoload=True)
 
     t = Table(
         "medical_notes_label",
         meta,
         Column("id", Integer, primary_key=True, nullable=False),
         Column("version_num", Integer, nullable=False),
-        Column("label_batch_id", Integer, ForeignKey(b.c.id), index=True, nullable=False),
+        Column("label_bundle_id", Integer, ForeignKey(b.c.id), index=True, nullable=False),
         Column("study_name_line_1", NVARCHAR(100), nullable=False),
         Column("study_name_line_2", NVARCHAR(100), nullable=False),
         Column("chief_investigator", NVARCHAR(100), nullable=False),

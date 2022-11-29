@@ -49,6 +49,9 @@ _TITLE_LINE_HEIGHT = 80
 
 
 class Label:
+    SMALLEST_FONT=80
+    LARGEST_FONT=86
+
     FONT_TINY = 'P'
     FONT_SMALL = 'R'
     FONT_MEDIUM = 'T'
@@ -69,7 +72,7 @@ class Label:
     WIDTH_SAMPLE = _WIDTH_SAMPLE
     HEIGHT_BAG = _HEIGHT_BAG
 
-    def __init__(self, label_printer_set, width, height=0, count=1, fonts=None):
+    def __init__(self, label_printer_set, width, height=0, duplicates=1, fonts=None, font_differential=0):
         self.fonts = fonts or {
             self.FONT_TINY: self.FONT_TINY,
             self.FONT_SMALL: self.FONT_SMALL,
@@ -80,10 +83,14 @@ class Label:
 
         self.width = width
         self.height = height
-        self.count = count
+        self.duplicates = duplicates
         self.instructions = []
         self.label_printer_set = label_printer_set
+        self.font_differential = font_differential
     
+    def _get_font(self, size):
+        return chr(min(Label.LARGEST_FONT, max(Label.SMALLEST_FONT, Label.SMALLEST_FONT + size - 1 + self.font_differential)))
+
     def get_code(self):
         code = []
         code.append(self._CODE_START)
@@ -91,7 +98,7 @@ class Label:
 
         code.extend(self.instructions)
 
-        code.append(self._CODE_QUANTITY.format(quantity=self.count))
+        code.append(self._CODE_QUANTITY.format(quantity=self.duplicates))
         code.append(self._CODE_END)
 
         return ''.join(code)
@@ -102,28 +109,28 @@ class Label:
     def add_next_text_centred(self):
         self.add(self._CODE_NEXT_TEXT_CENTRED.format(width=self.width))
 
-    def add_text(self, text, x_pos, y_pos, font, centered=False):
+    def add_text(self, text, x_pos, y_pos, font_size, centered=False):
         if centered:
             self.add_next_text_centred()
 
         self.add(self._CODE_TEXT.format(
                 x=x_pos,
                 y=y_pos,
-                font=font,
+                font=self._get_font(font_size),
                 text=text,
             ))
 
     def add_title(self, **kwargs):
-        self.add_text(font=self.fonts[self.FONT_TITLE], **kwargs)
+        self.add_text(font_size=7, **kwargs)
 
     def add_large_text(self, **kwargs):
-        self.add_text(font=self.fonts[self.FONT_LARGE], **kwargs)
+        self.add_text(font_size=6, **kwargs)
 
     def add_medium_text(self, **kwargs):
-        self.add_text(font=self.fonts[self.FONT_MEDIUM], **kwargs)
+        self.add_text(font_size=5, **kwargs)
 
     def add_small_text(self, **kwargs):
-        self.add_text(font=self.fonts[self.FONT_SMALL], **kwargs)
+        self.add_text(font_size=4, **kwargs)
 
     def add_barcode(self, barcode, x_pos=0, y_pos=0, line_height=80, line_width=3, centered=False, rotated=False):
         if centered:
@@ -162,7 +169,7 @@ class Label:
                 ),
             x_pos=0,
             y_pos=self.height - 25,
-            font=self.fonts[self.FONT_SMALL],
+            font_size=4,
             centered=True,
         )
 
@@ -282,11 +289,11 @@ class BagLargeLabel(LargeLabel):
         warnings=[],
         subset='',
         sidebar='',
-        str_date='Date',
-        str_time_sample_taken='Time Sample Taken',
-        str_emergency_consent='Emergency Consent',
-        str_full_consent='Full Consent',
-        str_full_consent_b='',
+        form_date_text=None,
+        form_time_text=None,
+        form_emergency_text=None,
+        form_consent_a_text=None,
+        form_consent_b_text=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -304,7 +311,7 @@ class BagLargeLabel(LargeLabel):
             y += _LINE_HEIGHT
 
         for l in lines:
-            self.add_medium_text(text=l, x_pos=_POS_BAG_LEFT_COL, y_pos=y)
+            self.add_large_text(text=l, x_pos=0, y_pos=y, centered=True)
             y += _LINE_HEIGHT
 
         if lines:
@@ -317,12 +324,12 @@ class BagLargeLabel(LargeLabel):
 
         self.add(
             self._CODE_FORM.format(
-                str_date=str_date,
-                str_time_sample_taken=str_time_sample_taken,
-                str_emergency_consent=str_emergency_consent,
-                str_full_consent=str_full_consent,
-                str_full_consent_b=str_full_consent_b,
-                font=self.fonts[self.FONT_MEDIUM],
+                str_date=form_date_text or 'Date',
+                str_time_sample_taken=form_time_text or 'Time Sample Taken',
+                str_emergency_consent=form_emergency_text or 'Emergency Consent',
+                str_full_consent=form_consent_a_text or 'Full Consent',
+                str_full_consent_b=form_consent_b_text or '',
+                font=self._get_font(5),
             )
         )
 
@@ -418,7 +425,7 @@ class MedicalNotesStandardLabel(LargeLabel):
         self.add_medium_text(text=f'IRAS ID: {iras_id}', x_pos=_POS_BAG_LEFT_COL, y_pos=y)
 
         self.add(
-            self._CODE_FORM.format(font=self.fonts[self.FONT_MEDIUM])
+            self._CODE_FORM.format(font=self._get_font(5))
         )
     
         self.add_version(version)
@@ -460,11 +467,11 @@ class LabelPrinterSet(db.Model):
         return self.name
 
 
-class LabelBatch(db.Model):
+class LabelBundle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     study_id = db.Column(db.Integer, db.ForeignKey(Study.id))
-    study = db.relationship(Study, backref=db.backref("label_batches"))
+    study = db.relationship(Study, backref=db.backref("label_bundles"))
     participant_id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
     participant_id_provider = db.relationship(IdProvider, foreign_keys=[participant_id_provider_id])
     label_printer_set_id = db.Column(db.Integer, db.ForeignKey(LabelPrinterSet.id))
@@ -480,7 +487,7 @@ class LabelBatch(db.Model):
         labels = []
 
         for _ in range(count):
-            labels.extend(self.get_label_batch())
+            labels.extend(self.get_label_bundle())
 
         return labels
 
@@ -503,7 +510,7 @@ class LabelBatch(db.Model):
 
         return result
 
-    def get_label_batch(self):
+    def get_label_bundle(self):
         labels = []
 
         participant_id = self._get_participant_id()
@@ -521,7 +528,7 @@ class LabelBatch(db.Model):
             labels.extend(self.medical_notes_label.get_labels(participant_id))
         
         if self.participant_label_count > 0:
-            labels.append(BarcodeLabel(participant_id, label_printer_set=self.label_printer_set, count=self.participant_label_count))
+            labels.append(BarcodeLabel(participant_id, label_printer_set=self.label_printer_set, duplicates=self.participant_label_count))
 
         return labels
 
@@ -529,20 +536,26 @@ class LabelBatch(db.Model):
 class SampleBagLabel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     version_num = db.Column(db.Integer, nullable=False)
-    label_batch_id = db.Column(db.Integer, db.ForeignKey(LabelBatch.id))
-    label_batch = db.relationship(LabelBatch, backref=db.backref("bags"))
+    label_bundle_id = db.Column(db.Integer, db.ForeignKey(LabelBundle.id))
+    label_bundle = db.relationship(LabelBundle, backref=db.backref("bags"))
     title = db.Column(db.String(100), nullable=False)
-    visit = db.Column(db.String(100), nullable=False)
-    subheaders = db.Column(db.Text, nullable=False)
-    warnings = db.Column(db.Text, nullable=False)
-    small_format = db.Column(db.Boolean, nullable=False)
+    visit = db.Column(db.String(100), nullable=False, default='')
+    subheaders = db.Column(db.Text, nullable=False, default='')
+    warnings = db.Column(db.Text, nullable=False, default='')
+    small_format = db.Column(db.Boolean, nullable=False, default=False)
+    form_date_text = db.Column(db.String(100), nullable=False, default='')
+    form_time_text = db.Column(db.String(100), nullable=False, default='')
+    form_emergency_text = db.Column(db.String(100), nullable=False, default='')
+    form_consent_a_text = db.Column(db.String(100), nullable=False, default='')
+    form_consent_b_text = db.Column(db.String(100), nullable=False, default='')
+    font_differential = db.Column(db.Integer, nullable=False, default=0)
 
     __mapper_args__ = {
         "version_id_col": version_num,
     }
 
     def _label_printer_set(self):
-        return self.label_batch.label_printer_set
+        return self.label_bundle.label_printer_set
 
     def get_labels(self, participant_id):
         labels = []
@@ -554,11 +567,18 @@ class SampleBagLabel(db.Model):
                 title=self.title,
                 participant_id=participant_id,
                 subset=self.visit,
-                sidebar=self.label_batch.study.name,
+                sidebar=self.label_bundle.study.name,
+                lines=[f'{s.count} x {s.name}' for s in self.samples if s.print_on_bag],
                 version=self.version_num,
                 subheaders=self.subheaders.splitlines(),
                 warnings=self.warnings.splitlines(),
                 label_printer_set=self._label_printer_set(),
+                font_differential=self.font_differential,
+                form_date_text=self.form_date_text,
+                form_time_text=self.form_time_text,
+                form_emergency_text=self.form_emergency_text,
+                form_consent_a_text=self.form_consent_a_text,
+                form_consent_b_text=self.form_consent_b_text,
             ))
 
         for s in self.samples:
@@ -570,8 +590,8 @@ class SampleBagLabel(db.Model):
 class MedicalNotesLabel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     version_num = db.Column(db.Integer, nullable=False)
-    label_batch_id = db.Column(db.Integer, db.ForeignKey(LabelBatch.id))
-    label_batch = db.relationship(LabelBatch, backref=db.backref("medical_notes_label", uselist=False))
+    label_bundle_id = db.Column(db.Integer, db.ForeignKey(LabelBundle.id))
+    label_bundle = db.relationship(LabelBundle, backref=db.backref("medical_notes_label", uselist=False))
     study_name_line_1 = db.Column(db.String(100), nullable=False)
     study_name_line_2 = db.Column(db.String(100), nullable=False)
     chief_investigator = db.Column(db.String(100), nullable=False)
@@ -584,7 +604,7 @@ class MedicalNotesLabel(db.Model):
     }
 
     def _label_printer_set(self):
-        return self.label_batch.label_printer_set
+        return self.label_bundle.label_printer_set
 
     def get_labels(self, participant_id):
         return [MedicalNotesStandardLabel(
@@ -608,6 +628,8 @@ class SampleLabel(db.Model):
     id_provider = db.relationship(IdProvider, foreign_keys=[id_provider_id])
     name = db.Column(db.String(100), nullable=False)
     count = db.Column(db.Integer, nullable=False, default=1)
+    duplicates = db.Column(db.Integer, nullable=False, default=1)
+    print_on_bag = db.Column(db.Boolean, nullable=False, default=False)
 
     def _label_printer_set(self):
         return self.sample_bag_label._label_printer_set()
@@ -620,6 +642,7 @@ class SampleLabel(db.Model):
                 barcode=self.id_provider.allocate_id().barcode,
                 title=self.name,
                 label_printer_set=self._label_printer_set(),
+                duplicates=self.duplicates,
             ))
 
         return labels
@@ -627,13 +650,13 @@ class SampleLabel(db.Model):
 
 class AliquotBatch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    label_batch_id = db.Column(db.Integer, db.ForeignKey(LabelBatch.id))
-    label_batch = db.relationship(LabelBatch, backref=db.backref("aliquot_batches"))
+    label_bundle_id = db.Column(db.Integer, db.ForeignKey(LabelBundle.id))
+    label_bundle = db.relationship(LabelBundle, backref=db.backref("aliquot_batches"))
     id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
     id_provider = db.relationship(IdProvider, foreign_keys=[id_provider_id])
 
     def _label_printer_set(self):
-        return self.label_batch.label_printer_set
+        return self.label_bundle.label_printer_set
 
     def get_labels(self):
         labels = []

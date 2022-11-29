@@ -1,6 +1,6 @@
 {% macro study_label_list(study, referrer) %}
 
-    {% for l in study.label_batches | sort(attribute='name') %}
+    {% for l in study.label_bundles | sort(attribute='name') %}
         <div class="card-button-list">
             <div class="btn-group">
                 <a class="btn btn-primary lock_screen" href="{{ url_for('ui.label_batch_print', referrer=referrer, study_id=study.id, label_batch_id=l.id, count=1) }}">{{ l.name}}</a>

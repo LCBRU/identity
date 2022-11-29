@@ -6,7 +6,7 @@ from sqlalchemy import (
     Integer,
     NVARCHAR,
     ForeignKey,
-    Text,
+    BOOLEAN,
 )
 
 meta = MetaData()
@@ -26,6 +26,8 @@ def upgrade(migrate_engine):
         Column("id_provider_id", Integer, ForeignKey(i.c.id_provider_id), index=True, nullable=False),
         Column("name", NVARCHAR(100), nullable=False),
         Column("count", INTEGER, nullable=False),
+        Column("duplicates", INTEGER, nullable=False),
+        Column("print_on_bag", BOOLEAN, nullable=False),
     )
     t.create()
 

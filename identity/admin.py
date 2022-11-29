@@ -7,7 +7,7 @@ from lbrc_flask.security import Role
 from identity.model import Study
 from identity.api.model import ApiKey
 from lbrc_flask.admin import AdminCustomView, init_admin as flask_init_admin
-from identity.printing import AliquotLabel, AliquotBatch, LabelBatch, LabelPrinter, LabelPrinterSet, MedicalNotesLabel, SampleBagLabel, SampleLabel
+from identity.printing import AliquotLabel, AliquotBatch, LabelBundle, LabelPrinter, LabelPrinterSet, MedicalNotesLabel, SampleBagLabel, SampleLabel
 from flask_admin.model.form import InlineFormAdmin
 
 from identity.printing.model import LabelPack
@@ -114,7 +114,7 @@ class LabelPrinterSetView(AdminCustomView):
     pass
 
 
-class LabelBatchView(AdminCustomView):
+class LabelBundleView(AdminCustomView):
     form_excluded_columns = ['bags', 'aliquot_batches', 'medical_notes_label']
 
 
@@ -142,7 +142,7 @@ def init_admin(app, title):
             SequentialIdProviderView(SequentialIdProvider, db.session, category="ID Providers"),
             LegacyIdProviderView(LegacyIdProvider, db.session, category="ID Providers"),
             LabelPackView(LabelPack, db.session, category="Labels"),
-            LabelBatchView(LabelBatch, db.session, category="Labels"),
+            LabelBundleView(LabelBundle, db.session, category="Labels"),
             SampleBagLabelView(SampleBagLabel, db.session, category="Labels"),
             MedicalNotesLabelView(MedicalNotesLabel, db.session, category="Labels"),
             LabelPrinterView(LabelPrinter, db.session, category="Labels"),
