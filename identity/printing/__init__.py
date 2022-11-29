@@ -462,8 +462,6 @@ class LabelBatch(db.Model):
     study = db.relationship(Study, backref=db.backref("label_batches"))
     participant_id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
     participant_id_provider = db.relationship(IdProvider, foreign_keys=[participant_id_provider_id])
-    sample_id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
-    sample_id_provider = db.relationship(IdProvider, foreign_keys=[sample_id_provider_id])
     aliquot_id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
     aliquot_id_provider = db.relationship(IdProvider, foreign_keys=[aliquot_id_provider_id])
     label_printer_set_id = db.Column(db.Integer, db.ForeignKey(LabelPrinterSet.id))
@@ -515,6 +513,9 @@ class LabelBatch(db.Model):
 
         if self.medical_notes_label:
             labels.extend(self.medical_notes_label.get_labels(participant_id))
+        
+        if self.participant_label_count > 0:
+            labels.append(BarcodeLabel(participant_id, label_printer_set=self.label_printer_set, count=self.participant_label_count))
 
         return labels
 
@@ -606,21 +607,20 @@ class SampleLabel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sample_bag_label_id = db.Column(db.Integer, db.ForeignKey(SampleBagLabel.id))
     sample_bag_label = db.relationship(SampleBagLabel, backref=db.backref("samples"))
+    sample_id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
+    sample_id_provider = db.relationship(IdProvider, foreign_keys=[sample_id_provider_id])
     name = db.Column(db.String(100), nullable=False)
     count = db.Column(db.Integer, nullable=False, default=1)
 
     def _label_printer_set(self):
         return self.sample_bag_label._label_printer_set()
 
-    def _sample_id_provider(self):
-        return self.sample_bag_label.label_batch.sample_id_provider
-
     def get_labels(self):
         labels = []
 
         for _ in range(self.count):
             labels.append(BarcodeLabel(
-                barcode=self._sample_id_provider().allocate_id().barcode,
+                barcode=self.sample_id_provider.allocate_id().barcode,
                 title=self.name,
                 label_printer_set=self._label_printer_set(),
             ))

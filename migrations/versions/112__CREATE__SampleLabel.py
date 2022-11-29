@@ -16,12 +16,14 @@ def upgrade(migrate_engine):
     meta.bind = migrate_engine
 
     l = Table("sample_bag_label", meta, autoload=True)
+    i = Table("id_provider", meta, autoload=True)
 
     t = Table(
         "sample_label",
         meta,
         Column("id", Integer, primary_key=True, nullable=False),
         Column("sample_bag_label_id", Integer, ForeignKey(l.c.id), index=True, nullable=False),
+        Column("sample_id_provider_id", Integer, ForeignKey(i.c.id_provider_id), index=True, nullable=False),
         Column("name", NVARCHAR(100), nullable=False),
         Column("count", INTEGER, nullable=False),
     )

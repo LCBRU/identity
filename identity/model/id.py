@@ -100,14 +100,11 @@ class LegacyIdProvider(IdProvider):
         return result
 
 
-class LegacyId(db.Model):
+class LegacyId(db.Model, AuditMixin):
     id = db.Column(db.Integer, primary_key=True)
     legacy_id_provider_id = db.Column(db.Integer, db.ForeignKey(LegacyIdProvider.id))
     legacy_id_provider = db.relationship(LegacyIdProvider)
     number = db.Column(db.Integer, nullable=False)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
 
     def __repr__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
@@ -131,7 +128,7 @@ class BioresourceIdProvider(IdProvider):
     id = db.Column(db.Integer, primary_key=True)
     id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
 
-    def allocate_id(self, user):
+    def allocate_id(self):
         prospective_id = 0
         found = 1
         tries = 0
@@ -150,7 +147,6 @@ class BioresourceIdProvider(IdProvider):
             bioresource_id_provider=self,
             number=prospective_id,
             check_character=self._get_checkdigit(prospective_id),
-            last_updated_by_user=user,
         )
 
         db.session.add(actual_id)
@@ -185,16 +181,14 @@ class BioresourceIdProvider(IdProvider):
         return result
 
 
-class BioresourceId(db.Model):
+class BioresourceId(db.Model, AuditMixin):
     id = db.Column(db.Integer, primary_key=True)
     bioresource_id_provider_id = db.Column(db.Integer, db.ForeignKey(BioresourceIdProvider.id))
     bioresource_id_provider = db.relationship(BioresourceIdProvider)
     number = db.Column(db.Integer, nullable=False)
     check_character = db.Column(db.String(1), nullable=False)
     legacy_number = db.Column(db.Integer)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
+
 
     def __repr__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
@@ -299,7 +293,7 @@ class PseudoRandomIdProvider(IdProvider):
         return result
 
     
-class PseudoRandomId(db.Model):
+class PseudoRandomId(db.Model, AuditMixin):
     id = db.Column(db.Integer, primary_key=True)
     pseudo_random_id_provider_id = db.Column(db.Integer, db.ForeignKey(PseudoRandomIdProvider.id))
     pseudo_random_id_provider = db.relationship(PseudoRandomIdProvider)
@@ -307,9 +301,6 @@ class PseudoRandomId(db.Model):
     unique_code = db.Column(db.Integer, nullable=False)
     check_character = db.Column(db.String(1), nullable=False)
     full_code = db.Column(db.String(20), nullable=False)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
-    last_updated_by_user = db.relationship(User)
 
     @property
     def barcode(self):
