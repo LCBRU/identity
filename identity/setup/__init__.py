@@ -360,42 +360,42 @@ _label_bundles = [
         'participant_label_count': 0,
         'visits': ['Poland'],
         'bags': [
-            # {
-            #     'title': 'TOREBKA Z SUROWICA I PROBKA EDTA',
-            #     'small_format': False,
-            #     'subheaders':   '* POBIERZ PROBKE NA SUROWICE (PIERWSZA W KOLEJNOSCI)\n'
-            #                     '* UMIESC W TOREBCE\n'
-            #                     '* POBNIERZ PROBKE NA EDTA (PIATA W KOLEJNOSCIE)\n'
-            #                     '* UMIESC W TOREBCE\n'
-            #                     '* NIE UMIESZCZAJ NA LODZIE (TRZYMAJ W TEMPERATURZE POKOJOWEJ)',
-            #     'warnings': 'DOSTARCZ DO LABORATORIUM W PRZECIAGU 90 MINUT',
-            #     'form_date_text': 'DATA',
-            #     'form_time_text': 'GODZINA POBRANIA',
-            #     'form_emergency_text': 'PROBKI',
-            #     'form_consent_a_text': 'OSOBA UZYSKUJA ZGODE',
-            #     'form_consent_b_text': 'NA UDZIAL W BADANIU',
-            #     'samples': [
-            #         {
-            #             'id_prefix': 'BavSa',
-            #             'name': '7.5ml PROBKA NA SUROWICE (BRAZOWA)',
-            #             'count': 1,
-            #             'print_on_bag': True,
-            #         },
-            #         {
-            #             'id_prefix': 'BavSa',
-            #             'name': '2.7ml PROBKA EDTA (FIOLETOWA)',
-            #             'count': 1,
-            #             'print_on_bag': True,
-            #         },
-            #         {
-            #             'id_prefix': 'BavFm',
-            #             'name': '',
-            #             'count': 1,
-            #             'duplicates': 7,
-            #             'print_on_bag': False,
-            #         },
-            #     ],
-            # },
+            {
+                'title': 'TOREBKA Z SUROWICA I PROBKA EDTA',
+                'small_format': False,
+                'subheaders':   '* POBIERZ PROBKE NA SUROWICE (PIERWSZA W KOLEJNOSCI)\n'
+                                '* UMIESC W TOREBCE\n'
+                                '* POBNIERZ PROBKE NA EDTA (PIATA W KOLEJNOSCIE)\n'
+                                '* UMIESC W TOREBCE\n'
+                                '* NIE UMIESZCZAJ NA LODZIE (TRZYMAJ W TEMPERATURZE POKOJOWEJ)',
+                'warnings': 'DOSTARCZ DO LABORATORIUM W PRZECIAGU 90 MINUT',
+                'form_date_text': 'DATA',
+                'form_time_text': 'GODZINA POBRANIA',
+                'form_emergency_text': 'PROBKI',
+                'form_consent_a_text': 'OSOBA UZYSKUJA ZGODE',
+                'form_consent_b_text': 'NA UDZIAL W BADANIU',
+                'samples': [
+                    {
+                        'id_prefix': 'BavSa',
+                        'name': '7.5ml PROBKA NA SUROWICE (BRAZOWA)',
+                        'count': 1,
+                        'print_on_bag': True,
+                    },
+                    {
+                        'id_prefix': 'BavSa',
+                        'name': '2.7ml PROBKA EDTA (FIOLETOWA)',
+                        'count': 1,
+                        'print_on_bag': True,
+                    },
+                    {
+                        'id_prefix': 'BavFm',
+                        'name': '',
+                        'count': 1,
+                        'duplicates': 7,
+                        'print_on_bag': False,
+                    },
+                ],
+            },
             {
                 'title': 'TOREBKA Z PROBKAMI EDTA I CYTRYNIANEM',
                 'small_format': False,
