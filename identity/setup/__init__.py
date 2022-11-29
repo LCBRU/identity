@@ -181,52 +181,52 @@ def _create_printer_sets():
 
 
 _label_batches = [
-#     {
-#         'name': 'Alleviate',
-#         'study':  StudyName.ALLEVIATE,
-#         'participant_id_prefix': 'AllPt',
-#         'sample_id_prefix': 'AllPt',
-#         'aliquot_id_prefix': '',
-#         'printer_set_name': 'CV TMF',
-#         'disable_batch_printing': False,
-#         'print_recruited_notice': False,
-#         'participant_label_count': 35,
-#         'visits': ['Baseline', '12 Weeks'],
-#         'bags': [
-#             {
-#                 'title': 'ALLEVIATE (room temp)',
-#                 'small_format': False,
-#                 'subheaders': '',
-#                 'warnings': 'Transfer to lab within 90 minutes',
-#                 'samples': [
-#                     {
-#                         'name': '4.9ml Serum (brown)',
-#                         'count': 1,
-#                     },
-#                     {
-#                         'name': '2.7ml EDTA (purple)',
-#                         'count': 1,
-#                     },
-#                 ],
-#             },
-#             {
-#                 'title': 'ALLEVIATE (on ice)',
-#                 'small_format': False,
-#                 'subheaders': '',
-#                 'warnings': 'Put on ice\nTransfer to lab within 90 minutes',
-#                 'samples': [
-#                     {
-#                         'name': '4.9ml Litium Hep. (orange)',
-#                         'count': 2,
-#                     },
-#                     {
-#                         'name': '4.9ml EDTA (pink)',
-#                         'count': 1,
-#                     },
-#                 ],
-#             },
-#         ],
-#     },
+    # {
+    #     'name': 'Alleviate',
+    #     'study':  StudyName.ALLEVIATE,
+    #     'participant_id_prefix': 'AllPt',
+    #     'sample_id_prefix': 'AllPt',
+    #     'aliquot_id_prefix': '',
+    #     'printer_set_name': 'CV TMF',
+    #     'disable_batch_printing': False,
+    #     'print_recruited_notice': False,
+    #     'participant_label_count': 35,
+    #     'visits': ['Baseline', '12 Weeks'],
+    #     'bags': [
+    #         {
+    #             'title': 'ALLEVIATE (room temp)',
+    #             'small_format': False,
+    #             'subheaders': '',
+    #             'warnings': 'Transfer to lab within 90 minutes',
+    #             'samples': [
+    #                 {
+    #                     'name': '4.9ml Serum (brown)',
+    #                     'count': 1,
+    #                 },
+    #                 {
+    #                     'name': '2.7ml EDTA (purple)',
+    #                     'count': 1,
+    #                 },
+    #             ],
+    #         },
+    #         {
+    #             'title': 'ALLEVIATE (on ice)',
+    #             'small_format': False,
+    #             'subheaders': '',
+    #             'warnings': 'Put on ice\nTransfer to lab within 90 minutes',
+    #             'samples': [
+    #                 {
+    #                     'name': '4.9ml Litium Hep. (orange)',
+    #                     'count': 2,
+    #                 },
+    #                 {
+    #                     'name': '4.9ml EDTA (pink)',
+    #                     'count': 1,
+    #                 },
+    #             ],
+    #         },
+    #     ],
+    # },
     # {
     #     'name': 'Bioresource Pack',
     #     'study':  StudyName.Bioresource,

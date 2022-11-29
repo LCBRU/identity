@@ -15,13 +15,13 @@ meta = MetaData()
 def upgrade(migrate_engine):
     meta.bind = migrate_engine
 
-    l = Table("sample_bag_label", meta, autoload=True)
+    b = Table("aliquot_batch", meta, autoload=True)
 
     t = Table(
         "aliquot_label",
         meta,
         Column("id", Integer, primary_key=True, nullable=False),
-        Column("sample_bag_label_id", Integer, ForeignKey(l.c.id), index=True, nullable=False),
+        Column("aliquot_batch_id", Integer, ForeignKey(b.c.id), index=True, nullable=False),
         Column("prefix", NVARCHAR(100), nullable=False),
         Column("count", INTEGER, nullable=False),
     )

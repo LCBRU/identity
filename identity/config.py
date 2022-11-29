@@ -5,6 +5,7 @@ from lbrc_flask.config import BaseConfig, BaseTestConfig
 class IdentityConfig():
     IMPORT_OLD_IDS = os.getenv("IMPORT_OLD_IDS", "True") == 'True'
 
+    PRINTER_DEV = os.environ["PRINTER_DEV"]
     PRINTER_CVRC_LAB_SAMPLE = os.environ["PRINTER_CVRC_LAB_SAMPLE"]
     PRINTER_BRU_CRF_SAMPLE = os.environ["PRINTER_BRU_CRF_SAMPLE"]
     PRINTER_BRU_CRF_BAG = os.environ["PRINTER_BRU_CRF_BAG"]

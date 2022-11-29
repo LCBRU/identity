@@ -433,12 +433,17 @@ class LabelPrinter(db.Model):
         return self.name
 
     def print_label(self, printer_code):
+        if self.hostname_or_ip_address in current_app.config:
+            host = current_app.config[self.hostname_or_ip_address]
+        else:
+            host = self.hostname_or_ip_address
+
         if current_app.config['TESTING']:
             #current_app.logger.info(f'Fake print of {printer_code} to host {host}')
             current_app.logger.info(f'.')
         else:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect((self.hostname_or_ip_address, 9100))
+                s.connect((host, 9100))
                 s.sendall(printer_code.encode('ascii'))
             time.sleep(0.1)
 
@@ -462,8 +467,6 @@ class LabelBatch(db.Model):
     study = db.relationship(Study, backref=db.backref("label_batches"))
     participant_id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
     participant_id_provider = db.relationship(IdProvider, foreign_keys=[participant_id_provider_id])
-    aliquot_id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
-    aliquot_id_provider = db.relationship(IdProvider, foreign_keys=[aliquot_id_provider_id])
     label_printer_set_id = db.Column(db.Integer, db.ForeignKey(LabelPrinterSet.id))
     label_printer_set = db.relationship(LabelPrinterSet)
     disable_batch_printing = db.Column(db.Boolean)
@@ -507,6 +510,9 @@ class LabelBatch(db.Model):
 
         for bs in self.bags:
             labels.extend(bs.get_labels(participant_id))
+        
+        for ab in self.aliquot_batches:
+            labels.extend(ab.get_labels())
 
         if self.print_recruited_notice:
             labels.append(RecruitedNoticeLabel(study_name=self.study.name, label_printer_set=self.label_printer_set))
@@ -538,9 +544,6 @@ class SampleBagLabel(db.Model):
     def _label_printer_set(self):
         return self.label_batch.label_printer_set
 
-    def _aliquot_id_provider(self):
-        return self.label_batch.aliquot_id_provider
-
     def get_labels(self, participant_id):
         labels = []
 
@@ -561,12 +564,6 @@ class SampleBagLabel(db.Model):
         for s in self.samples:
             labels.extend(s.get_labels())
         
-        if len(self.aliquots) > 0:
-            aliquot_id = self._aliquot_id_provider().allocate_id().id
-
-            for a in self.aliquots:
-                labels.extend(a.get_labels(aliquot_id))
-            
         return labels
 
 
@@ -607,8 +604,8 @@ class SampleLabel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sample_bag_label_id = db.Column(db.Integer, db.ForeignKey(SampleBagLabel.id))
     sample_bag_label = db.relationship(SampleBagLabel, backref=db.backref("samples"))
-    sample_id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
-    sample_id_provider = db.relationship(IdProvider, foreign_keys=[sample_id_provider_id])
+    id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
+    id_provider = db.relationship(IdProvider, foreign_keys=[id_provider_id])
     name = db.Column(db.String(100), nullable=False)
     count = db.Column(db.Integer, nullable=False, default=1)
 
@@ -620,7 +617,7 @@ class SampleLabel(db.Model):
 
         for _ in range(self.count):
             labels.append(BarcodeLabel(
-                barcode=self.sample_id_provider.allocate_id().barcode,
+                barcode=self.id_provider.allocate_id().barcode,
                 title=self.name,
                 label_printer_set=self._label_printer_set(),
             ))
@@ -628,15 +625,37 @@ class SampleLabel(db.Model):
         return labels
 
 
+class AliquotBatch(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    label_batch_id = db.Column(db.Integer, db.ForeignKey(LabelBatch.id))
+    label_batch = db.relationship(LabelBatch, backref=db.backref("aliquot_batches"))
+    id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
+    id_provider = db.relationship(IdProvider, foreign_keys=[id_provider_id])
+
+    def _label_printer_set(self):
+        return self.label_batch.label_printer_set
+
+    def get_labels(self):
+        labels = []
+
+        if len(self.aliquots) > 0:
+            aliquot_id = self.id_provider.allocate_id().id
+
+            for a in self.aliquots:
+                labels.extend(a.get_labels(aliquot_id))
+            
+        return labels
+
+
 class AliquotLabel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    sample_bag_label_id = db.Column(db.Integer, db.ForeignKey(SampleBagLabel.id))
-    sample_bag_label = db.relationship(SampleBagLabel, backref=db.backref("aliquots"))
+    aliquot_batch_id = db.Column(db.Integer, db.ForeignKey(AliquotBatch.id))
+    aliquot_batch = db.relationship(AliquotBatch, backref=db.backref("aliquots"))
     prefix = db.Column(db.String(10), nullable=False)
     count = db.Column(db.Integer, nullable=False, default=1)
 
     def _label_printer_set(self):
-        return self.sample_bag_label._label_printer_set()
+        return self.aliquot_batch._label_printer_set()
 
     def get_labels(self, aliquot_id):
         labels = []
