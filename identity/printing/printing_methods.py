@@ -90,6 +90,9 @@ _CODE_END = '^XZ'
 
 
 def print_label(host, printer_code, port=9100):
+    print("*" * 100)
+    print(current_app.config[host])
+    print("*" * 100)
     if current_app.config['TESTING']:
         #current_app.logger.info(f'Fake print of {printer_code} to host {host}')
         current_app.logger.info(f'.')

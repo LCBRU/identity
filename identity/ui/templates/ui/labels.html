@@ -1,5 +1,6 @@
 {% extends "ui/page.html" %}
 {% import "ui/study_labels.html" as study_labels %}
+{% import "ui/study_label_bundles.html" as study_label_bundles %}
 
 {% block content %}
 <div class="subsections">
@@ -12,7 +13,7 @@
                 <h3>{{ s.name }}</h3>
                 <hr>
 
-                {{ study_labels.study_label_list(s, 'labels') }}
+                {{ study_label_bundles.study_label_list(s, 'labels') }}
 
             </section>
 

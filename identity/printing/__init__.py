@@ -24,6 +24,7 @@ from .predict import *
 from .preeclampsia import *
 from .scad import *
 from .spiral import *
+from itertools import zip_longest
 
 
 def init_printing(app):
@@ -106,8 +107,8 @@ class Label:
     def add(self, code):
         self.instructions.append(code)
 
-    def add_next_text_centred(self):
-        self.add(self._CODE_NEXT_TEXT_CENTRED.format(width=self.width))
+    def add_next_text_centred(self, width=None):
+        self.add(self._CODE_NEXT_TEXT_CENTRED.format(width=(width or self.width)))
 
     def add_text(self, text, x_pos, y_pos, font_size, centered=False):
         if centered:
@@ -257,7 +258,7 @@ class LargeLabel(Label):
         self.print_on_printer(self.label_printer_set.bag_printer)
 
     def add_sidebar(self, text):
-        self.add_next_text_centred()
+        self.add_next_text_centred(width=self.height)
         self.add(self._CODE_SIDE_BAR.format(side_bar=text))
 
 
@@ -304,7 +305,10 @@ class BagLargeLabel(LargeLabel):
         y = _POS_CONTENT_TOP
 
         for sh in subheaders:
-            self.add_large_text(text=sh, x_pos=0, y_pos=y, centered=True)
+            if sh.startswith('* '):
+                self.add_large_text(text=sh, x_pos=_POS_BAG_LEFT_COL, y_pos=y, centered=False)
+            else:
+                self.add_large_text(text=sh, x_pos=0, y_pos=y, centered=True)
             y += _LINE_HEIGHT
 
         if subheaders:
@@ -478,7 +482,9 @@ class LabelBundle(db.Model):
     label_printer_set = db.relationship(LabelPrinterSet)
     disable_batch_printing = db.Column(db.Boolean)
     print_recruited_notice = db.Column(db.Boolean)
+    user_defined_participant_id = db.Column(db.Boolean)
     participant_label_count = db.Column(db.Integer)
+    sidebar_prefix = db.Column(db.String(50))
 
     def __repr__(self):
         return f'{self.study.name}: {self.name}'
@@ -491,24 +497,17 @@ class LabelBundle(db.Model):
 
         return labels
 
+    def study_name(self):
+        return f'{self.sidebar_prefix} {self.study.name}'.strip()
+
+    def set_participant_id(self, participant_id):
+        self._set_participant_id = participant_id
+
     def _get_participant_id(self):
-        result = self.participant_id_provider.allocate_id().barcode
-    
-        pit = ParticipantIdentifierType.get_study_participant_id()
-
-        pi = ParticipantIdentifier.query.filter_by(
-            participant_identifier_type_id=pit.id,
-            identifier=result,
-        ).one_or_none()
-
-        if pi is None:
-            db.session.add(ParticipantIdentifier(
-                participant_identifier_type_id=pit.id,
-                identifier=result,
-                last_updated_by_user_id=current_user.id,
-            ))
-
-        return result
+        if getattr(self, '_set_participant_id', None):
+            return self._set_participant_id
+        else:
+            return self.participant_id_provider.allocate_id().barcode
 
     def get_label_bundle(self):
         labels = []
@@ -522,7 +521,7 @@ class LabelBundle(db.Model):
             labels.extend(ab.get_labels())
 
         if self.print_recruited_notice:
-            labels.append(RecruitedNoticeLabel(study_name=self.study.name, label_printer_set=self.label_printer_set))
+            labels.append(RecruitedNoticeLabel(study_name=self.study_name(), label_printer_set=self.label_printer_set))
 
         if self.medical_notes_label:
             labels.extend(self.medical_notes_label.get_labels(participant_id))
@@ -543,6 +542,7 @@ class SampleBagLabel(db.Model):
     subheaders = db.Column(db.Text, nullable=False, default='')
     warnings = db.Column(db.Text, nullable=False, default='')
     small_format = db.Column(db.Boolean, nullable=False, default=False)
+    do_not_print_bag = db.Column(db.Boolean, nullable=False, default=False)
     form_date_text = db.Column(db.String(100), nullable=False, default='')
     form_time_text = db.Column(db.String(100), nullable=False, default='')
     form_emergency_text = db.Column(db.String(100), nullable=False, default='')
@@ -560,29 +560,30 @@ class SampleBagLabel(db.Model):
     def get_labels(self, participant_id):
         labels = []
 
-        if self.small_format:
-            labels.append(BagSmallLabel(title=self.title, label_printer_set=self._label_printer_set()))
-        else:
-            labels.append(BagLargeLabel(
-                title=self.title,
-                participant_id=participant_id,
-                subset=self.visit,
-                sidebar=self.label_bundle.study.name,
-                lines=[f'{s.count} x {s.name}' for s in self.samples if s.print_on_bag],
-                version=self.version_num,
-                subheaders=self.subheaders.splitlines(),
-                warnings=self.warnings.splitlines(),
-                label_printer_set=self._label_printer_set(),
-                font_differential=self.font_differential,
-                form_date_text=self.form_date_text,
-                form_time_text=self.form_time_text,
-                form_emergency_text=self.form_emergency_text,
-                form_consent_a_text=self.form_consent_a_text,
-                form_consent_b_text=self.form_consent_b_text,
-            ))
+        if not self.do_not_print_bag:
+            if self.small_format:
+                labels.append(BagSmallLabel(title=self.title, label_printer_set=self._label_printer_set()))
+            else:
+                labels.append(BagLargeLabel(
+                    title=self.title,
+                    participant_id=participant_id,
+                    subset=self.visit,
+                    sidebar=self.label_bundle.study_name(),
+                    lines=[f'{s.count} x {s.name}' for s in self.samples if s.print_on_bag],
+                    version=self.version_num,
+                    subheaders=self.subheaders.splitlines(),
+                    warnings=self.warnings.splitlines(),
+                    label_printer_set=self._label_printer_set(),
+                    font_differential=self.font_differential,
+                    form_date_text=self.form_date_text,
+                    form_time_text=self.form_time_text,
+                    form_emergency_text=self.form_emergency_text,
+                    form_consent_a_text=self.form_consent_a_text,
+                    form_consent_b_text=self.form_consent_b_text,
+                ))
 
         for s in self.samples:
-            labels.extend(s.get_labels())
+            labels.extend(s.get_labels(self.visit))
         
         return labels
 
@@ -629,21 +630,35 @@ class SampleLabel(db.Model):
     name = db.Column(db.String(100), nullable=False)
     count = db.Column(db.Integer, nullable=False, default=1)
     duplicates = db.Column(db.Integer, nullable=False, default=1)
+    duplicate_names = db.Column(db.Text, nullable=True)
     print_on_bag = db.Column(db.Boolean, nullable=False, default=False)
 
     def _label_printer_set(self):
         return self.sample_bag_label._label_printer_set()
 
-    def get_labels(self):
+    def _duplicate_names(self):
+        return (self.duplicate_names or '').splitlines()
+
+    def get_labels(self, visit=''):
         labels = []
 
         for _ in range(self.count):
-            labels.append(BarcodeLabel(
-                barcode=self.id_provider.allocate_id().barcode,
-                title=self.name,
-                label_printer_set=self._label_printer_set(),
-                duplicates=self.duplicates,
-            ))
+            title = f'{visit} {self.name}'.strip()
+
+            if self.duplicates > 1 and len(self._duplicate_names()) > 0:
+                for title, dup_name in zip_longest([title] * self.duplicates, self._duplicate_names(), fillvalue=''):
+                    labels.append(BarcodeLabel(
+                        barcode=self.id_provider.allocate_id().barcode,
+                        title=f'{title} {dup_name}'.strip(),
+                        label_printer_set=self._label_printer_set(),
+                    ))
+            else:
+                labels.append(BarcodeLabel(
+                    barcode=self.id_provider.allocate_id().barcode,
+                    title=title,
+                    label_printer_set=self._label_printer_set(),
+                    duplicates=self.duplicates,
+                ))
 
         return labels
 
