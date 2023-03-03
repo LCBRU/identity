@@ -3,6 +3,7 @@ Flask
 Flask-SQLAlchemy
 Flask-WTF
 sqlalchemy-migrate
+sqlalchemy<2.0
 Flask-Login
 Flask-Mail
 bcrypt
