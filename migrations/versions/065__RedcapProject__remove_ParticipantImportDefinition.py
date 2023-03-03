@@ -13,7 +13,7 @@ def upgrade(migrate_engine):
     meta.bind = migrate_engine
 
     t = Table("redcap_project", meta, autoload=True)
-    t.c.participant_import_definition_id.drop()
+    # t.c.participant_import_definition_id.drop()
     t.c.study_id.drop()
 
 
