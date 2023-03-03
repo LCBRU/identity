@@ -1,9 +1,11 @@
 pymysql
 Flask
 Flask-SQLAlchemy
-Flask-WTF
 sqlalchemy-migrate
 sqlalchemy<2.0
+Flask-WTF==1.0.1
+WTForms==3.0.1
+WTForms-Components==0.10.5
 Flask-Login
 Flask-Mail
 bcrypt
