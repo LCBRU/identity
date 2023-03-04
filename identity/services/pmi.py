@@ -56,7 +56,7 @@ def get_pmi_from_nhs_number(nhs_number):
     with pmi_engine() as conn:
         logging.exception('*'*1000)
         logging.exception(list(conn.execute(text("""
-            SELECT name, database_id, create_date  
+            SELECT name
             FROM sys.databases;
             """)).fetchall()))
         logging.exception('*'*1000)
@@ -90,7 +90,7 @@ def get_pmi_from_uhl_system_number(uhl_system_number):
 
         logging.exception('*'*1000)
         logging.exception(list(conn.execute(text("""
-            SELECT name, database_id, create_date  
+            SELECT name  
             FROM sys.databases;
             """)).fetchall()))
         logging.exception('*'*1000)
@@ -125,7 +125,7 @@ def _get_pmi_details_from(id, function):
     with pmi_engine() as conn:
         logging.exception('*'*1000)
         logging.exception(list(conn.execute(text("""
-            SELECT name, database_id, create_date  
+            SELECT name  
             FROM sys.databases;
             """)).fetchall()))
         logging.exception('*'*1000)
