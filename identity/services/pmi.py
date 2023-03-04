@@ -84,6 +84,8 @@ def get_pmi_from_uhl_system_number(uhl_system_number):
             SELECT name, database_id, create_date  
             FROM sys.databases;
             """)).fetchall()))
+        
+        print('*'*1000)
 
         pmi_records = conn.execute(text("""
             SELECT
