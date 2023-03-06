@@ -64,7 +64,7 @@ def get_pmi_from_nhs_number(nhs_number):
         system_numbers = conn.execute(text("""
             SELECT
                 main_pat_id as uhl_system_number
-            FROM PMIS_LIVE.dbo.UHL_PMI_QUERY_BY_NHS_NUMBER(:id)
+            FROM dbo.UHL_PMI_QUERY_BY_NHS_NUMBER(:id)
             """), id=nhs_number).fetchall()
 
         pmi_records = {}
@@ -105,7 +105,7 @@ def get_pmi_from_uhl_system_number(uhl_system_number):
                 dob as date_of_birth,
                 date_of_death,
                 postcode
-            FROM PMIS_LIVE.dbo.UHL_PMI_QUERY_BY_ID(:id)
+            FROM dbo.UHL_PMI_QUERY_BY_ID(:id)
             """), id=uhl_system_number).fetchall()
 
 
@@ -140,7 +140,7 @@ def _get_pmi_details_from(id, function):
                 dob as date_of_birth,
                 date_of_death,
                 postcode
-            FROM PMIS_LIVE.dbo.UHL_PMI_QUERY_BY_ID(:id)
+            FROM dbo.UHL_PMI_QUERY_BY_ID(:id)
             """), id=id).fetchall()
 
         if len(pmi_records) > 1:
