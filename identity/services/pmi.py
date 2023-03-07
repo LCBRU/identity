@@ -56,6 +56,10 @@ def get_pmi_from_nhs_number(nhs_number):
     with pmi_engine() as conn:
         logging.exception('*'*1000)
         logging.exception(list(conn.execute(text("""
+            SELECT HOST_NAME(), @@SERVERNAME;
+            """)).fetchall()))
+        logging.exception('*'*1000)
+        logging.exception(list(conn.execute(text("""
             SELECT name
             FROM sys.databases;
             """)).fetchall()))
@@ -88,6 +92,10 @@ def get_pmi_from_uhl_system_number(uhl_system_number):
 
     with pmi_engine() as conn:
 
+        logging.exception('*'*1000)
+        logging.exception(list(conn.execute(text("""
+            SELECT HOST_NAME(), @@SERVERNAME;
+            """)).fetchall()))
         logging.exception('*'*1000)
         logging.exception(list(conn.execute(text("""
             SELECT name  
@@ -123,6 +131,10 @@ def _get_pmi_details_from(id, function):
         return None
 
     with pmi_engine() as conn:
+        logging.exception('*'*1000)
+        logging.exception(list(conn.execute(text("""
+            SELECT HOST_NAME(), @@SERVERNAME;
+            """)).fetchall()))
         logging.exception('*'*1000)
         logging.exception(list(conn.execute(text("""
             SELECT name  
