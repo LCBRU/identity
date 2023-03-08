@@ -3,6 +3,7 @@ import datetime
 import logging
 from sqlalchemy.sql import text
 from identity.database import pmi_engine
+from flask import current_app
 
 
 class PmiData(typing.NamedTuple):
@@ -54,6 +55,8 @@ def get_pmi_from_nhs_number(nhs_number):
         return None
 
     with pmi_engine() as conn:
+        logging.exception('*'*1000)
+        logging.exception(current_app.config['PMI_DB_URI'])
         logging.exception('*'*1000)
         logging.exception(list(conn.execute(text("""
             SELECT HOST_NAME(), @@SERVERNAME;

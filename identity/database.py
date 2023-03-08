@@ -7,6 +7,7 @@ from flask import current_app
 def pmi_engine():
     try:
         current_app.logger.info(f'Starting PMI engine')
+        current_app.logger.warning(current_app.config['PMI_DB_URI'])
         engine = create_engine(
             # f"mssql+pyodbc:///?odbc_connect={con_string}",
             current_app.config['PMI_DB_URI'],
