@@ -1,30 +1,7 @@
-#!/usr/bin/env python3
-
 from identity.model import Study
-from identity.model.id import IdProvider, ParticipantIdentifier, ParticipantIdentifierType
-from .alleviate import *
-from .bioresource import *
-from .brave import *
-from .briccs import *
-from .cae import *
-from .cardiomet import *
-from .cia import *
-from .cmr_vs_ctffr import *
-from .cosmic import *
-from .discordance import *
-from .elastic_as import *
-from .fast import *
-from .go_dcm import *
-from .hic_covid import *
-from .indapamide import *
-from .lenten import *
-from .limb import *
-from .mermaid import *
-from .predict import *
-from .preeclampsia import *
-from .scad import *
-from .spiral import *
+from identity.model.id import IdProvider
 from itertools import zip_longest
+from lbrc_flask.database import db
 
 
 def init_printing(app):

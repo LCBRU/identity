@@ -1,4 +1,3 @@
-from identity.printing.alleviate import AlleviatePack
 from flask import url_for
 from lbrc_flask.database import db
 from lbrc_flask.pytest.helpers import login
