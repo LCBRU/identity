@@ -6,16 +6,16 @@ from lbrc_flask.pytest.asserts import assert__requires_login, assert__redirect
 
 
 def _url(external=True, **kwargs):
-    return url_for('ui.label_print', _external=external, **kwargs)
+    return url_for('ui.label_bundle_print', _external=external, **kwargs)
 
 
 def test__get__requires_login(client, faker):
-    pack = faker.get_test_label_pack()
+    bundle = faker.get_test_label_bundle()
 
     assert__requires_login(client, _url(
         referrer='study',
-        study_id=pack.study_id,
-        pack_name=pack.type,
+        study_id=bundle.study_id,
+        label_bundle_id=bundle.id,
         count=1,
         external=False,
     ))
@@ -33,17 +33,17 @@ def test__get__requires_login(client, faker):
 def test__label_print__no_id_entry__study_redirect(client, faker, pack_count):
     user = login(client, faker)
 
-    pack = faker.get_test_label_pack()
-    user.studies.append(pack.study)
+    bundle = faker.get_test_label_bundle()
+    user.studies.append(bundle.study)
 
     resp = client.get(_url(
         referrer='study',
-        study_id=pack.study_id,
-        pack_name=pack.type,
+        study_id=bundle.study_id,
+        label_bundle_id=bundle.id,
         count=pack_count,
     ))
 
-    assert__redirect(resp, 'ui.study', id=pack.study_id)
+    assert__redirect(resp, 'ui.study', id=bundle.study_id)
 
     # Replace prefix with what the actual prefix will be
     assert PseudoRandomId.query.join(PseudoRandomIdProvider).filter_by(prefix='prefix').count() == pack_count
@@ -61,13 +61,13 @@ def test__label_print__no_id_entry__study_redirect(client, faker, pack_count):
 def test__label_print__no_id_entry__labels_redirect(client, faker, pack_count):
     user = login(client, faker)
 
-    pack = faker.get_test_label_pack()
-    user.studies.append(pack.study)
+    bundle = faker.get_test_label_bundle()
+    user.studies.append(bundle.study)
 
     resp = client.get(_url(
         referrer='labels',
-        study_id=pack.study_id,
-        pack_name=pack.type,
+        study_id=bundle.study_id,
+        label_bundle_id=bundle.id,
         count=pack_count,
     ))
 
@@ -81,22 +81,22 @@ def test__label_print__no_id_entry__labels_redirect(client, faker, pack_count):
 def test__label_print__requires_id_entry(client, faker):
     user = login(client, faker)
 
-    pack = faker.get_test_label_pack()
-    user.studies.append(pack.study)
+    bundle = faker.get_test_label_bundle()
+    user.studies.append(bundle.study)
 
     resp = client.get(_url(
         referrer='study',
-        study_id=pack.study_id,
-        pack_name=pack.type,
+        study_id=bundle.study_id,
+        label_bundle_id=bundle.id,
         count=1,
     ))
 
     assert__redirect(
         resp,
-        'ui.label_print_definition',
+        'ui.label_bundle_definition',
         referrer='study',
-        study_id=pack.study_id,
-        pack_name=pack.type,
+        study_id=bundle.study_id,
+        label_bundle_id=bundle.id,
         count=1,
     )
 
@@ -107,12 +107,12 @@ def test__label_print__requires_id_entry(client, faker):
 def test__label_print__not_a_user_study(client, faker):
     user = login(client, faker)
 
-    pack = faker.get_test_label_pack()
+    bundle = faker.get_test_label_bundle()
 
     resp = client.get(_url(
         referrer='study',
-        study_id=pack.study_id,
-        pack_name=pack.type,
+        study_id=bundle.study_id,
+        label_bundle_id=bundle.id,
         count=1,
     ))
 
