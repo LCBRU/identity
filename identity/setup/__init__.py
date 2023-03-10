@@ -4,7 +4,7 @@ from lbrc_flask.security import get_system_user, get_admin_user
 from flask import current_app
 from lbrc_flask.python_helpers import get_concrete_classes
 from identity.printing import LabelBundle, LabelPrinter, LabelPrinterSet, SampleBagLabel, SampleLabel, AliquotBatch, AliquotLabel, MedicalNotesLabel
-from identity.printing.model import PRINTER_BRU_CRF_BAG, PRINTER_BRU_CRF_SAMPLE, PRINTER_CVRC_LAB_SAMPLE, PRINTER_DEV, PRINTER_LIMB, PRINTER_TMF_BAG, PRINTER_TMF_SAMPLE
+from identity.printing import PRINTER_BRU_CRF_BAG, PRINTER_BRU_CRF_SAMPLE, PRINTER_CVRC_LAB_SAMPLE, PRINTER_DEV, PRINTER_LIMB, PRINTER_TMF_BAG, PRINTER_TMF_SAMPLE
 from identity.model import Study
 from collections import ChainMap
 from itertools import chain
