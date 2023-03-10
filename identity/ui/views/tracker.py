@@ -1,4 +1,3 @@
-from itertools import permutations
 from matplotlib.transforms import Bbox
 from datetime import date
 from operator import or_

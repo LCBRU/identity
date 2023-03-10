@@ -1,13 +1,10 @@
-import time
 import traceback
-from itertools import chain
 from flask import (
     render_template,
     redirect,
     url_for,
     flash,
     current_app,
-    abort,
 )
 from flask_login import current_user
 from identity.printing import LabelBundle
