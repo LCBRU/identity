@@ -103,30 +103,3 @@ def get_pmi_from_uhl_system_number(uhl_system_number):
             pmi_record = pmi_records[0]
 
             return PmiData(**pmi_record)
-
-
-def _get_pmi_details_from(id, function):
-    if not id:
-        return None
-
-    with pmi_engine() as conn:
-        pmi_records = conn.execute(text(f"""
-            SELECT
-                nhs_number,
-                main_pat_id as uhl_system_number,
-                last_name as family_name,
-                first_name as given_name,
-                gender,
-                dob as date_of_birth,
-                date_of_death,
-                postcode
-            FROM dbo.UHL_PMI_QUERY_BY_ID(:id)
-            """), id=id).fetchall()
-
-        if len(pmi_records) > 1:
-            raise Exception(f"More than one participant found with id='{id}' in the UHL PMI")
-
-        if len(pmi_records) == 1 and pmi_records[0]['uhl_system_number'] is not None:
-            pmi_record = pmi_records[0]
-
-            return PmiData(**pmi_record)
