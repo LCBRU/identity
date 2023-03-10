@@ -5,16 +5,16 @@ from tests import lbrc_identity_get
 
 
 def _url(external=True, **kwargs):
-    return url_for('ui.label_print_definition', _external=external, **kwargs)
+    return url_for('ui.label_bundle_definition', _external=external, **kwargs)
 
 
 def test__get__requires_login(client, faker):
-    pack = faker.get_test_label_pack()
+    bundle = faker.get_test_label_bundle()
 
     assert__requires_login(client, _url(
         referrer='study',
-        study_id=pack.study_id,
-        pack_name=pack.type,
+        study_id=bundle.study_id,
+        label_bundle_id=bundle.id,
         count=1,
         external=False,
     ))
@@ -23,12 +23,12 @@ def test__get__requires_login(client, faker):
 def test__label_print_definition__not_a_user_study(client, faker):
     user = login(client, faker)
 
-    pack = faker.get_test_label_pack()
+    bundle = faker.get_test_label_bundle()
 
     resp = client.get(_url(
         referrer='study',
-        study_id=pack.study_id,
-        pack_name=pack.type,
+        study_id=bundle.study_id,
+        label_bundle_id=bundle.id,
         count=1,
     ))
 
@@ -38,13 +38,13 @@ def test__label_print_definition__not_a_user_study(client, faker):
 def test__label_print_definition__get(client, faker):
     user = login(client, faker)
 
-    pack = faker.get_test_label_pack()
-    user.studies.append(pack.study)
+    bundle = faker.get_test_label_bundle()
+    user.studies.append(bundle.study)
 
     resp = lbrc_identity_get(client, _url(
         referrer='study',
-        study_id=pack.study_id,
-        pack_name=pack.type,
+        study_id=bundle.study_id,
+        label_bundle_id=bundle.id,
         count=1,
     ), user)
 
@@ -54,8 +54,8 @@ def test__label_print_definition__get(client, faker):
 def test__label_print_definition__post__study_redirect(client, faker):
     user = login(client, faker)
 
-    pack = faker.get_test_label_pack()
-    user.studies.append(pack.study)
+    bundle = faker.get_test_label_bundle()
+    user.studies.append(bundle.study)
 
     data = {
         'participant_id': 'ABCDEFG'
@@ -64,8 +64,8 @@ def test__label_print_definition__post__study_redirect(client, faker):
     resp = client.post(
         _url(
             referrer='study',
-            study_id=pack.study_id,
-            pack_name=pack.type,
+            study_id=bundle.study_id,
+            label_bundle_id=bundle.id,
             count=1,
         ),
         buffered=True,
@@ -73,14 +73,14 @@ def test__label_print_definition__post__study_redirect(client, faker):
         data=data,
     )
 
-    assert__redirect(resp, 'ui.study', id=pack.study_id)
+    assert__redirect(resp, 'ui.study', id=bundle.study_id)
 
 
 def test__label_print_definition__post__labels_redirect(client, faker):
     user = login(client, faker)
 
-    pack = faker.get_test_label_pack()
-    user.studies.append(pack.study)
+    bundle = faker.get_test_label_bundle()
+    user.studies.append(bundle.study)
 
     data = {
         'participant_id': 'ABCDEFG'
@@ -89,8 +89,8 @@ def test__label_print_definition__post__labels_redirect(client, faker):
     resp = client.post(
         _url(
             referrer='labels',
-            study_id=pack.study_id,
-            pack_name=pack.type,
+            study_id=bundle.study_id,
+            label_bundle_id=bundle.id,
             count=1,
         ),
         buffered=True,
@@ -104,8 +104,8 @@ def test__label_print_definition__post__labels_redirect(client, faker):
 def test__label_print_definition__post__no_id_given(client, faker):
     user = login(client, faker)
 
-    pack = faker.get_test_label_pack()
-    user.studies.append(pack.study)
+    bundle = faker.get_test_label_bundle()
+    user.studies.append(bundle.study)
 
     data = {
         'participant_id': ''
@@ -114,8 +114,8 @@ def test__label_print_definition__post__no_id_given(client, faker):
     resp = client.post(
         _url(
             referrer='labels',
-            study_id=pack.study_id,
-            pack_name=pack.type,
+            study_id=bundle.study_id,
+            label_bundle_id=bundle.id,
             count=1,
         ),
         buffered=True,
