@@ -64,6 +64,8 @@ class TestConfig(BaseTestConfig):
     PRINTING_SET_SLEEP=0
     FILE_UPLOAD_DIRECTORY = '/home/richard/tbd/identity/tests/file_uploads'
     BROKER_URL=os.environ["BROKER_URL"] + '/test'
+    # PMI
+    PMI_DB_URI=os.environ["PMI_DB_URI"]
 
 
 class TestConfigCRSF(TestConfig):

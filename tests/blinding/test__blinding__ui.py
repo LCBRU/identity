@@ -45,6 +45,9 @@ def _assert__blinding(study, resp):
 
 def test_url_requires_login_post(client, faker):
     s = faker.get_test_study()
+    print('*'*100)
+    print(_url(study_id=s.id, external=False))
+    print('*'*100)
     assert__requires_login(client, _url(study_id=s.id, external=False), post=True)
 
 @pytest.mark.parametrize(

@@ -1,3 +1,4 @@
+from identity.printing import LabelBundle
 from identity.printing.model import LabelPack
 from identity.model.id import PseudoRandomIdProvider
 from identity.model.blinding import Blinding, BlindingType
@@ -180,6 +181,29 @@ class IdentityProvider(BaseProvider):
         db.session.commit()
 
         return lp
+
+    def label_bundle_details(self, name=None, study=None):
+        if name is None:
+            name = self.generator.pystr(min_chars=5, max_chars=100)
+
+        result = LabelBundle(name=name)
+
+        if study is None:
+            result.study = self.study_details()
+        elif study.id is None:
+            result.study = study
+        else:
+            result.study_id = study.id
+
+        return result
+
+    def get_test_label_bundle(self, **kwargs):
+        lb = self.label_bundle_details(**kwargs)
+
+        db.session.add(lb)
+        db.session.commit()
+
+        return lb
 
 
 class DemographicsCsvProvider(BaseProvider):

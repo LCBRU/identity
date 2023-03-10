@@ -55,19 +55,6 @@ def get_pmi_from_nhs_number(nhs_number):
         return None
 
     with pmi_engine() as conn:
-        logging.exception('*'*1000)
-        logging.exception(current_app.config['PMI_DB_URI'])
-        logging.exception('*'*1000)
-        logging.exception(list(conn.execute(text("""
-            SELECT HOST_NAME(), @@SERVERNAME;
-            """)).fetchall()))
-        logging.exception('*'*1000)
-        logging.exception(list(conn.execute(text("""
-            SELECT name
-            FROM sys.databases;
-            """)).fetchall()))
-        logging.exception('*'*1000)
-
         system_numbers = conn.execute(text("""
             SELECT
                 main_pat_id as uhl_system_number
@@ -94,17 +81,6 @@ def get_pmi_from_uhl_system_number(uhl_system_number):
         return None
 
     with pmi_engine() as conn:
-
-        logging.exception('*'*1000)
-        logging.exception(list(conn.execute(text("""
-            SELECT HOST_NAME(), @@SERVERNAME;
-            """)).fetchall()))
-        logging.exception('*'*1000)
-        logging.exception(list(conn.execute(text("""
-            SELECT name  
-            FROM sys.databases;
-            """)).fetchall()))
-        logging.exception('*'*1000)
 
         pmi_records = conn.execute(text("""
             SELECT
@@ -134,17 +110,6 @@ def _get_pmi_details_from(id, function):
         return None
 
     with pmi_engine() as conn:
-        logging.exception('*'*1000)
-        logging.exception(list(conn.execute(text("""
-            SELECT HOST_NAME(), @@SERVERNAME;
-            """)).fetchall()))
-        logging.exception('*'*1000)
-        logging.exception(list(conn.execute(text("""
-            SELECT name  
-            FROM sys.databases;
-            """)).fetchall()))
-        logging.exception('*'*1000)
-
         pmi_records = conn.execute(text(f"""
             SELECT
                 nhs_number,

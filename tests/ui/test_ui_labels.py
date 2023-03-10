@@ -25,20 +25,20 @@ def test__one_pack__displays(client, faker):
     user = login(client, faker)
 
     s = faker.get_test_study(owner=user)
-    lp = faker.get_test_label_pack(study=s)
+    lb = faker.get_test_label_bundle(study=s)
     resp = lbrc_identity_get(client, _url(), user)
 
     assert resp.status_code == 200
-    assert resp.soup.find("h3", string=lp.study.name) is not None
+    assert resp.soup.find("h3", string=lb.study.name) is not None
 
-    assert__label_print_buttons(lp, resp)
+    assert__label_print_buttons(lb, resp)
 
-def assert__label_print_buttons(lp, resp):
+def assert__label_print_buttons(lb, resp):
     for i in [1, 5, 10, 50]:
         assert resp.soup.find("a", href=url_for(
-            'ui.label_print',
-            study_id=lp.study_id,
-            pack_name=lp.type,
+            'ui.label_bundle_print',
+            study_id=lb.study_id,
+            label_bundle_id=lb.id,
             count=i,
             referrer='labels',
         )) is not None
@@ -48,17 +48,17 @@ def test__two_packs__displays(client, faker):
     user = login(client, faker)
 
     s = faker.get_test_study(owner=user)
-    lp = faker.get_test_label_pack(study=s)
-    ap = AlleviatePack(study_id=s.id)
-    db.session.add(ap)
+    lb = faker.get_test_label_bundle(study=s)
+    lb2 = faker.get_test_label_bundle(study=s)
+    db.session.add(lb2)
 
     resp = lbrc_identity_get(client, _url(), user)
 
     assert resp.status_code == 200
-    assert resp.soup.find("h3", string=lp.study.name) is not None
+    assert resp.soup.find("h3", string=lb.study.name) is not None
 
-    assert__label_print_buttons(lp, resp)
-    assert__label_print_buttons(ap, resp)
+    assert__label_print_buttons(lb, resp)
+    assert__label_print_buttons(lb2, resp)
 
 
 def test__two_studies__displays(client, faker):
@@ -66,17 +66,17 @@ def test__two_studies__displays(client, faker):
 
     s1 = faker.get_test_study(owner=user)
     s2 = faker.get_test_study(owner=user)
-    lp1 = faker.get_test_label_pack(study=s1)
-    lp2 = faker.get_test_label_pack(study=s2)
+    lb1 = faker.get_test_label_bundle(study=s1)
+    lb2 = faker.get_test_label_bundle(study=s2)
 
     resp = lbrc_identity_get(client, _url(), user)
 
     assert resp.status_code == 200
-    assert resp.soup.find("h3", string=lp1.study.name) is not None
-    assert resp.soup.find("h3", string=lp2.study.name) is not None
+    assert resp.soup.find("h3", string=lb1.study.name) is not None
+    assert resp.soup.find("h3", string=lb2.study.name) is not None
 
-    assert__label_print_buttons(lp1, resp)
-    assert__label_print_buttons(lp2, resp)
+    assert__label_print_buttons(lb1, resp)
+    assert__label_print_buttons(lb2, resp)
 
 
 def test__study_no_packs__doesnt_display(client, faker):
@@ -95,7 +95,7 @@ def test__study_not_owner__doesnt_display(client, faker):
     other_user = faker.get_test_user()
 
     s = faker.get_test_study(owner=other_user)
-    lp = faker.get_test_label_pack(study=s)
+    lb = faker.get_test_label_bundle(study=s)
 
     resp = lbrc_identity_get(client, _url(), user)
 

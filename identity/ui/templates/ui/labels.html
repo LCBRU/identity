@@ -7,7 +7,7 @@
 
     {% for s in studies | sort(attribute='name') %}
 
-        {% if s.label_packs | count > 0 %}
+        {% if s.label_bundles | count > 0 %}
 
             <section>
                 <h3>{{ s.name }}</h3>

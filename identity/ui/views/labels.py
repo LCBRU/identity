@@ -21,7 +21,6 @@ from ..forms import LabelDefinition
 def labels():
     return render_template(
         "ui/labels.html",
-        label_sets=chain.from_iterable(s.label_packs for s in current_user.studies),
         studies=current_user.studies,
     )
 
