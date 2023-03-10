@@ -159,29 +159,6 @@ class IdentityProvider(BaseProvider):
 
         return b
 
-    def label_pack_details(self, type=None, study=None):
-        if type is None:
-            type = 'Pack'
-
-        result = LabelPack(type=type)
-
-        if study is None:
-            result.study = self.study_details()
-        elif study.id is None:
-            result.study = study
-        else:
-            result.study_id = study.id
-
-        return result
-
-    def get_test_label_pack(self, **kwargs):
-        lp = self.label_pack_details(**kwargs)
-
-        db.session.add(lp)
-        db.session.commit()
-
-        return lp
-
     def label_bundle_details(self, name=None, study=None):
         if name is None:
             name = self.generator.pystr(min_chars=5, max_chars=100)
