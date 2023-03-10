@@ -1,5 +1,4 @@
 from identity.printing import LabelBundle
-from identity.printing.model import LabelPack
 from identity.model.id import PseudoRandomIdProvider
 from identity.model.blinding import Blinding, BlindingType
 from identity.model.security import User

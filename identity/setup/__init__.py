@@ -4,7 +4,7 @@ from lbrc_flask.security import get_system_user, get_admin_user
 from flask import current_app
 from lbrc_flask.python_helpers import get_concrete_classes
 from identity.printing import LabelBundle, LabelPrinter, LabelPrinterSet, SampleBagLabel, SampleLabel, AliquotBatch, AliquotLabel, MedicalNotesLabel
-from identity.printing.model import PRINTER_BRU_CRF_BAG, PRINTER_BRU_CRF_SAMPLE, PRINTER_CVRC_LAB_SAMPLE, PRINTER_DEV, PRINTER_LIMB, PRINTER_TMF_BAG, PRINTER_TMF_SAMPLE, LabelPack
+from identity.printing.model import PRINTER_BRU_CRF_BAG, PRINTER_BRU_CRF_SAMPLE, PRINTER_CVRC_LAB_SAMPLE, PRINTER_DEV, PRINTER_LIMB, PRINTER_TMF_BAG, PRINTER_TMF_SAMPLE
 from identity.model import Study
 from collections import ChainMap
 from itertools import chain
@@ -26,7 +26,6 @@ def setup_data():
 
     create_providers(user)
     create_studies(user)
-    create_label_packs(user)
 
     _create_printer_sets()
     _create_label_bundles()
@@ -40,21 +39,6 @@ def _setup_participant_identifier_types(user):
         name=ParticipantIdentifierType.STUDY_PARTICIPANT_ID,
         last_updated_by_user_id=user.id,
     ))
-    db.session.commit()
-
-
-def create_label_packs(user):
-    current_app.logger.info(f'Creating Label Packs')
-
-    for x in get_concrete_classes(LabelPack):
-
-        if LabelPack.query.filter_by(type=x.__class__.__name__).count() == 0:
-            current_app.logger.info(f'Creating {x.name}')
-
-            x.study = Study.query.filter_by(name=x.__study_name__['name']).first()
-
-            db.session.add(x)
-
     db.session.commit()
 
 
