@@ -1,0 +1,22 @@
+Flask
+sqlalchemy
+WTForms==3.0.1
+six
+zeep
+requests
+openpyxl
+celery==4.4.2
+chardet
+Werkzeug
+xlrd
+xlwt
+xlutils
+jsonschema
+matplotlib
+weasyprint<53.0
+Flask-WeasyPrint
+-e git+https://github.com/LCBRU/lbrc_flask.git@main#egg=lbrc_flask
+-e git+https://github.com/LCBRU/lbrc_edge.git@main#egg=lbrc_edge
+flask-security-too[fsqla,common]
+alembic
+pymysql

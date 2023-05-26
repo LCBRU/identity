@@ -636,8 +636,8 @@ class DemographicsRequestColumnDefinition(db.Model):
     postcode_column_id = db.Column(db.Integer, db.ForeignKey(DemographicsRequestColumn.id))
     postcode_column = db.relationship(DemographicsRequestColumn, foreign_keys=[postcode_column_id])
 
-    gender_female_value = db.Column(db.String)
-    gender_male_value = db.Column(db.String)
+    gender_female_value = db.Column(db.String(50))
+    gender_male_value = db.Column(db.String(50))
 
     @property
     def is_valid(self):
@@ -663,13 +663,13 @@ class DemographicsRequestData(db.Model):
     response = db.relationship("DemographicsRequestDataResponse", uselist=False, back_populates="demographics_request_data")
     pmi_data = db.relationship("DemographicsRequestPmiData", uselist=False, back_populates="demographics_request_data")
 
-    nhs_number = db.Column(db.String)
-    uhl_system_number = db.Column(db.String)
-    family_name = db.Column(db.String)
-    given_name = db.Column(db.String)
-    gender = db.Column(db.String)
-    dob = db.Column(db.String)
-    postcode = db.Column(db.String)
+    nhs_number = db.Column(db.String(50))
+    uhl_system_number = db.Column(db.String(50))
+    family_name = db.Column(db.String(100))
+    given_name = db.Column(db.String(100))
+    gender = db.Column(db.String(50))
+    dob = db.Column(db.String(50))
+    postcode = db.Column(db.String(50))
 
     created_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     processed_datetime = db.Column(db.DateTime)
@@ -725,14 +725,14 @@ class DemographicsRequestPmiData(db.Model):
     demographics_request_data_id = db.Column(db.Integer, db.ForeignKey(DemographicsRequestData.id))
     demographics_request_data = db.relationship(DemographicsRequestData, foreign_keys=[demographics_request_data_id], back_populates="pmi_data")
 
-    nhs_number = db.Column(db.String)
-    uhl_system_number = db.Column(db.String)
-    family_name = db.Column(db.String)
-    given_name = db.Column(db.String)
-    gender = db.Column(db.String)
+    nhs_number = db.Column(db.String(50))
+    uhl_system_number = db.Column(db.String(50))
+    family_name = db.Column(db.String(100))
+    given_name = db.Column(db.String(100))
+    gender = db.Column(db.String(50))
     date_of_birth = db.Column(db.Date)
     date_of_death = db.Column(db.Date)
-    postcode = db.Column(db.String)
+    postcode = db.Column(db.String(50))
 
     created_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
@@ -759,10 +759,10 @@ class DemographicsRequestDataMessage(db.Model):
     demographics_request_data_id = db.Column(db.Integer, db.ForeignKey(DemographicsRequestData.id))
     demographics_request_data = db.relationship(DemographicsRequestData, backref=db.backref("messages"))
 
-    type = db.Column(db.String)
-    source = db.Column(db.String)
-    scope = db.Column(db.String)
-    message = db.Column(db.String)
+    type = db.Column(db.String(200))
+    source = db.Column(db.String(200))
+    scope = db.Column(db.String(200))
+    message = db.Column(db.String(1000))
     created_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     @property
@@ -776,15 +776,15 @@ class DemographicsRequestDataResponse(db.Model):
     demographics_request_data = db.relationship(DemographicsRequestData, foreign_keys=[demographics_request_data_id], back_populates="response")
     created_datetime = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    nhs_number = db.Column(db.String)
-    title = db.Column(db.String)
-    forename = db.Column(db.String)
-    middlenames = db.Column(db.String)
-    lastname = db.Column(db.String)
-    sex = db.Column(db.String)
-    postcode = db.Column(db.String)
-    address = db.Column(db.String)
+    nhs_number = db.Column(db.String(50))
+    title = db.Column(db.String(50))
+    forename = db.Column(db.String(100))
+    middlenames = db.Column(db.String(100))
+    lastname = db.Column(db.String(100))
+    sex = db.Column(db.String(50))
+    postcode = db.Column(db.String(50))
+    address = db.Column(db.String(500))
     date_of_birth = db.Column(db.Date)
     date_of_death = db.Column(db.Date)
     is_deceased = db.Column(db.Boolean)
-    current_gp_practice_code = db.Column(db.String)
+    current_gp_practice_code = db.Column(db.String(50))

@@ -9,10 +9,10 @@ class EdgeSiteStudy(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer)
-    iras_number = db.Column(db.String)
-    project_short_title = db.Column(db.String)
-    primary_clinical_management_areas = db.Column(db.String)
-    project_site_status = db.Column(db.String)
+    iras_number = db.Column(db.String(50))
+    project_short_title = db.Column(db.String(200))
+    primary_clinical_management_areas = db.Column(db.String(200))
+    project_site_status = db.Column(db.String(100))
     project_site_rand_submission_date = db.Column(db.Date)
     project_site_start_date_nhs_permission = db.Column(db.Date)
     project_site_date_site_confirmed = db.Column(db.Date)
@@ -20,10 +20,10 @@ class EdgeSiteStudy(db.Model):
     project_site_closed_date = db.Column(db.Date)
     project_site_planned_recruitment_end_date = db.Column(db.Date)
     project_site_actual_recruitment_end_date = db.Column(db.Date)
-    principal_investigator = db.Column(db.String)
+    principal_investigator = db.Column(db.String(200))
     project_site_target_participants = db.Column(db.Integer)
     recruited_org = db.Column(db.Integer)
-    project_site_lead_nurses = db.Column(db.String)
+    project_site_lead_nurses = db.Column(db.String(200))
 
     planned_start_date = db.Column(db.Date)
     planned_end_date = db.Column(db.Date)
@@ -33,11 +33,11 @@ class EdgeSiteStudy(db.Model):
     effective_recruitment_end_date = db.Column(db.Date)
 
     target_end_date = db.Column(db.Date)
-    target_end_date_description = db.Column(db.String)
+    target_end_date_description = db.Column(db.String(500))
     target_requirement_by = db.Column(db.Integer)
 
     current_target_recruited_percent = db.Column(db.Integer)
-    rag_rating = db.Column(db.String)
+    rag_rating = db.Column(db.String(100))
 
     def calculate_values(self):
         self._calculate_effective_recruitment_start_date()
