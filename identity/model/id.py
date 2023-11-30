@@ -254,7 +254,10 @@ class PseudoRandomIdProvider(IdProvider):
     
     def _create_pseudo_id(self, ordinal):
         unique_code = self._create_unique_id(ordinal)
-        formatted_code = "{}{:0>7d}".format(self.prefix, unique_code)
+        if self.shorten_number:
+            formatted_code = "{}{:0>6d}".format(self.prefix, unique_code)
+        else:
+            formatted_code = "{}{:0>7d}".format(self.prefix, unique_code)
         check_character = self._get_checkdigit(formatted_code)
         full_code = formatted_code + check_character
 
