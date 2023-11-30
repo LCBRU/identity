@@ -66,6 +66,7 @@ class PseudoRandomIdProviderView(AdminCustomView):
     column_list = form_columns = [
         "name",
         "prefix",
+        "shorten_number",
     ]
 
 

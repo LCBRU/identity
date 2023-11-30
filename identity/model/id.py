@@ -189,7 +189,6 @@ class BioresourceId(db.Model, AuditMixin):
     check_character = db.Column(db.String(1), nullable=False)
     legacy_number = db.Column(db.Integer)
 
-
     def __repr__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
 
@@ -217,6 +216,7 @@ class PseudoRandomIdProvider(IdProvider):
     id = db.Column(db.Integer, primary_key=True)
     id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
     id_provider = db.relationship(IdProvider)
+    shorten_number = db.Column(db.Boolean, default=False, nullable=True)
 
     def _permuteQPR(self, x):
         if x >= self._PRIME:
