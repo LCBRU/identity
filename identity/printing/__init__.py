@@ -200,8 +200,8 @@ class BarcodeLabel(SmallLabel):
     def __init__(self, barcode, title='', **kwargs):
         super().__init__(**kwargs)
 
-        self.add_small_text(text=title, x_pos=0, y_pos=60)
-        self.add_barcode_large_text(barcode=barcode, x_pos=0, y_pos=203)
+        self.add_small_text(text=title, x_pos=20, y_pos=60)
+        self.add_barcode_large_text(barcode=barcode, x_pos=20, y_pos=203)
 
 
 class RecruitedNoticeLabel(SmallLabel):
