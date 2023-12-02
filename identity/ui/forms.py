@@ -49,8 +49,8 @@ class DemographicsDefineColumnsForm(FlashingForm):
     dob_column_id = SelectField('Date of Birth', coerce=int)
     postcode_column_id = SelectField('Postcode', coerce=int)
 
-    def validate(self):
-        rv = FlashingForm.validate(self)
+    def validate(self, extra_validators=None):
+        rv = FlashingForm.validate(self, extra_validators)
         if not rv:
             return False
 
