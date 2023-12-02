@@ -3,8 +3,8 @@ from flask import (
     redirect,
     url_for,
     flash,
-    Markup,
 )
+from markupsafe import Markup
 from flask_login import current_user
 from .. import blueprint, db
 from identity.model.blinding import Blinding

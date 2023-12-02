@@ -7,10 +7,10 @@ from flask import (
     url_for,
     flash,
     request,
-    Markup,
     abort,
     send_file,
 )
+from markupsafe import Markup
 from flask_login import current_user
 from .. import blueprint, db
 from ..forms import (
