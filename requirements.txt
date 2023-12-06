@@ -189,6 +189,8 @@ pygments==2.17.2
     # via rich
 pymysql==1.1.0
     # via -r requirements.in
+pyodbc==5.0.1
+    # via -r requirements.in
 pyparsing==3.1.1
     # via matplotlib
 pyphen==0.14.0
