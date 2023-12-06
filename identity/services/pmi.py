@@ -59,7 +59,7 @@ def get_pmi_from_nhs_number(nhs_number):
             SELECT
                 main_pat_id as uhl_system_number
             FROM dbo.UHL_PMI_QUERY_BY_NHS_NUMBER(:id)
-            """), id=nhs_number).fetchall()
+            """), {id: nhs_number}).fetchall()
 
         pmi_records = {}
 
@@ -93,7 +93,7 @@ def get_pmi_from_uhl_system_number(uhl_system_number):
                 date_of_death,
                 postcode
             FROM dbo.UHL_PMI_QUERY_BY_ID(:id)
-            """), id=uhl_system_number).fetchall()
+            """), {id: uhl_system_number}).fetchall()
 
 
         if len(pmi_records) > 1:
