@@ -102,4 +102,4 @@ def get_pmi_from_uhl_system_number(uhl_system_number):
         if len(pmi_records) == 1 and pmi_records[0].uhl_system_number is not None:
             pmi_record = pmi_records[0]
 
-            return PmiData(**pmi_record)
+            return PmiData(**pmi_record._mapping)
