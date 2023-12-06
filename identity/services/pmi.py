@@ -64,7 +64,7 @@ def get_pmi_from_nhs_number(nhs_number):
         pmi_records = {}
 
         for s in system_numbers:
-            p = get_pmi_from_uhl_system_number(s['uhl_system_number'])
+            p = get_pmi_from_uhl_system_number(s.uhl_system_number)
 
             if p and p.uhl_system_number is not None:
                 pmi_records[p.uhl_system_number] = p
@@ -99,7 +99,7 @@ def get_pmi_from_uhl_system_number(uhl_system_number):
         if len(pmi_records) > 1:
             raise Exception(f"More than one participant found with id='{uhl_system_number}' in the UHL PMI")
 
-        if len(pmi_records) == 1 and pmi_records[0]['uhl_system_number'] is not None:
+        if len(pmi_records) == 1 and pmi_records[0].uhl_system_number is not None:
             pmi_record = pmi_records[0]
 
             return PmiData(**pmi_record)
