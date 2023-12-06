@@ -12,7 +12,7 @@ def pmi_engine():
             current_app.config['PMI_DB_URI'],
             echo=current_app.config['SQLALCHEMY_ECHO'],
         )
-        yield engine
+        yield engine.connect()
     finally:
         engine.dispose()
         current_app.logger.info(f'Disposing PMI engine')
