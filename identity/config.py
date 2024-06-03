@@ -53,10 +53,13 @@ class IdentityConfig():
 
     SQLALCHEMY_BINDS = {
         'etl_central': os.environ["ETL_CENTRAL_DB_URI"],
+        'civicrm': os.environ["CIVICRM_DB_URI"],
     }
+
 
 class Config(BaseConfig, IdentityConfig):
     pass
+
 
 class TestConfig(BaseTestConfig):
     """Configuration for general testing"""

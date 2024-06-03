@@ -9,8 +9,8 @@ from identity.model.edge import db
 import identity.model.blinding
 import identity.model.edge
 import identity.model.id
-import identity.model.printing
 import identity.model.security
+import identity.model.civicrm
 import identity.api.model
 
 load_dotenv()

@@ -1,0 +1,29 @@
+{% extends "lbrc/page.html" %}
+{% import "lbrc/errors.html" as errors %}
+
+{% block page_content %}
+  <nav class="main_menu">
+    <menu class="container">
+      <a href="{{url_for('ui.index')}}">Home</a>
+      <div>
+        <a>Studies</a>
+        <menu>
+          {% for s in user_studies | sort(attribute='name') %}
+            <a href="{{ url_for('ui.study', id=s.id) }}">{{ s.name }}</a>
+          {% endfor %}
+        </menu>
+      </div>
+      <a href="{{ url_for('ui.demographics') }}">Demographics</a>
+      <div>
+        <a>Tracker</a>
+        <menu>
+          <a href="{{ url_for('ui.study_tracker_rag') }}">RAG Report</a>
+          <a href="{{ url_for('ui.study_tracker_gantt') }}">Gantt Chart</a>
+          <a href="{{ url_for('ui.study_tracker_gantt2') }}">Gantt Chart 2</a>
+        </menu>
+      </div>
+    </menu>
+  </nav>
+
+  {% block menu_page_content %}{% endblock %}
+{% endblock %}
