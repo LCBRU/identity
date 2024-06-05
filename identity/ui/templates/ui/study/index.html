@@ -1,0 +1,105 @@
+{% extends "ui/menu_page.html" %}
+{% import "lbrc_flask/form_macros.html" as formhelper %}
+{% import "ui/study/_label_bundles.html" as study_label_bundles %}
+
+{% block menu_page_content %}
+
+<div class="container with_sidebar">
+    <section>
+        <header>
+            <h2>
+                <span>{{ study.name }}</span>
+                <a title="Edit study details" href="#" hx-get="{{ url_for('ui.study_edit', id=study.id ) }}" hx-target="body" hx-swap="beforeend"><i class="fas fa-edit"></i></a>
+            </h2>
+        </header>
+
+        <dl class="concatenated">
+            {% if edge_site_study %}
+                <dt>EDGE ID</dt>
+                <dd><a href="https://www.edge.nhs.uk/Project/Details/{{ edge_site_study.project_id }}" target='_blank'>{{edge_site_study.project_short_title}}</a></dd>
+                <dt>IRAS Number</dt>
+                <dd>{{ edge_site_study.iras_number | blank_if_none }}</dd>
+            {% endif %}
+            {% if civicrm_study %}
+                <dt>CiviCRM Study</dt>
+                <dd>{{ civicrm_study.name | blank_if_none }}</dd>
+            {% endif %}
+        </dl>
+
+        <p>
+            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quo quae ratione atque amet natus eveniet provident perspiciatis, sint porro harum qui quod laborum, aperiam quisquam rerum ad tempore temporibus sit!
+        </p>
+    </section>
+
+    <aside>
+        {% if redcaps | length > 0 %}
+            <section>
+                <h2>REDCaps</h2>
+                <menu>
+                    {% for rp in redcaps %}
+                        <li><a href='{{ rp.get_link() }}' role="button" target='_blank'>{{ rp.name }}</a></li>
+                    {% endfor %}
+                </menu>
+            </section>
+        {% endif %}
+
+        {% if study.label_bundles | length > 0 %}
+            <section>
+                <h2>Labels</h2>            
+                    {% for l in study.label_bundles | sort(attribute='name') %}
+                        {% set print_url="ui.label_bundle_print" %}
+
+                        {% if l.user_defined_participant_id %}
+                            {% set print_url='ui.label_bundle_definition' %}
+                        {% endif %}
+
+                        <section>
+                            <a class="lock_screen"  href="#" hx-get="{{ url_for(print_url, label_bundle_id=l.id, count=5 ) }}" hx-target="body" hx-swap="beforeend" role="button">{{ l.name }}</a>
+                            {% if not l.disable_batch_printing %}
+                                <div class="link_list">
+                                    <a class="lock_screen"  href="#" hx-get="{{ url_for(print_url, label_bundle_id=l.id, count=5 ) }}" hx-target="body" hx-swap="beforeend">x5</a>
+                                    <a class="lock_screen"  href="#" hx-get="{{ url_for(print_url, label_bundle_id=l.id, count=5 ) }}" hx-target="body" hx-swap="beforeend">x10</a>
+                                    <a class="lock_screen"  href="#" hx-get="{{ url_for(print_url, label_bundle_id=l.id, count=5 ) }}" hx-target="body" hx-swap="beforeend">x50</a>
+                                </div>
+                            {% endif %}
+                        </section>
+                    {% endfor %}
+            </section>
+        {% endif %}
+
+        {% if unblinding_form %}
+            <section>
+                <h2>Blinding</h2>
+                <form id="study_data_upload" action="{{ url_for('ui.blinding', id=study.id) }}" method="POST" enctype="multipart/form-data">
+                    <fieldset>
+                        {{ blinding_form.hidden_tag() }}
+            
+                        {% for f in blinding_form %}
+                            {{ formhelper.render_field(f) }}
+                        {% endfor %}
+            
+                        {{ formhelper.render_button_bar(submit_label='Blind') }}
+                    </fieldset>
+                </form>
+            </section>
+        {% endif %}
+
+        {% if unblinding_form %}
+            <section>
+                <h2>Unblinding</h2>
+                <form id="study_data_upload" action="{{ url_for('ui.unblinding', id=study.id) }}" method="POST" enctype="multipart/form-data">
+                    <fieldset>
+                        {{ unblinding_form.hidden_tag() }}
+            
+                        {% for f in unblinding_form %}
+                            {{ formhelper.render_field(f) }}
+                        {% endfor %}
+            
+                        {{ formhelper.render_button_bar(submit_label='Unblind') }}
+                    </fieldset>
+                </form>
+            </section>
+        {% endif %}
+    </aside>
+</div>
+{% endblock %}

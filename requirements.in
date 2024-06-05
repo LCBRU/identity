@@ -21,3 +21,4 @@ flask-security-too[fsqla,common]
 alembic
 pymysql
 pyodbc
+faker

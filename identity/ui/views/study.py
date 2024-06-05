@@ -6,6 +6,10 @@ from flask import (
 )
 from markupsafe import Markup
 from flask_login import current_user
+from sqlalchemy import select
+
+from identity.model.civicrm import CiviCrmStudy
+from identity.services.civicrm import get_civicrm_study_choices
 from .. import blueprint, db
 from identity.model.blinding import Blinding
 from identity.model import Study
@@ -13,6 +17,22 @@ from identity.model.id import PseudoRandomId
 from ..forms import BlindingForm, UnblindingForm
 from ..decorators import assert_study_user
 from identity.model.edge import EdgeSiteStudy
+from lbrc_flask.forms import FlashingForm
+from lbrc_flask.response import refresh_response
+from wtforms import HiddenField, SelectField, StringField, IntegerField
+from wtforms.validators import Length
+
+
+class EditStudyForm(FlashingForm):
+    id = HiddenField('id')
+    name = StringField('Name', validators=[Length(max=50)])
+    edge_id = IntegerField('EDGE ID')
+    civicrm_study_id = SelectField('CiviCRM Study', choices=[])
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.civicrm_study_id.choices = [('', '')] + get_civicrm_study_choices()
 
 
 @blueprint.route("/study/<int:id>/blinding/", methods=['POST'])
@@ -79,18 +99,50 @@ def study(id, page=1):
     unblinding_form = None
 
     if study.edge_id:
-        ess = EdgeSiteStudy.query.filter(EdgeSiteStudy.project_id == study.edge_id).one_or_none()
+        q = select(EdgeSiteStudy).where(EdgeSiteStudy.project_id == study.edge_id)
+        edge_site_study = db.session.execute(q).scalar_one_or_none()
     else:
-        ess = None
+        edge_site_study = None
+
+    if study.civicrm_study_id:
+        q = select(CiviCrmStudy).where(CiviCrmStudy.id == study.civicrm_study_id)
+        civicrm_study = db.session.execute(q).scalar_one_or_none()
+    else:
+        civicrm_study = None
 
     if study.blinding_types:
         blinding_form = BlindingForm()
         unblinding_form = UnblindingForm()
 
     return render_template(
-        "ui/study.html",
+        "ui/study/index.html",
         study=study,
         blinding_form=blinding_form,
         unblinding_form=unblinding_form,
-        edge_site_study=ess,
+        edge_site_study=edge_site_study,
+        civicrm_study=civicrm_study,
     )
+
+
+@blueprint.route("/study/<int:id>/edit", methods=['GET', 'POST'])
+@assert_study_user()
+def study_edit(id):
+    study = db.get_or_404(Study, id)
+
+    form = EditStudyForm(obj=study)
+
+    if form.validate_on_submit():
+        study.edge_id = form.edge_id.data
+        study.name = form.name.data
+        study.civicrm_study_id = form.civicrm_study_id.data
+        db.session.add(study)
+        db.session.commit()
+        return refresh_response()
+
+    return render_template(
+        "lbrc/form_modal.html",
+        title=f"Edit Study {study.name}",
+        form=form,
+        url=url_for('ui.study_edit', id=id),
+    )
+

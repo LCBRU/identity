@@ -3,27 +3,45 @@
 
 {% block page_content %}
   <nav class="main_menu">
-    <menu class="container">
-      <a href="{{url_for('ui.index')}}">Home</a>
-      <div>
-        <a>Studies</a>
-        <menu>
-          {% for s in user_studies | sort(attribute='name') %}
-            <a href="{{ url_for('ui.study', id=s.id) }}">{{ s.name }}</a>
-          {% endfor %}
-        </menu>
-      </div>
-      <a href="{{ url_for('ui.demographics') }}">Demographics</a>
-      <div>
-        <a>Tracker</a>
-        <menu>
-          <a href="{{ url_for('ui.study_tracker_rag') }}">RAG Report</a>
-          <a href="{{ url_for('ui.study_tracker_gantt') }}">Gantt Chart</a>
-          <a href="{{ url_for('ui.study_tracker_gantt2') }}">Gantt Chart 2</a>
-        </menu>
-      </div>
-    </menu>
+    <div class="container">
+      <menu>
+        <li><a href="{{url_for('ui.index')}}">Home</a></li>
+        <li>
+          <a>Studies</a>
+          <menu>
+            {% for s in user_studies | sort(attribute='name') %}
+              <li><a href="{{ url_for('ui.study', id=s.id) }}">{{ s.name }}</a></li>
+            {% endfor %}
+          </menu>
+        </li>
+        <li><a href="{{ url_for('ui.demographics') }}">Demographics</a></li>
+        <li>
+          <a>Tracker</a>
+          <menu>
+            <li><a href="{{ url_for('ui.study_tracker_rag') }}">RAG Report</a></li>
+            <li><a href="{{ url_for('ui.study_tracker_gantt') }}">Gantt Chart</a></li>
+            <li><a href="{{ url_for('ui.study_tracker_gantt2') }}">Gantt Chart 2</a></li>
+          </menu>
+        </li>
+      </menu>
+      <menu>
+        <li>
+          <a>Admin</a>
+          <menu>
+            <li><a href="{{url_for('admin.index')}}">Maintenance</a></li>
+          </menu>
+        </li>
+        <li>
+          <a>{{ current_user.full_name }}</a>
+          <menu>
+            <li><a href="{{ url_for_security('change_password') }}">Change Password</a></li>
+            <li><a href="{{ url_for_security('logout') }}">Log Out</a></li>
+          </menu>
+        </li>
+      </menu>
+    </div>
   </nav>
 
   {% block menu_page_content %}{% endblock %}
+
 {% endblock %}

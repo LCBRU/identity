@@ -4,7 +4,7 @@ from sqlalchemy import Boolean, Integer, String, Date
 from datetime import date
 
 
-class Study(db.Model):
+class CiviCrmStudy(db.Model):
     __tablename__ = 'civicrm_case_type'
     __bind_key__ = 'civicrm'
 
@@ -15,7 +15,7 @@ class Study(db.Model):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
 
-class Participant(db.Model):
+class CiviCrmParticipant(db.Model):
     __tablename__ = 'civicrm_case'
     __bind_key__ = 'civicrm'
 
@@ -27,9 +27,9 @@ class Participant(db.Model):
     status_id: Mapped[int] = mapped_column(Integer, nullable=False)
     is_deleted: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
-    study: Mapped[Study] = relationship(
-        Study,
+    study: Mapped[CiviCrmStudy] = relationship(
+        CiviCrmStudy,
         foreign_keys=[study_id],
-        primaryjoin='Study.id == Participant.study_id',
+        primaryjoin='CiviCrmStudy.id == CiviCrmParticipant.study_id',
         backref=backref("participants", cascade="delete, delete-orphan")
     )
