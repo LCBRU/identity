@@ -1,85 +1,76 @@
-{% extends "ui/page.html" %}
-{% import "lbrc_flask/form_macros.html" as formhelper %}
+{% extends "ui/menu_page.html" %}
+{% from "lbrc/form_macros.html" import render_form_fields, render_field, render_button_bar, render_label %}
+{% from "lbrc/pagination.html" import render_pagination %}
 {% from "ui/demographics/column_help.html" import column_help_text %}
 
-{% block content %}
+{% block menu_page_content %}
 
-<div class="row">
-    <div class="col-md-8 col-lg-9">
-        <section>
-            <h2>Demographics</h2>
-        
-            {{ formhelper.render_search(search_form, 'ui.demographics', placeholder='Search filename') }}
+<div class="container with_sidebar">
+    <section>
+        <h2>Demographics</h2>
+    
+        <form action="{{ url_for('ui.demographics') }}" method="GET" enctype="multipart/form-data">
+            <fieldset>
+                {{ render_form_fields(search_form) }}
+            </fieldset>
+        </form>
 
-            <div class="row">
-                <div class="col">
-                    <ul class="list-group">
-                        {% for dr in demographics_requests.items %}
-                            <li class="list-group-item">
-                                <div class='summary_details'>
-                                    <header>
-                                        <h1>{{ dr.filename }} <span class="float-right badge badge-info">{{ dr.status }}</span></h1>
-                                        <h2>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h2>
-                                    </header>
-        
-                                    <a class="btn btn-secondary" href="{{ url_for('ui.demographics_download_request', id=dr.id) }}">Download Request File</a>
-                                    {% if dr.requires_column_definition %}
-                                        <a class="btn btn-success" href="{{ url_for('ui.demographics_define_columns', id=dr.id) }}">Define Columns</a>
-                                    {% endif %}
-                                    {% if dr.requires_submission %}
-                                        <a class="btn btn-success" href="{{ url_for('ui.demographics_submit', id=dr.id) }}">Submit</a>
-                                    {% endif %}
-                                    {% if dr.can_be_resubmitted and current_user.is_admin %}
-                                        <a class="btn btn-danger" href="{{ url_for('ui.demographics_resubmit', id=dr.id) }}">Resubmit/Unpause request</a>
-                                    {% endif %}
-                                    {% if dr.can_be_paused and current_user.is_admin %}
-                                        <a class="btn btn-danger" href="{{ url_for('ui.demographics_pause', id=dr.id) }}">Pause request</a>
-                                    {% endif %}
-                                    {% if dr.can_be_downloaded %}
-                                        <a class="btn btn-success" href="{{ url_for('ui.demographics_download_result', id=dr.id) }}">Download Result</a>
-                                    {% endif %}
-                                    {% if dr.can_be_deleted %}
-                                        <a class="btn btn-danger" href="{{ url_for('ui.demographics_delete', id=dr.id) }}">Delete Request</a>
-                                    {% endif %}
-                                    {% if dr.in_error and current_user.is_admin %}
-                                        <a class="btn btn-warning" href="javascript://" data-toggle="modal" data-target="#help_modal" data-title="Demographics Error" data-text="{{ dr.error_message }}">View Error</a>
-                                        <a class="btn btn-danger" href="{{ url_for('ui.demographics_clear_error', id=dr.id) }}">Clear Error</a>
-                                    {% endif %}
-                                </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
-        
-                    {{ formhelper.render_pagination(demographics_requests, 'ui.demographics', search_form) }}
-                </div>
+        <div class="row">
+            <div class="col">
+                <ul class="list-group">
+                    {% for dr in demographics_requests.items %}
+                        <li class="list-group-item">
+                            <div class='summary_details'>
+                                <header>
+                                    <h1>{{ dr.filename }} <span class="float-right badge badge-info">{{ dr.status }}</span></h1>
+                                    <h2>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h2>
+                                </header>
+    
+                                <a class="btn btn-secondary" href="{{ url_for('ui.demographics_download_request', id=dr.id) }}">Download Request File</a>
+                                {% if dr.requires_column_definition %}
+                                    <a class="btn btn-success" href="{{ url_for('ui.demographics_define_columns', id=dr.id) }}">Define Columns</a>
+                                {% endif %}
+                                {% if dr.requires_submission %}
+                                    <a class="btn btn-success" href="{{ url_for('ui.demographics_submit', id=dr.id) }}">Submit</a>
+                                {% endif %}
+                                {% if dr.can_be_resubmitted and current_user.is_admin %}
+                                    <a class="btn btn-danger" href="{{ url_for('ui.demographics_resubmit', id=dr.id) }}">Resubmit/Unpause request</a>
+                                {% endif %}
+                                {% if dr.can_be_paused and current_user.is_admin %}
+                                    <a class="btn btn-danger" href="{{ url_for('ui.demographics_pause', id=dr.id) }}">Pause request</a>
+                                {% endif %}
+                                {% if dr.can_be_downloaded %}
+                                    <a class="btn btn-success" href="{{ url_for('ui.demographics_download_result', id=dr.id) }}">Download Result</a>
+                                {% endif %}
+                                {% if dr.can_be_deleted %}
+                                    <a class="btn btn-danger" href="{{ url_for('ui.demographics_delete', id=dr.id) }}">Delete Request</a>
+                                {% endif %}
+                                {% if dr.in_error and current_user.is_admin %}
+                                    <a class="btn btn-warning" href="javascript://" data-toggle="modal" data-target="#help_modal" data-title="Demographics Error" data-text="{{ dr.error_message }}">View Error</a>
+                                    <a class="btn btn-danger" href="{{ url_for('ui.demographics_clear_error', id=dr.id) }}">Clear Error</a>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+    
+                {{ render_pagination(demographics_requests, 'ui.demographics', search_form) }}
             </div>
-        
-        </section>
-    </div>
+        </div>    
+    </section>
 
-    <div class="col-md-4 col-lg-3">
-        <div class="card study-card">
-            <div class="card-header">Upload Participant File</div>
+    <section>
+        <aside>
+            <h2>Upload File <a hx-get="{{url_for('ui.demographics_column_help')}}" hx-target="body" hx-swap="beforeend" href="#" class="help"></a></h2>
+            <form action="{{ url_for('ui.demographics_upload') }}" method="POST" enctype="multipart/form-data">
+                <fieldset>
+                    {{ render_form_fields(form) }}
+                    {{ render_button_bar(submit_label="Upload") }}
+                </fieldset>
+            </form>
+        </aside>
+    </section>
 
-                <div class="card-body">
-                    <form id="study_data_upload" action="{{ url_for('ui.demographics') }}" method="POST" enctype="multipart/form-data">
-                        {{ form.hidden_tag() }}
-
-                        <div class="input-group mb-2">
-                            {{ form.upload(class="form-control", placeholder="Participant Details") }}
-                            <span class="input-group-append" data-toggle="modal" data-target="#help_modal" data-title="Participant File Format" data-text="{{ column_help_text() }}">
-                                <span class="input-group-text fas fa-question-circle"></span>
-                            </span>
-                        </div>
-                        <div class="input-group mb-2">
-                            {{ formhelper.render_field(form.skip_pmi) }}
-                        </div>
-                        {{ formhelper.render_button_bar(submit_label="Upload") }}
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Upload Progress Dialog Simple-->

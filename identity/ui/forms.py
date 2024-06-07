@@ -17,27 +17,6 @@ class ConfirmForm(FlashingForm):
     id = HiddenField("id", validators=[DataRequired()])
 
 
-class BlindingForm(FlashingForm):
-    id = StringField("ID", validators=[DataRequired(), Length(max=100)])
-
-
-class UnblindingForm(FlashingForm):
-    id = StringField("ID", validators=[DataRequired(), Length(max=100)])
-
-
-class DemographicsLookupForm(FlashingForm):
-    upload = FileField(
-        'Participant File',
-        accept=[
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.ms-excel',
-            '.csv',
-        ],
-        validators=[FileRequired()]
-    )
-    skip_pmi = BooleanField('Skip PMI')
-
-
 class DemographicsDefineColumnsForm(FlashingForm):
     uhl_system_number_column_id = SelectField('UHL System Number', coerce=int)
     nhs_number_column_id = SelectField('NHS Number', coerce=int)
@@ -65,16 +44,6 @@ class DemographicsDefineColumnsForm(FlashingForm):
             return False
 
         return True
-
-class DemographicsSearchForm(FlashingForm):
-    search = StringField("Search", validators=[Length(max=20)])
-    page = IntegerField("Page", default=1)
-    show_downloaded = BooleanField('Downloaded')
-    show_deleted = BooleanField('Deleted')
-
-
-class DemographicsAdminSearchForm(DemographicsSearchForm):
-    owner_user_id = SelectField('Owner', coerce=int, choices=[])
 
 
 def _get_clinical_area_choices():

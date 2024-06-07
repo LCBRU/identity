@@ -14,13 +14,19 @@ from .. import blueprint, db
 from identity.model.blinding import Blinding
 from identity.model import Study
 from identity.model.id import PseudoRandomId
-from ..forms import BlindingForm, UnblindingForm
 from ..decorators import assert_study_user
 from identity.model.edge import EdgeSiteStudy
 from lbrc_flask.forms import FlashingForm
 from lbrc_flask.response import refresh_response
 from wtforms import HiddenField, SelectField, StringField, IntegerField
-from wtforms.validators import Length
+from wtforms.validators import Length, DataRequired
+
+
+class BlindingForm(FlashingForm):
+    id = StringField("ID", validators=[DataRequired(), Length(max=100)])
+
+class UnblindingForm(FlashingForm):
+    id = StringField("ID", validators=[DataRequired(), Length(max=100)])
 
 
 class EditStudyForm(FlashingForm):

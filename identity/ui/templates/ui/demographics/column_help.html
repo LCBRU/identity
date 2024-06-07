@@ -1,39 +1,49 @@
-{% macro column_help_text() %}
-#### File Type
+{% extends "lbrc/modal.html" %}
 
-The participant file must be in CSV or Excel (`.xlsx` or `.xls`) format with
-unique column names in the first row.
+{% block content %}
 
-#### Demographics Matching Requirements
+<h3>File Type</h2>
+<p>
+    The participant file must be in CSV or Excel (`.xlsx` or `.xls`) format with
+    unique column names in the first row.
+</p>
 
-There are three methods that can be used to match
-the demographics supplied to an individual patient.
-Each method for matching requires a different
-set of data.
+<h3>Demographics Matching Requirements</h2>
+<p>
+    There are three methods that can be used to match
+    the demographics supplied to an individual patient.
+    Each method for matching requires a different
+    set of data.
+</p>
     
-#### NHS Number Matching
+<h3>NHS Number Matching</h2>
+<p>
+    File should contain an <strong>NHS number</strong> and a <strong>date of birth</strong>.
+    Participants without correct values for both of these
+    fields will not be successfully matched.
+</p>
 
-File should contain an **NHS number** and a **date of birth**.
-Participants without correct values for both of these
-fields will not be successfully matched.
+<h3>UHL System Number Matching</h2>
+<p>
+    File should contain a <strong>UHL System number</strong>.
+    Participants without a correct value for this
+    field will not be successfully matched.    
+</p>
+<h4>Demographics Matching</h3>
+<p>
+    File must contain <strong>date of birth</strong> and <strong>sex</strong>
+    and should contain as many of the following
+    information as possible:    
+</p>
+<ul>
+    <li>First name</li>
+    <li>Last name</li>
+    <li>Post Code</li>
+</ul>
+<p>
+    Particpants without enough information, or
+    whose details match multiple people, will
+    not be successfully matched.
+</p>
 
-#### UHL System Number Matching
-
-File should contain a **UHL System number**.
-Participants without a correct value for this
-field will not be successfully matched.
-
-Demographics Matching
-
-File must contain **date of birth** and **sex**
-and should contain as many of the following
-information as possible:
-
-* First name
-* Last name
-* Post Code
-
-Particpants without enough information, or
-whose details match multiple people, will
-not be successfully matched.
-{% endmacro %}
+{% endblock %}

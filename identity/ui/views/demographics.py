@@ -14,12 +14,9 @@ from markupsafe import Markup
 from flask_login import current_user
 from .. import blueprint, db
 from ..forms import (
-    DemographicsLookupForm,
-    DemographicsSearchForm,
     DemographicsDefineColumnsForm,
-    DemographicsAdminSearchForm,
 )
-from lbrc_flask.forms import ConfirmForm
+from lbrc_flask.forms import ConfirmForm, SearchForm, FlashingForm, FileField
 from identity.demographics.model import (
     DemographicsRequest,
     DemographicsRequestXlsx,
@@ -32,6 +29,30 @@ from identity.demographics.model import (
 from identity.demographics import schedule_lookup_tasks
 from identity.security import must_be_admin
 from lbrc_flask.logging import log_exception
+from flask_wtf.file import FileRequired
+from wtforms import BooleanField, SelectField
+
+
+class DemographicsLookupForm(FlashingForm):
+    upload = FileField(
+        'Participant File',
+        accept=[
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel',
+            '.csv',
+        ],
+        validators=[FileRequired()]
+    )
+    skip_pmi = BooleanField('Skip PMI')
+
+
+class DemographicsSearchForm(SearchForm):
+    show_downloaded = BooleanField('Downloaded')
+    show_deleted = BooleanField('Deleted')
+
+
+class DemographicsAdminSearchForm(DemographicsSearchForm):
+    owner_user_id = SelectField('Owner', coerce=int, choices=[])
 
 
 def must_be_request_owner():
@@ -50,10 +71,8 @@ def must_be_request_owner():
     return decorator
 
 
-@blueprint.route("/demographics/", methods=['GET', 'POST'])
+@blueprint.route("/demographics/")
 def demographics():
-    form = DemographicsLookupForm()
-
     if current_user.is_admin:
         search_form = DemographicsAdminSearchForm(formdata=request.args)
 
@@ -86,6 +105,13 @@ def demographics():
     demographics_requests = q.order_by(DemographicsRequest.created_datetime.desc()).paginate(
         page=search_form.page.data, per_page=5, error_out=False
     )
+
+    return render_template("ui/demographics/index.html", form=DemographicsLookupForm(), demographics_requests=demographics_requests, search_form=search_form)
+
+
+@blueprint.route("/demographics/upload", methods=['POST'])
+def demographics_upload():
+    form = DemographicsLookupForm()
 
     if form.validate_on_submit():
         _, file_extension = os.path.splitext(form.upload.data.filename)
@@ -139,7 +165,7 @@ def demographics():
 
         return redirect(url_for('ui.demographics_define_columns', id=d.id))
 
-    return render_template("ui/demographics/index.html", form=form, demographics_requests=demographics_requests, search_form=search_form)
+    return redirect(url_for('ui.demographics'))
 
 
 @blueprint.route("/demographics/define_columns/<int:id>", methods=['GET', 'POST'])
@@ -342,3 +368,8 @@ def demographics_download_request(id):
         as_attachment=True,
         download_name=dr.filename,
     )
+
+
+@blueprint.route("/demographics/column_help")
+def demographics_column_help():
+    return render_template("ui/demographics/column_help.html")
