@@ -50,7 +50,7 @@ def blinding(id):
 
         flash(
             Markup(
-                f'<strong>Blind IDs created for ID \'{blinding_form.id.data}\'</strong>'
+                f'<span>Blind IDs created for ID \'{blinding_form.id.data}\'</span>'
                 '<dl>' +
                 ''.join([f'<dt>{id.blinding_type.name}</dt><dd>{id.pseudo_random_id.full_code}</dd>' for id in ids]) +
                 '</dl>'
@@ -145,4 +145,3 @@ def study_edit(id):
         form=form,
         url=url_for('ui.study_edit', id=id),
     )
-

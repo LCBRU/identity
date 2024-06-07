@@ -77,10 +77,6 @@ class DemographicsAdminSearchForm(DemographicsSearchForm):
     owner_user_id = SelectField('Owner', coerce=int, choices=[])
 
 
-class LabelDefinition(FlashingForm):
-    participant_id = StringField("Participant Identifier", validators=[DataRequired(), Length(max=100)])
-
-
 def _get_clinical_area_choices():
     ess = EdgeSiteStudy.query.with_entities(EdgeSiteStudy.primary_clinical_management_areas.distinct()).all()
     return [(s[0], s[0]) for s in ess]

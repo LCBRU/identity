@@ -1,6 +1,5 @@
 {% extends "ui/menu_page.html" %}
-{% import "lbrc_flask/form_macros.html" as formhelper %}
-{% import "ui/study/_label_bundles.html" as study_label_bundles %}
+{% from "lbrc/form_macros.html" import render_field_and_submit %}
 
 {% block menu_page_content %}
 
@@ -25,81 +24,43 @@
                 <dd>{{ civicrm_study.name | blank_if_none }}</dd>
             {% endif %}
         </dl>
-
-        <p>
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quo quae ratione atque amet natus eveniet provident perspiciatis, sint porro harum qui quod laborum, aperiam quisquam rerum ad tempore temporibus sit!
-        </p>
     </section>
 
-    <aside>
-        {% if redcaps | length > 0 %}
-            <section>
-                <h2>REDCaps</h2>
-                <menu>
-                    {% for rp in redcaps %}
-                        <li><a href='{{ rp.get_link() }}' role="button" target='_blank'>{{ rp.name }}</a></li>
-                    {% endfor %}
-                </menu>
-            </section>
-        {% endif %}
-
+    <section>
         {% if study.label_bundles | length > 0 %}
-            <section>
-                <h2>Labels</h2>            
-                    {% for l in study.label_bundles | sort(attribute='name') %}
-                        {% set print_url="ui.label_bundle_print" %}
-
-                        {% if l.user_defined_participant_id %}
-                            {% set print_url='ui.label_bundle_definition' %}
-                        {% endif %}
-
-                        <section>
-                            <a class="lock_screen"  href="#" hx-get="{{ url_for(print_url, label_bundle_id=l.id, count=5 ) }}" hx-target="body" hx-swap="beforeend" role="button">{{ l.name }}</a>
-                            {% if not l.disable_batch_printing %}
-                                <div class="link_list">
-                                    <a class="lock_screen"  href="#" hx-get="{{ url_for(print_url, label_bundle_id=l.id, count=5 ) }}" hx-target="body" hx-swap="beforeend">x5</a>
-                                    <a class="lock_screen"  href="#" hx-get="{{ url_for(print_url, label_bundle_id=l.id, count=5 ) }}" hx-target="body" hx-swap="beforeend">x10</a>
-                                    <a class="lock_screen"  href="#" hx-get="{{ url_for(print_url, label_bundle_id=l.id, count=5 ) }}" hx-target="body" hx-swap="beforeend">x50</a>
-                                </div>
-                            {% endif %}
-                        </section>
-                    {% endfor %}
-            </section>
+            <aside>
+                <h2>Labels</h2>
+                {% for l in study.label_bundles | sort(attribute='name') %}
+                    <section>
+                        <a class="lock_screen"  href="#" hx-get="{{ url_for('ui.label_bundle_definition', label_bundle_id=l.id, count=5 ) }}" hx-target="body" hx-swap="beforeend" role="button">{{ l.name }}</a>
+                    </section>
+                {% endfor %}
+            </aside>
         {% endif %}
 
-        {% if unblinding_form %}
-            <section>
+        {% if blinding_form %}
+            <aside>
                 <h2>Blinding</h2>
-                <form id="study_data_upload" action="{{ url_for('ui.blinding', id=study.id) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ url_for('ui.blinding', id=study.id) }}" method="POST" enctype="multipart/form-data">
                     <fieldset>
-                        {{ blinding_form.hidden_tag() }}
-            
-                        {% for f in blinding_form %}
-                            {{ formhelper.render_field(f) }}
-                        {% endfor %}
-            
-                        {{ formhelper.render_button_bar(submit_label='Blind') }}
+                        {{blinding_form.hidden_tag()}}
+                        {{render_field_and_submit(blinding_form.id, submit_label="Blind", placeholder='Participant ID')}}
                     </fieldset>
                 </form>
-            </section>
+            </aside>
         {% endif %}
 
         {% if unblinding_form %}
-            <section>
+            <aside>
                 <h2>Unblinding</h2>
                 <form id="study_data_upload" action="{{ url_for('ui.unblinding', id=study.id) }}" method="POST" enctype="multipart/form-data">
                     <fieldset>
-                        {{ unblinding_form.hidden_tag() }}
-            
-                        {% for f in unblinding_form %}
-                            {{ formhelper.render_field(f) }}
-                        {% endfor %}
-            
-                        {{ formhelper.render_button_bar(submit_label='Unblind') }}
+                        {{unblinding_form.hidden_tag()}}
+                        {{render_field_and_submit(unblinding_form.id, submit_label="Unblind", placeholder='Blinded ID')}}
                     </fieldset>
                 </form>
-            </section>
+            </aside>
         {% endif %}
-    </aside>
+    </section>
 </div>
 {% endblock %}

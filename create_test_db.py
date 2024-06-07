@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 from lbrc_flask.database import db
 from lbrc_flask.security import init_roles, init_users
 from identity.model import Study
+from identity.model.blinding import BlindingType
 from identity.model.edge import EdgeSiteStudy
+from identity.model.id import PseudoRandomIdProvider
 from identity.printing import LabelBundle
 from identity.setup import setup_data
 from faker import Faker
@@ -57,6 +59,24 @@ for s in studies:
     ) for i in range(1, randint(1, 5))])
 
 db.session.add_all(bundles)
+db.session.commit()
+
+
+# Blinding
+blinding_types = []
+for s in studies:
+
+    blinding_types.extend([BlindingType(
+        name=f'{s.name} {i}',
+        study_id=s.id,
+        pseudo_random_id_provider=PseudoRandomIdProvider(
+            name=fake.word().title(),
+            prefix=fake.word()[0:3].upper(),
+        ),
+
+    ) for i in range(1, randint(1, 5))])
+
+db.session.add_all(blinding_types)
 db.session.commit()
 
 
