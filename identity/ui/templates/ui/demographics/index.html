@@ -15,48 +15,49 @@
             </fieldset>
         </form>
 
-        <div class="row">
-            <div class="col">
-                <ul class="list-group">
-                    {% for dr in demographics_requests.items %}
-                        <li class="list-group-item">
-                            <div class='summary_details'>
-                                <header>
-                                    <h1>{{ dr.filename }} <span class="float-right badge badge-info">{{ dr.status }}</span></h1>
-                                    <h2>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h2>
-                                </header>
-    
-                                <a class="btn btn-secondary" href="{{ url_for('ui.demographics_download_request', id=dr.id) }}">Download Request File</a>
-                                {% if dr.requires_column_definition %}
-                                    <a class="btn btn-success" href="{{ url_for('ui.demographics_define_columns', id=dr.id) }}">Define Columns</a>
-                                {% endif %}
-                                {% if dr.requires_submission %}
-                                    <a class="btn btn-success" href="{{ url_for('ui.demographics_submit', id=dr.id) }}">Submit</a>
-                                {% endif %}
-                                {% if dr.can_be_resubmitted and current_user.is_admin %}
-                                    <a class="btn btn-danger" href="{{ url_for('ui.demographics_resubmit', id=dr.id) }}">Resubmit/Unpause request</a>
-                                {% endif %}
-                                {% if dr.can_be_paused and current_user.is_admin %}
-                                    <a class="btn btn-danger" href="{{ url_for('ui.demographics_pause', id=dr.id) }}">Pause request</a>
-                                {% endif %}
-                                {% if dr.can_be_downloaded %}
-                                    <a class="btn btn-success" href="{{ url_for('ui.demographics_download_result', id=dr.id) }}">Download Result</a>
-                                {% endif %}
-                                {% if dr.can_be_deleted %}
-                                    <a class="btn btn-danger" href="{{ url_for('ui.demographics_delete', id=dr.id) }}">Delete Request</a>
-                                {% endif %}
-                                {% if dr.in_error and current_user.is_admin %}
-                                    <a class="btn btn-warning" href="javascript://" data-toggle="modal" data-target="#help_modal" data-title="Demographics Error" data-text="{{ dr.error_message }}">View Error</a>
-                                    <a class="btn btn-danger" href="{{ url_for('ui.demographics_clear_error', id=dr.id) }}">Clear Error</a>
-                                {% endif %}
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-    
-                {{ render_pagination(demographics_requests, 'ui.demographics', search_form) }}
-            </div>
-        </div>    
+        <ul class="panel_list">
+            {% for dr in demographics_requests.items %}
+                <li>
+                    <header>
+                        <div>
+                            <h2>{{ dr.filename }}</h2>
+                            <h3>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h3>
+                        </div>
+                        <div>
+                            <span class="pill">{{ dr.status }}</span>
+                        </div>
+                    </header>
+
+                    <nav class="link_list">
+                        <a href="{{ url_for('ui.demographics_download_request', id=dr.id) }}" role="button">Download Request File</a>
+                        {% if dr.requires_column_definition %}
+                            <a href="{{ url_for('ui.demographics_define_columns', id=dr.id) }}" role="button">Define Columns</a>
+                        {% endif %}
+                        {% if dr.requires_submission %}
+                            <a href="{{ url_for('ui.demographics_submit', id=dr.id) }}" role="button">Submit</a>
+                        {% endif %}
+                        {% if dr.can_be_resubmitted and current_user.is_admin %}
+                            <a href="{{ url_for('ui.demographics_resubmit', id=dr.id) }}" role="button">Resubmit/Unpause request</a>
+                        {% endif %}
+                        {% if dr.can_be_paused and current_user.is_admin %}
+                            <a href="{{ url_for('ui.demographics_pause', id=dr.id) }}" role="button">Pause request</a>
+                        {% endif %}
+                        {% if dr.can_be_downloaded %}
+                            <a href="{{ url_for('ui.demographics_download_result', id=dr.id) }}" role="button">Download Result</a>
+                        {% endif %}
+                        {% if dr.can_be_deleted %}
+                            <a href="{{ url_for('ui.demographics_delete', id=dr.id) }}" role="button">Delete Request</a>
+                        {% endif %}
+                        {% if dr.in_error and current_user.is_admin %}
+                            <a href="javascript://" data-toggle="modal" data-target="#help_modal" data-title="Demographics Error" data-text="{{ dr.error_message }}" role="button">View Error</a>
+                            <a href="{{ url_for('ui.demographics_clear_error', id=dr.id) }}" role="button">Clear Error</a>
+                        {% endif %}
+                    </nav>
+                </li>
+            {% endfor %}
+        </ul>
+
+        {{ render_pagination(demographics_requests, 'ui.demographics', search_form) }}
     </section>
 
     <section>
