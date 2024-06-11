@@ -15,9 +15,8 @@ jsonschema
 matplotlib
 Flask-WeasyPrint
 -e git+https://github.com/LCBRU/lbrc_flask.git@main#egg=lbrc_flask
--e git+https://github.com/LCBRU/lbrc_edge.git@main#egg=lbrc_edge
 flask-security-too[fsqla,common]
 alembic
-pymysql
+pymysql>=1.1.1
 pyodbc
 faker
