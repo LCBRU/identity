@@ -5,7 +5,7 @@ six
 zeep
 requests
 openpyxl
-celery
+celery>=5.2.2
 chardet
 Werkzeug
 xlrd
@@ -17,6 +17,6 @@ Flask-WeasyPrint
 -e git+https://github.com/LCBRU/lbrc_flask.git@main#egg=lbrc_flask
 flask-security-too[fsqla,common]
 alembic
-pymysql>=1.1.1
+pymysql
 pyodbc
 faker
