@@ -1,39 +1,38 @@
-{% extends "ui/page.html" %}
-{% from "lbrc_flask/form_macros.html" import render_search, render_pagination %}
+{% extends "ui/menu_page.html" %}
+{% from "lbrc/form_macros.html" import render_form_fields %}
+{% from "lbrc/pagination.html" import render_pagination %}
 
-{% block content %}
-<section>
-    <h1>Study Tracker RAG Report</h1>
+{% block menu_page_content %}
+<div class="container">
+    <section>
+        <header>
+            <h2>Study Tracker RAG Report</h2>
+        </header>
 
-    {{ render_search(
-        search_form,
-        'ui.study_tracker_rag',
-        placeholder='Search Title or EDGE Project ID',
-        buttons=[
-            {
-                'id': 'download',
-                'text': 'Download',
-                'endpoint': 'ui.study_tracker_rag_pdf',
-                'add_form_fields': True,
-            },
-        ],
-    ) }}
+        <form action="{{ url_for('ui.study_tracker_rag') }}" method="GET" enctype="multipart/form-data">
+            <fieldset>
+                {{ render_form_fields(search_form) }}
 
-    <ul class="list-group">
-        {% for s in edge_site_studies.items %}
-            <li class="list-group-item">
-                <div class='summary_details'>
-                    <header class="row">
-                        <div class="col">
-                            <h1><a href="https://www.edge.nhs.uk/Project/Details/{{ s.project_id }}" target='_blank'>{{s.project_short_title}} <i class="fas fa-external-link-alt fa-xs"></i></a></h1>
-                            <h2>{{s.primary_clinical_management_areas}} {% if s.key_staff %}({{s.key_staff | blank_if_none }}){% endif %}</h2>
+                <div class="button_bar">
+                    <button type="submit" formaction="{{ url_for('ui.study_tracker_rag_pdf') }}" formmethod="get" title="Download PDF">PDF</button>
+                </div>    
+            </fieldset>
+        </form>
+
+        <ul class="panel_list">
+            {% for s in edge_site_studies.items %}
+                <li>
+                    <header>
+                        <div>
+                            <h2><a href="https://www.edge.nhs.uk/Project/Details/{{ s.project_id }}" target='_blank'>{{s.project_short_title}}</a></h1>
+                            <h3>{{s.primary_clinical_management_areas}} {% if s.key_staff %}({{s.key_staff | blank_if_none }}){% endif %}</h2>
                         </div>
-                        <div class="col-2">
-                            <span class="float-right badge badge-info">{{ s.project_site_status }}</span>
+                        <div>
+                            <span class="pill">{{ s.project_site_status }}</span>
                         </div>
                     </header>
 
-                    <table class="table table-sm">
+                    <table>
                         <thead>
                             <th>Start Date</th>
                             <th>End date</th>
@@ -54,21 +53,18 @@
                         </tbody>
                     </table>
 
-                    <div class="row">
+                    <dl class="concatenated">
                         {% for k,v in s.study_dates().items() %}
-                            <div class="col-12 col-md-6 col-lg-4">
-                                <dt>{{ k }}</dt>
-                                <dd>{{ v | date_format }}</dd>
-                            </div>
+                            <dt>{{ k }}</dt>
+                            <dd>{{ v | date_format }}</dd>
                         {% endfor %}
-                    </div>
+                    </dl>
+                </li>
+            {% endfor %}
+        </ul>
 
-                </div>
-            </li>
-        {% endfor %}
-    </ul>
-
-    {{ render_pagination(edge_site_studies, 'ui.study_tracker_rag', search_form) }}
-</section>
+        {{ render_pagination(edge_site_studies, 'ui.study_tracker_rag', search_form) }}
+    </section>
+</div>
 
 {% endblock %}

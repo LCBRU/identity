@@ -27,13 +27,21 @@ init_users()
 
 setup_data()
 
+primary_clinical_management_areas = cycle([fake.word().title() for _ in range(13)])
+status = cycle(['Cancel', 'Loaded', 'Deleted'])
+principle_investigator = cycle(fake.name() for _ in range(5))
+lead_nurse = cycle(fake.name() for _ in range(5))
 
 # Edge Studies
 edge_studies = [EdgeSiteStudy(
     project_id=fake.ean(length=8),
     iras_number=fake.license_plate(),
     project_short_title=fake.word().upper(),
-) for _ in range(6)]
+    primary_clinical_management_areas=next(primary_clinical_management_areas),
+    project_site_status=next(status),
+    principal_investigator=next(principle_investigator),
+    project_site_lead_nurses=next(lead_nurse),
+) for _ in range(50)]
 
 db.session.add_all(edge_studies)
 db.session.commit()

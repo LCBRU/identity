@@ -13,9 +13,6 @@ from flask import (
 from markupsafe import Markup
 from flask_login import current_user
 from .. import blueprint, db
-from ..forms import (
-    DemographicsDefineColumnsForm,
-)
 from lbrc_flask.forms import ConfirmForm, SearchForm, FlashingForm, FileField
 from identity.demographics.model import (
     DemographicsRequest,
@@ -30,7 +27,38 @@ from identity.demographics import schedule_lookup_tasks
 from identity.security import must_be_admin
 from lbrc_flask.logging import log_exception
 from flask_wtf.file import FileRequired
-from wtforms import BooleanField, SelectField
+from wtforms import BooleanField, SelectField, StringField
+from lbrc_flask.response import refresh_response
+from wtforms.validators import Length
+
+
+class DemographicsDefineColumnsForm(FlashingForm):
+    uhl_system_number_column_id = SelectField('UHL System Number', coerce=int)
+    nhs_number_column_id = SelectField('NHS Number', coerce=int)
+    family_name_column_id = SelectField('Family Name', coerce=int)
+    given_name_column_id = SelectField('Given Name', coerce=int)
+    gender_column_id = SelectField('Gender', coerce=int)
+    gender_female_value = StringField("Female Value (default 'f' or 'female')", validators=[Length(max=10)])
+    gender_male_value = StringField("Male Value (default 'm' or 'male')", validators=[Length(max=10)])
+    dob_column_id = SelectField('Date of Birth', coerce=int)
+    postcode_column_id = SelectField('Postcode', coerce=int)
+
+    def validate(self, extra_validators=None):
+        rv = FlashingForm.validate(self, extra_validators)
+        if not rv:
+            return False
+
+        gender_female_value = (self.gender_female_value.data or '').strip().lower()
+        gender_male_value = (self.gender_male_value.data or '').strip().lower()
+
+        if len(gender_female_value) == 0 or len(gender_male_value) == 0:
+            return True
+
+        if gender_female_value == gender_male_value:
+            self.gender_male_value.errors.append('Female and Male values cannot be the same.')
+            return False
+
+        return True
 
 
 class DemographicsLookupForm(FlashingForm):
@@ -228,7 +256,12 @@ def demographics_define_columns(id):
 
             return redirect(url_for('ui.demographics_submit', id=dr.id))
 
-    return render_template("ui/demographics/define_columns.html", form=form, demographics_request=dr)
+    return render_template(
+        "lbrc/form_modal.html",
+        title=f"Define Columns for {dr.filename}",
+        form=form,
+        url=url_for('ui.demographics_define_columns', id=id),
+    )
 
 
 @blueprint.route("/demographics/submit/<int:id>", methods=['GET', 'POST'])
@@ -238,11 +271,11 @@ def demographics_submit(id):
 
     if dr.deleted:
         flash('Cannot submit a request that is deleted.', 'error')
-        return redirect(url_for('ui.demographics'))
+        return refresh_response()
 
     if dr.submitted:
         flash('Cannot submit a request that has already been submitted.', 'error')
-        return redirect(url_for('ui.demographics'))
+        return refresh_response()
 
     form = ConfirmForm(obj=dr)
 
@@ -255,7 +288,7 @@ def demographics_submit(id):
         schedule_lookup_tasks(dr.id)
         
         flash('Request submitted.')
-        return redirect(url_for('ui.demographics'))
+        return refresh_response()
 
     return render_template("ui/demographics/submit.html", form=form, demographics_request=dr)
 
@@ -312,27 +345,20 @@ def demographics_pause(id):
     return redirect(url_for('ui.demographics'))
 
 
-@blueprint.route("/demographics/delete/<int:id>", methods=['GET', 'POST'])
+@blueprint.route("/demographics/delete/<int:id>", methods=['POST'])
 @must_be_request_owner()
 def demographics_delete(id):
     dr = DemographicsRequest.query.get_or_404(id)
 
     if dr.deleted:
-        flash('Request already deleted.', 'error')
-        return redirect(url_for('ui.demographics'))
+        return refresh_response()
 
-    form = ConfirmForm(obj=dr)
+    dr.deleted_datetime = datetime.utcnow()
 
-    if form.validate_on_submit():
-        dr.deleted_datetime = datetime.utcnow()
+    db.session.add(dr)
+    db.session.commit()
 
-        db.session.add(dr)
-        db.session.commit()
-
-        flash('Request deleted.')
-        return redirect(url_for('ui.demographics'))
-
-    return render_template("ui/demographics/delete.html", form=form, demographics_request=dr)
+    return refresh_response()
 
 
 @blueprint.route("/demographics/download_result/<int:id>")
