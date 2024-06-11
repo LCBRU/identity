@@ -322,7 +322,14 @@ class GanttChart():
         plt.savefig(buf)
         buf.seek(0)
 
-        return send_file(buf, attachment_filename=filename)
+        return send_file(
+            buf,
+            as_attachment=True,
+            download_name=filename,
+            max_age=0,
+            mimetype='image/png',
+        )
+
 
     def graph(self):
         fig, ax = plt.subplots()

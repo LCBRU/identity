@@ -1,29 +1,28 @@
-{% extends "ui/page.html" %}
-{% from "lbrc_flask/form_macros.html" import render_search, render_pagination %}
+{% extends "ui/menu_page.html" %}
+{% from "lbrc/form_macros.html" import render_form_fields %}
 
-{% block content %}
-<section>
-    <style>
-        img {
-            max-width: 100%!important;
-            height: auto!important;
-        }
-    </style>
+{% block menu_page_content %}
+<div class="container">
+    <section>
+        <header>
+            <h2>Study Tracker Gantt Report</h2>
+        </header>
 
-    <h1>Study Tracker Gantt Report</h1>
+        <form action="{{ url_for('ui.study_tracker_gantt') }}" method="GET" enctype="multipart/form-data">
+            <fieldset>
+                {{ render_form_fields(search_form) }}
+            </fieldset>
+        </form>
 
-    {{ render_search(search_form, 'ui.study_tracker_gantt', placeholder='Search Title or EDGE Project ID') }}
-
-    {% set form_fields = dict() %}
-
-    {% for f in search_form | rejectattr("name", "eq", "page") | rejectattr("name", "eq", "csrf_token") | selectattr("data") %}
-        {% if form_fields.update({f.name: f.data}) %} {% endif %}
-    {% endfor %}
-
-    <div id="chart">
-        <img src='{{ url_for("ui.study_tracker_gantt_image", **form_fields) }}' />
-    </div>
-
-</section>
-
+        {% set form_fields = dict() %}
+    
+        {% for f in search_form | rejectattr("name", "eq", "page") | rejectattr("name", "eq", "csrf_token") | selectattr("data") %}
+            {% if form_fields.update({f.name: f.data}) %} {% endif %}
+        {% endfor %}
+    
+        <div id="chart">
+            <img src='{{ url_for("ui.study_tracker_gantt_image", **form_fields) }}' />
+        </div>
+    </section>
+</div>
 {% endblock %}

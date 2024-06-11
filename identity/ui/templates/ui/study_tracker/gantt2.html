@@ -1,93 +1,99 @@
-{% extends "ui/page.html" %}
-{% from "lbrc_flask/form_macros.html" import render_search, render_pagination %}
+{% extends "ui/menu_page.html" %}
+{% from "lbrc/form_macros.html" import render_form_fields %}
 
-{% block content %}
-<section>
-    <style>
-        ul {
-            list-style: none;
-            padding: 0;
-        }
+{% block menu_page_content %}
+<style>
+    ul {
+        list-style: none;
+        padding: 0;
+    }
 
-        .gantt-chart {
-            border: 1px solid lightgrey;
-            overflow: hidden;
-        }
+    .gantt-chart {
+        border: 1px solid lightgrey;
+        overflow: hidden;
+    }
 
-        .gantt-chart .headers {
-            position: relative;
-            display: flex;
-            margin-bottom: 20px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            text-align: center;
-        }
+    .gantt-chart .headers {
+        position: relative;
+        display: flex;
+        margin-bottom: 20px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        text-align: center;
+    }
 
-        .gantt-chart .headers li {
-            flex: 1;
-            min-width: 80px;
-        }
+    .gantt-chart .headers li {
+        flex: 1;
+        min-width: 80px;
+    }
 
-        .gantt-chart .headers li:not(:last-child) {
-            position: relative;
-        }
+    .gantt-chart .headers li:not(:last-child) {
+        position: relative;
+    }
 
-        .gantt-chart .headers li:not(:last-child)::before {
-            content: '';
-            position: absolute;
-            right: 0;
-            height: 10000px;
-            border-right: 1px solid lightgrey;
-        }
+    .gantt-chart .headers li:not(:last-child)::before {
+        content: '';
+        position: absolute;
+        right: 0;
+        height: 10000px;
+        border-right: 1px solid lightgrey;
+    }
 
-        .gantt-chart .studies li.text {
-            position: relative;
-            font-size: 16px;
-            transition: all 0.65s linear 0.2s;
-        }
+    .gantt-chart .studies li.text {
+        position: relative;
+        font-size: 16px;
+        transition: all 0.65s linear 0.2s;
+    }
 
-        .gantt-chart .studies li.text {
-            position: relative;
-            font-size: 16px;
-            transition: all 0.65s linear 0.2s;
-        }
+    .gantt-chart .studies li.text {
+        position: relative;
+        font-size: 16px;
+        transition: all 0.65s linear 0.2s;
+    }
 
-        .gantt-chart .studies li.bar {
-            position: relative;
-            height: 30px;
-            margin-bottom: 15px;
-            width: 0;
-            transition: all 0.65s linear 0.2s;
-        }
+    .gantt-chart .studies li.bar {
+        position: relative;
+        height: 30px;
+        margin-bottom: 15px;
+        width: 0;
+        transition: all 0.65s linear 0.2s;
+    }
 
-        .gantt-chart .studies li.bar.show_start {
-            border-top-left-radius: 20px;
-            border-bottom-left-radius: 20px;
-        }
+    .gantt-chart .studies li.bar.show_start {
+        border-top-left-radius: 20px;
+        border-bottom-left-radius: 20px;
+    }
 
-        .gantt-chart .studies li.bar.show_end {
-            border-top-right-radius: 20px;
-            border-bottom-right-radius: 20px;
-        }
+    .gantt-chart .studies li.bar.show_end {
+        border-top-right-radius: 20px;
+        border-bottom-right-radius: 20px;
+    }
+</style>
 
-    </style>
-
-    <h1>Study Tracker Gantt Report</h1>
-
-    {{ render_search(search_form, 'ui.study_tracker_gantt2', placeholder='Search Title or EDGE Project ID') }}
-
-    {% set form_fields = dict() %}
-
-    {% for f in search_form | rejectattr("name", "eq", "page") | rejectattr("name", "eq", "csrf_token") | selectattr("data") %}
-        {% if form_fields.update({f.name: f.data}) %} {% endif %}
-    {% endfor %}
-
-    <div class="gantt-chart">
-        <ul class="headers"></ul>
-        <ul class="studies"></ul>
-    </div>
-</section>
-
+<div class="container">
+    <section>
+        <header>
+            <h2>Study Tracker Gantt Report</h2>
+        </header>
+    
+        <form action="{{ url_for('ui.study_tracker_gantt2') }}" method="GET" enctype="multipart/form-data">
+            <fieldset>
+                {{ render_form_fields(search_form) }}
+            </fieldset>
+        </form>
+    
+        {% set form_fields = dict() %}
+    
+        {% for f in search_form | rejectattr("name", "eq", "page") | rejectattr("name", "eq", "csrf_token") | selectattr("data") %}
+            {% if form_fields.update({f.name: f.data}) %} {% endif %}
+        {% endfor %}
+    
+        <div class="gantt-chart">
+            <ul class="headers"></ul>
+            <ul class="studies"></ul>
+        </div>
+    </section>    
+</div>
 {% endblock %}
 
 {% block js %}
