@@ -1,5 +1,6 @@
 {% extends "ui/menu_page.html" %}
-{% from "lbrc/form_macros.html" import render_field_and_submit %}
+{% from "lbrc/form_macros.html" import render_form_fields, render_field_and_submit %}
+{% from "lbrc/pagination.html" import render_pagination %}
 
 {% block menu_page_content %}
 <div class="container with_sidebar">
@@ -23,6 +24,30 @@
                 <dd>{{ civicrm_study.name | blank_if_none }}</dd>
             {% endif %}
         </dl>
+
+        <form action="{{ url_for('ui.study', id=study.id) }}" method="GET" enctype="multipart/form-data">
+            <fieldset>
+                {{ render_form_fields(search_form) }}
+            </fieldset>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in participants %}
+                    <tr>
+                        <td>{{ p.subject }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {{ render_pagination(participants, 'ui.study', search_form, id=study.id) }}
+      
     </section>
 
     <section>

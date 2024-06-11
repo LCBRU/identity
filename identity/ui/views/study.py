@@ -3,13 +3,14 @@ from flask import (
     redirect,
     url_for,
     flash,
+    request,
 )
 from markupsafe import Markup
 from flask_login import current_user
 from sqlalchemy import select
 
 from identity.model.civicrm import CiviCrmStudy
-from identity.services.civicrm import get_civicrm_study_choices
+from identity.services.civicrm import get_civicrm_study_choices, ParticipantSearchForm, get_participant_query
 from .. import blueprint, db
 from identity.model.blinding import Blinding
 from identity.model import Study
@@ -20,6 +21,7 @@ from lbrc_flask.forms import FlashingForm
 from lbrc_flask.response import refresh_response
 from wtforms import HiddenField, SelectField, StringField, IntegerField
 from wtforms.validators import Length, DataRequired
+from identity.model.civicrm import CiviCrmParticipant
 
 
 class BlindingForm(FlashingForm):
@@ -97,12 +99,12 @@ def unblinding(id):
 
 
 @blueprint.route("/study/<int:id>")
-@blueprint.route('/study/<int:id>?page=<int:page>')
 @assert_study_user()
-def study(id, page=1):
+def study(id):
     study = Study.query.get_or_404(id)
     blinding_form = None
     unblinding_form = None
+    search_form = ParticipantSearchForm(formdata=request.args)
 
     if study.edge_id:
         q = select(EdgeSiteStudy).where(EdgeSiteStudy.project_id == study.edge_id)
@@ -120,6 +122,15 @@ def study(id, page=1):
         blinding_form = BlindingForm()
         unblinding_form = UnblindingForm()
 
+    q = get_participant_query(search_form, study.civicrm_study_id).order_by(CiviCrmParticipant.subject)
+
+    participants = db.paginate(
+        select=q,
+        page=search_form.page.data,
+        per_page=10,
+        error_out=False,
+    )
+
     return render_template(
         "ui/study/index.html",
         study=study,
@@ -127,6 +138,8 @@ def study(id, page=1):
         unblinding_form=unblinding_form,
         edge_site_study=edge_site_study,
         civicrm_study=civicrm_study,
+        search_form=search_form,
+        participants=participants,
     )
 
 

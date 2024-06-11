@@ -8,6 +8,7 @@ from lbrc_flask.security import init_roles, init_users
 from identity.model import Study
 from identity.model.blinding import BlindingType
 from identity.model.edge import EdgeSiteStudy
+from identity.model.civicrm import CiviCrmStudy, CiviCrmParticipant
 from identity.model.id import PseudoRandomIdProvider
 from identity.printing import LabelBundle
 from identity.setup import setup_data
@@ -27,28 +28,60 @@ init_users()
 
 setup_data()
 
+study_names = [fake.word().upper() for _ in range(13)]
 primary_clinical_management_areas = cycle([fake.word().title() for _ in range(13)])
 status = cycle(['Cancel', 'Loaded', 'Deleted'])
 principle_investigator = cycle(fake.name() for _ in range(5))
 lead_nurse = cycle(fake.name() for _ in range(5))
 
+
+# CiviCRM Studies
+civicrm_studies = [CiviCrmStudy(
+    name=s,
+    title=s,
+    description=fake.sentence(),
+    is_active=True,
+) for s in study_names]
+
+db.session.add_all(civicrm_studies)
+db.session.commit()
+
+
+# CiviCRM Participants
+civicrm_participants = []
+
+for cs in civicrm_studies:
+    civicrm_participants.extend([
+        CiviCrmParticipant(
+            study_id=cs.id,
+            subject=fake.license_plate(),
+            start_date=fake.date_object(),
+            end_date=fake.date_object(),
+            status_id=1,
+            is_deleted=False,
+    ) for _ in range(randint(15, 25))])
+
+db.session.add_all(civicrm_participants)
+db.session.commit()
+
+
 # Edge Studies
 edge_studies = [EdgeSiteStudy(
     project_id=fake.ean(length=8),
     iras_number=fake.license_plate(),
-    project_short_title=fake.word().upper(),
+    project_short_title=s,
     primary_clinical_management_areas=next(primary_clinical_management_areas),
     project_site_status=next(status),
     principal_investigator=next(principle_investigator),
     project_site_lead_nurses=next(lead_nurse),
-) for _ in range(50)]
+) for s in study_names]
 
 db.session.add_all(edge_studies)
 db.session.commit()
 
 
 # Studies
-studies = [Study(name=fake.word().upper(), edge_id=es.project_id) for es in edge_studies]
+studies = [Study(name=es.project_short_title, edge_id=es.project_id, civicrm_study_id=cs.id) for es, cs in zip(edge_studies, civicrm_studies)]
 
 db.session.add_all(studies)
 db.session.commit()
