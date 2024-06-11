@@ -1,5 +1,4 @@
 {% extends "lbrc/page.html" %}
-{% import "lbrc/errors.html" as errors %}
 
 {% block page_content %}
   <nav class="main_menu">
@@ -34,7 +33,7 @@
         <li>
           <a>{{ current_user.full_name }}</a>
           <menu>
-            <li><a href="{{ url_for_security('change_password') }}">Change Password</a></li>
+            <li><a hx-get="{{ url_for_security('change_password') }}" hx-target="body" hx-swap="beforeend">Change Password</a></li>
             <li><a href="{{ url_for_security('logout') }}">Log Out</a></li>
           </menu>
         </li>
