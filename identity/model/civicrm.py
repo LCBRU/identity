@@ -4,6 +4,340 @@ from sqlalchemy import Boolean, Integer, String, Date
 from datetime import date
 
 
+class CiviCrmContactIds(db.Model):
+    __tablename__ = 'civicrm_value_contact_ids_1'
+    __bind_key__ = 'civicrm'
+
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    nhs_number: Mapped[str] = mapped_column('nhs_number_1', String(500), nullable=True)
+    uhl_system_number: Mapped[str] = mapped_column('uhl_s_number_2', String(500), nullable=True)
+
+
+class CiviCrmParticipantDetails(db.Model):
+    __bind_key__ = 'civicrm'
+
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class CiviCrmParticipantAmazeDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_amaze_23'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('amaze_id_104', String(255), nullable=True)
+
+
+class CiviCrmParticipantArchiveDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_archiving_custom_data_22'
+    __bind_key__ = 'civicrm'
+
+    box_barcode: Mapped[str] = mapped_column('archiving_box_barcode_103', String(255), nullable=True)
+
+
+class CiviCrmParticipantBioresourceSubStudyDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_archiving_custom_data_22'
+    __bind_key__ = 'civicrm'
+
+    sub_study: Mapped[str] = mapped_column('sub_study_118', String(255), nullable=True)
+
+
+class CiviCrmParticipantBraveDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_brave_16'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('brave_id_54', String(255), nullable=True)
+    source_study: Mapped[str] = mapped_column('brave_source_study_75', String(255), nullable=True)
+    briccs_id: Mapped[str] = mapped_column('briccs_id_86', String(255), nullable=True)
+    family_id: Mapped[str] = mapped_column('brave_family_id_87', String(255), nullable=True)
+
+
+class CiviCrmParticipantBriccsDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_briccs_recruitment_data_10'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('briccs_id_31', String(255), nullable=True)
+    interview_date_and_time: Mapped[datetime] = mapped_column('interview_date_and_time_32', DateTime, nullable=True)
+    interviewer: Mapped[str] = mapped_column('interviewer_33', String(255), nullable=True)
+    interview_status: Mapped[str] = mapped_column('interview_status_34', String(255), nullable=True)
+    consent_understands_consent: Mapped[bool] = mapped_column('consent_understands_consent_35', Boolean, nullable=True)
+    consent_blood_and_urine: Mapped[bool] = mapped_column('consent_blood_and_urine_36', Boolean, nullable=True)
+    consent_briccs_database: Mapped[bool] = mapped_column('consent_briccs_database_37', Boolean, nullable=True)
+    consent_further_contact: Mapped[bool] = mapped_column('consent_further_contact_38', Boolean nullable=True)
+    consent_understands_withdrawal: Mapped[bool] = mapped_column('consent_understands_withdrawal_39', Boolean, nullable=True)
+    recruitment_type: Mapped[str] = mapped_column('recruitment_type_40', String(255), nullable=True)
+    invitation_for: Mapped[str] = mapped_column('invitation_for__116', String(255), nullable=True)
+
+
+class CiviCrmParticipantCardiometDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_cardiomet_31'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('cardiomet_id_123', String(255), nullable=True)
+
+
+class CiviCrmParticipantDiscordanceDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_discordance_36'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('discordance_id_130', String(255), nullable=True)
+
+
+class CiviCrmParticipantDreamDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_dream_recruitment_data_6'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('dream_study_id_18', String(255), nullable=True)
+    consent_to_participate_in_dream: Mapped[bool] = mapped_column('consent_to_participate_in_dream__19', Boolean, nullable=True)
+    consent_to_store_dream_study_sam: Mapped[bool] = mapped_column('consent_to_store_dream_study_sam_20', Boolean, nullable=True)
+
+
+class CiviCrmParticipantEmmace4Details(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_emmace_4_recruitment_data_13'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('emmace_4_id_50', String(255), nullable=True)
+
+
+class CiviCrmParticipantFastDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_fast_24'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('fast_id_106', String(255), nullable=True)
+
+
+class CiviCrmParticipantFoamiDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_foami_27'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('foami_id_117', String(255), nullable=True)
+
+
+class CiviCrmParticipantGenvascInvoiceDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_genvasc_invoice_data_25'
+    __bind_key__ = 'civicrm'
+
+    invoice_year: Mapped[str] = mapped_column('invoice_year_107', String(255), nullable=True)
+    invoice_quarter: Mapped[str] = mapped_column('invoice_quarter_108', String(255), nullable=True)
+    processed_by: Mapped[str] = mapped_column('processed_by_110', String(255), nullable=True)
+    processed_date_111: Mapped[datetime] = mapped_column('processed_date_111', Datetime, nullable=True)
+    reimbursed_status: Mapped[str] = mapped_column('reimbursed_status_114', String(255), nullable=True)
+    notes_115: Mapped[str] = mapped_column('notes_115', String(4000), nullable=True)
+
+
+class CiviCrmParticipantGenvascDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_genvasc_invoice_data_25'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('genvasc_id_10', String(255), nullable=True)
+    consent_q1: Mapped[bool] = mapped_column('genvasc_consent_q1_11', Boolean, nullable=True)
+    consent_q2: Mapped[bool] = mapped_column('genvasc_consent_q2_12', Boolean, nullable=True)
+    consent_q3: Mapped[bool] = mapped_column('genvasc_consent_q3_13', Boolean, nullable=True)
+    consent_q4: Mapped[bool] = mapped_column('genvasc_consent_q4_14', Boolean, nullable=True)
+    consent_q5: Mapped[bool] = mapped_column('genvasc_consent_q5_15', Boolean, nullable=True)
+    consent_q6: Mapped[bool] = mapped_column('genvasc_consent_q6_16', Boolean, nullable=True)
+    consent_q7: Mapped[bool] = mapped_column('genvasc_consent_q7_17', Boolean, nullable=True)
+    post_code: Mapped[str] = mapped_column('genvasc_post_code_51', String(255), nullable=True)
+
+
+class CiviCrmParticipantGenvascWithdrawalDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_genvasc_invoice_data_25'
+    __bind_key__ = 'civicrm'
+
+    withdrawal_status: Mapped[str] = mapped_column('withdrawal_status_24', String(255), nullable=True)
+
+
+class CiviCrmParticipantGlobalLeadersDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_global_leaders_17'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('global_leaders_id_76', String(255), nullable=True)
+    treatment_arm: Mapped[str] = mapped_column('treatment_arm_77', String(255), nullable=True)
+
+
+class CiviCrmParticipantGraphic2Details(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_graphic2_9'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('graphic_participant_id_26', String(255), nullable=True)
+    graphic_lab_id: Mapped[str] = mapped_column('graphic_lab_id_25', String(255), nullable=True)
+    graphic_family_id: Mapped[str] = mapped_column('graphic_family_id_27', String(255), nullable=True)
+    consent_for_further_studies: Mapped[bool] = mapped_column('consent_for_further_studies_28', Boolean, nullable=True)
+    g1_blood_consent: Mapped[bool] = mapped_column('g1_blood_consent_29', Boolean, nullable=True)
+    pre_consent_to_graphic_2: Mapped[bool] = mapped_column('pre_consent_to_graphic_2_30', Boolean, nullable=True)
+
+
+class CiviCrmParticipantIndapamideDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_indapamide_26'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('indapamide_id', String(255), nullable=True)
+
+
+class CiviCrmParticipantIntervalDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_interval_data_21'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('interval_id_98', String(255), nullable=True)
+    consent_date: Mapped[date] = mapped_column('consent_date_99', Date, nullable=True)
+    consent_version: Mapped[str] = mapped_column('consent_version_100', String(255), nullable=True)
+    consent_leaflet: Mapped[str] = mapped_column('consent_leaflet_101', String(255), nullable=True)
+
+
+class CiviCrmParticipantLentenDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_lenten_29'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('lenten_id_119', String(255), nullable=True)
+
+
+class CiviCrmParticipantLimbDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_limb_35'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('limb_id_129', String(255), nullable=True)
+
+
+class CiviCrmParticipantNationalBioresourceDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_national_bioresource_34'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('national_bioresource_id_126', String(255), nullable=True)
+    leicester_bioresource_id: Mapped[str] = mapped_column('leicester_bioresource_id_127', String(255), nullable=True)
+    legacy_bioresource_id: Mapped[str] = mapped_column('legacy_bioresource_id_128', String(255), nullable=True)
+
+
+class CiviCrmParticipantBioresourceDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_nihr_bioresource_11'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('nihr_bioresource_id_41', String(255), nullable=True)
+    date_of_consent: Mapped[datetime] = mapped_column('date_of_consent_42', Datetime, nullable=True)
+    nihr_bioresource_consent_q1: Mapped[bool] = mapped_column('nihr_bioresource_consent_q1_43', Boolean, nullable=True)
+    nihr_bioresource_consent_q2: Mapped[bool] = mapped_column('nihr_bioresource_consent_q2_44', Boolean, nullable=True)
+    nihr_bioresource_consent_q3: Mapped[bool] = mapped_column('nihr_bioresource_consent_q3_45', Boolean, nullable=True)
+    nihr_bioresource_consent_q4: Mapped[bool] = mapped_column('nihr_bioresource_consent_q4_46', Boolean, nullable=True)
+    nihr_bioresource_consent_q5: Mapped[bool] = mapped_column('nihr_bioresource_consent_q5_47', Boolean, nullable=True)
+    nihr_bioresource_consent_q6: Mapped[bool] = mapped_column('nihr_bioresource_consent_q6_48', Boolean, nullable=True)
+    nihr_bioresource_legacy_id: Mapped[str] = mapped_column('nihr_bioresource_legacy_id_78', String(255), nullable=True)
+
+
+class CiviCrmParticipantBioresourceWithdrawalDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_nihr_bioresource_withdrawal_12'
+    __bind_key__ = 'civicrm'
+
+    nihr_bioresource_withdrawal_stat: Mapped[str] = mapped_column('nihr_bioresource_withdrawal_stat_49', String(255), nullable=True)
+
+
+class CiviCrmParticipantOmicsDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_omics_register_20'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('omics_id_102', String(255), nullable=True)
+    sample_source_study: Mapped[str] = mapped_column('sample_source_study_95', String(255), nullable=True)
+    failed_qc: Mapped[bool] = mapped_column('failed_qc_96', Boolean, nullable=True)
+    date_data_received: Mapped[datetime] = mapped_column('date_data_received_97', Datetime, nullable=True)
+    omics_type: Mapped[str] = mapped_column('omics_type_94', String(255), nullable=True)
+
+
+class CiviCrmParticipantPredictDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_predict_30'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('predict_id_121', String(255), nullable=True)
+
+
+class CiviCrmParticipantPreeclampsiaDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_preeclampsia_33'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('preeclampsia_id_125', String(255), nullable=True)
+
+
+class CiviCrmParticipantScadDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_scad_15'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('scad_id_58', String(255), nullable=True)
+    consent_read_information: Mapped[bool] = mapped_column('consent_read_information_59', Boolean, nullable=True)
+    consent_understands_withdrawal: Mapped[bool] = mapped_column('consent_understands_withdrawal_60', Boolean, nullable=True)
+    consent_provide_medical_informat: Mapped[bool] = mapped_column('consent_provide_medical_informat_61', Boolean, nullable=True)
+    consent_contact_by_research_team: Mapped[bool] = mapped_column('consent_contact_by_research_team_62', Boolean, nullable=True)
+    consent_sample_storage: Mapped[bool] = mapped_column('consent_sample_storage_63', Boolean, nullable=True)
+    consent_no_financial_benefit: Mapped[bool] = mapped_column('consent_no_financial_benefit_64', Boolean, nullable=True)
+    consent_contact_gp: Mapped[bool] = mapped_column('consent_contact_gp_65', Boolean, nullable=True)
+    consent_dna_sequencing: Mapped[bool] = mapped_column('consent_dna_sequencing_66', Boolean, nullable=True)
+    consent_skin_biopsy: Mapped[bool] = mapped_column('consent_skin_biopsy_67', Boolean, nullable=True)
+    consent_understands_how_to_conta: Mapped[bool] = mapped_column('scad_id_58', Boolean, nullable=True)
+    consent_share_information_with_m: Mapped[bool] = mapped_column('consent_share_information_with_m_69', Boolean, nullable=True)
+    consent_access_to_medical_record: Mapped[bool] = mapped_column('consent_access_to_medical_record_70', Boolean, nullable=True)
+    consent_contact_for_related_stud: Mapped[bool] = mapped_column('consent_contact_for_related_stud_71', Boolean, nullable=True)
+    consent_receive_research_sumary: Mapped[bool] = mapped_column('consent_receive_research_sumary_72', Boolean, nullable=True)
+    consent_date: Mapped[datetime] = mapped_column('consent_date_73', Datetime, nullable=True)
+    briccs_id: Mapped[str] = mapped_column('briccs_id_88', String(255), nullable=True)
+    survey_reference: Mapped[str] = mapped_column('survey_reference_89', String(255), nullable=True)
+    scad_visit_id: Mapped[str] = mapped_column('scad_visit_id_90', String(255), nullable=True)
+    recruitment_type: Mapped[str] = mapped_column('recruitment_type_91', String(255), nullable=True)
+    second_scad_survey_id: Mapped[str] = mapped_column('2nd_scad_survey_id_105', String(255), nullable=True)
+    scad_registry_id: Mapped[str] = mapped_column('scad_registry_id_120', String(255), nullable=True)
+    family_id: Mapped[str] = mapped_column('family_id_122', String(255), nullable=True)
+
+
+class CiviCrmParticipantScadRegisterDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_scad_register_37'
+    __bind_key__ = 'civicrm'
+
+    scad_registry_id_131: Mapped[str] = mapped_column('scad_registry_id_131', String(255), nullable=True)
+
+
+class CiviCrmParticipantSpiralDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_spiral_32'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('spiral_id_124', String(255), nullable=True)
+
+
+class CiviCrmParticipantTmaoDetails(CiviCrmParticipantDetails):
+    __tablename__ = 'civicrm_value_tmao_18'
+    __bind_key__ = 'civicrm'
+
+    study_identifier: Mapped[str] = mapped_column('tmao_id_79', String(255), nullable=True)
+    tmao_consent_has_read_informatio: Mapped[bool] = mapped_column('tmao_consent_has_read_informatio_80', Boolean, nullable=True)
+    tmao_consent_understands_withdra: Mapped[bool] = mapped_column('tmao_consent_understands_withdra_81', Booleaan, nullable=True)
+    tmao_consent_permission_to_acces: Mapped[bool] = mapped_column('tmao_consent_permission_to_acces_82', Boolean, nullable=True)
+    tmao_consent_gp_informed: Mapped[bool] = mapped_column('tmao_consent_gp_informed_83', Boolean, nullable=True)
+    tmao_consent_to_enrol: Mapped[bool] = mapped_column('tmao_consent_to_enrol_84', Boolean, nullable=True)
+    tmao_consent_to_store_blood: Mapped[bool] = mapped_column('tmao_consent_to_store_blood_85', Boolean, nullable=True)
+
+
+class CiviCrmOptionValue(db.Model):
+    __tablename__ = 'civicrm_option_value'
+    __bind_key__ = 'civicrm'
+
+    __mapper_args__ = {
+        "polymorphic_on": "option_group_id",
+    }
+
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    option_group_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    label: Mapped[str] = mapped_column(String(500), nullable=True)
+    value: Mapped[int] = mapped_column(Integer, nullable=False)
+    name: Mapped[str] = mapped_column(String(500), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+
+class CiviCrmGender(CiviCrmOptionValue):
+    __mapper_args__ = {
+        "polymorphic_identity": 3,
+    }
+
+
+class CiviCrmCaseStatus(CiviCrmOptionValue):
+    __mapper_args__ = {
+        "polymorphic_identity": 27,
+    }
+
+
 class CiviCrmStudy(db.Model):
     __tablename__ = 'civicrm_case_type'
     __bind_key__ = 'civicrm'
@@ -32,4 +366,112 @@ class CiviCrmParticipant(db.Model):
         foreign_keys=[study_id],
         primaryjoin='CiviCrmStudy.id == CiviCrmParticipant.study_id',
         backref=backref("participants", cascade="delete, delete-orphan")
+    )
+
+    status: Mapped[CiviCrmCaseStatus] = relationship(
+        CiviCrmCaseStatus,
+        foreign_keys=[status_id],
+        primaryjoin='CiviCrmCaseStatus.value == CiviCrmParticipant.status_id',
+    )
+
+    @property
+    def contact(self):
+        if self.participant_contacts:
+            return self.participant_contacts[0].contact
+
+
+class CiviCrmContact(db.Model):
+    __tablename__ = 'civicrm_contact'
+    __bind_key__ = 'civicrm'
+
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    contact_type: Mapped[str] = mapped_column(String(64), nullable=True)
+    contact_sub_type: Mapped[str] = mapped_column(String(255), nullable=True)
+    do_not_email: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    do_not_phone: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    do_not_mail: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    do_not_sms: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    do_not_trade: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_opt_out: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    legal_identifier: Mapped[str] = mapped_column(String(32), nullable=True)
+    external_identifier: Mapped[str] = mapped_column(String(64), nullable=False, server_default='0')
+    sort_name: Mapped[str] = mapped_column(String(128), nullable=True)
+    display_name: Mapped[str] = mapped_column(String(128), nullable=True)
+    nick_name: Mapped[str] = mapped_column(String(128), nullable=True)
+    legal_name: Mapped[str] = mapped_column(String(128), nullable=True)
+    image_URL: Mapped[str] = mapped_column(String(4000), nullable=True)
+    preferred_communication_method: Mapped[str] = mapped_column(String(255), nullable=True)
+    preferred_language: Mapped[str] = mapped_column(String(5), nullable=True)
+    preferred_mail_format: Mapped[str] = mapped_column(String(8), nullable=True)
+    hash: Mapped[str] = mapped_column(String(32), nullable=True)
+    api_key: Mapped[str] = mapped_column(String(32), nullable=True)
+    source: Mapped[str] = mapped_column(String(255), nullable=True)
+    first_name: Mapped[str] = mapped_column(String(64), nullable=True)
+    middle_name: Mapped[str] = mapped_column(String(64), nullable=True)
+    last_name: Mapped[str] = mapped_column(String(64), nullable=True)
+    prefix_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    suffix_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    formal_title: Mapped[str] = mapped_column(String(64), nullable=True)
+    communication_style_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    email_greeting_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    email_greeting_custom: Mapped[str] = mapped_column(String(128), nullable=True)
+    email_greeting_display: Mapped[str] = mapped_column(String(255), nullable=True)
+    postal_greeting_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    postal_greeting_custom: Mapped[str] = mapped_column(String(128), nullable=True)
+    postal_greeting_display: Mapped[str] = mapped_column(String(255), nullable=True)
+    addressee_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    addressee_custom: Mapped[str] = mapped_column(String(128), nullable=True)
+    addressee_display: Mapped[str] = mapped_column(String(255), nullable=True)
+    job_title: Mapped[str] = mapped_column(String(255), nullable=True)
+    gender_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    birth_date: Mapped[date] = mapped_column(Date, nullable=True)
+    is_deceased: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    deceased_date: Mapped[date] = mapped_column(Date, nullable=True)
+    household_name: Mapped[str] = mapped_column(String(128), nullable=True)
+    primary_contact_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    organization_name: Mapped[str] = mapped_column(String(128), nullable=True)
+    sic_code: Mapped[str] = mapped_column(String(8), nullable=True)
+    user_unique_id: Mapped[str] = mapped_column(String(255), nullable=True)
+    employer_id: Mapped[int] = mapped_column(Integer, nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_date: Mapped[date] = mapped_column(Date, nullable=True)
+    modified_date: Mapped[date] = mapped_column(Date, nullable=True)
+
+    gender: Mapped[CiviCrmGender] = relationship(
+        CiviCrmGender,
+        foreign_keys=[gender_id],
+        primaryjoin='CiviCrmGender.value == CiviCrmContact.gender_id',
+    )
+
+    contact_ids: Mapped[CiviCrmContactIds] = relationship(
+        CiviCrmContactIds,
+        foreign_keys=[id],
+        primaryjoin='CiviCrmContactIds.entity_id == CiviCrmContact.id',
+    )
+
+    @property
+    def full_name(self):
+        return ' '.join([self.first_name, self.last_name])
+
+
+class CiviCrmParticipantContact(db.Model):
+    __tablename__ = 'civicrm_case_contact'
+    __bind_key__ = 'civicrm'
+
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    participant_id: Mapped[int] = mapped_column('case_id', Integer, nullable=False)
+    contact_id: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    participant: Mapped[CiviCrmParticipant] = relationship(
+        CiviCrmParticipant,
+        foreign_keys=[participant_id],
+        primaryjoin='CiviCrmParticipantContact.participant_id == CiviCrmParticipant.id',
+        backref=backref("participant_contacts", cascade="delete, delete-orphan")
+    )
+
+    contact: Mapped[CiviCrmParticipant] = relationship(
+        CiviCrmContact,
+        foreign_keys=[contact_id],
+        primaryjoin='CiviCrmParticipantContact.contact_id == CiviCrmContact.id',
+        backref=backref("participant_contacts", cascade="delete, delete-orphan")
     )

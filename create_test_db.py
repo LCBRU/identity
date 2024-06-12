@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 
 from itertools import cycle
-from random import randint
+from random import randint, choice
 from dotenv import load_dotenv
 from lbrc_flask.database import db
 from lbrc_flask.security import init_roles, init_users
 from identity.model import Study
 from identity.model.blinding import BlindingType
 from identity.model.edge import EdgeSiteStudy
-from identity.model.civicrm import CiviCrmStudy, CiviCrmParticipant
+from identity.model.civicrm import (
+    CiviCrmStudy,
+    CiviCrmParticipant,
+    CiviCrmContact,
+    CiviCrmParticipantContact,
+    CiviCrmGender,
+    CiviCrmCaseStatus,
+    CiviCrmContactIds,
+)
 from identity.model.id import PseudoRandomIdProvider
 from identity.printing import LabelBundle
 from identity.setup import setup_data
@@ -35,6 +43,27 @@ principle_investigator = cycle(fake.name() for _ in range(5))
 lead_nurse = cycle(fake.name() for _ in range(5))
 
 
+# CiviCRM Gender
+genders = [
+    CiviCrmGender(value=1, name='Female', label='Female'),
+    CiviCrmGender(value=2, name='Male', label='Male'),
+]
+db.session.add_all(genders)
+db.session.commit()
+
+
+# CiviCRM Case Status
+case_statuses = [
+    CiviCrmCaseStatus(value=1, name='Open', label='Open'),
+    CiviCrmCaseStatus(value=2, name='Closed', label='Closed'),
+    CiviCrmCaseStatus(value=3, name='Recruitment Pending', label='Recruitment Pending'),
+    CiviCrmCaseStatus(value=4, name='Recruited', label='Recruited'),
+    CiviCrmCaseStatus(value=5, name='Available for Cohort', label='Available for Cohort'),
+]
+db.session.add_all(case_statuses)
+db.session.commit()
+
+
 # CiviCRM Studies
 civicrm_studies = [CiviCrmStudy(
     name=s,
@@ -57,11 +86,50 @@ for cs in civicrm_studies:
             subject=fake.license_plate(),
             start_date=fake.date_object(),
             end_date=fake.date_object(),
-            status_id=1,
-            is_deleted=False,
+            status_id=choice(case_statuses).value,
+            is_deleted=(randint(1, 10) > 9),
     ) for _ in range(randint(15, 25))])
 
 db.session.add_all(civicrm_participants)
+db.session.commit()
+
+
+# CiviCRM Contacts
+civicrm_contacts = []
+civicrm_participant_contacts = []
+
+for cp in civicrm_participants:
+    c = CiviCrmContact(
+        contact_type='Subject',
+        contact_sub_type='Subject',
+        first_name=fake.first_name(),
+        middle_name=fake.first_name(),
+        last_name=fake.last_name(),
+        gender_id=choice(genders).value,
+        birth_date=fake.date(),
+        is_deleted=(randint(1, 10) > 9),
+    )
+    civicrm_contacts.append(c)
+    civicrm_participant_contacts.append(
+        CiviCrmParticipantContact(
+            participant=cp,
+            contact=c,
+        ))
+
+db.session.add_all(civicrm_contacts)
+db.session.add_all(civicrm_participant_contacts)
+db.session.commit()
+
+contact_ids = []
+
+for c in civicrm_contacts:
+    contact_ids.append(CiviCrmContactIds(
+        entity_id=c.id,
+        nhs_number=f'{fake.pyint(1000000000, 9999999999)}',
+        uhl_system_number=f'S{fake.pyint(1000000, 9999999)}',
+    ))
+
+db.session.add_all(contact_ids)
 db.session.commit()
 
 

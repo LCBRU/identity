@@ -31,20 +31,32 @@
             </fieldset>
         </form>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Subject</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in participants %}
-                    <tr>
-                        <td>{{ p.subject }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <ul class="panel_list">
+            {% for p in participants %}
+                <li>
+                    <header>
+                        <div>
+                            <h2>{{ p.contact.full_name }}</h2>
+                        </div>
+                        <div>
+                            <span class="pill">{{ p.status.name }}</span>
+                        </div>
+                    </header>
+                    <dl class="columns">
+                        <dt>Recruitment Date</dt>
+                        <dd>{{ p.start_date | date_format }}</dd>
+                        <dt>NHS Number</dt>
+                        <dd>{{ p.contact.contact_ids.nhs_number }}</dd>
+                        <dt>UHL System Number</dt>
+                        <dd>{{ p.contact.contact_ids.uhl_system_number }}</dd>
+                        <dt>Date of Birth</dt>
+                        <dd>{{ p.contact.birth_date | date_format }}</dd>
+                        <dt>Gender</dt>
+                        <dd>{{ p.contact.gender.name }}</dd>
+                    </dl>
+                </li>
+            {% endfor %}
+        </ul>
 
         {{ render_pagination(participants, 'ui.study', search_form, id=study.id) }}
       
