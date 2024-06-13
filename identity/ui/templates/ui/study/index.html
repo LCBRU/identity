@@ -36,15 +36,30 @@
                 <li>
                     <header>
                         <div>
-                            <h2>{{ p.contact.full_name }}</h2>
+                            <h3>{{ p.contact.full_name }}</h3>
                         </div>
                         <div>
                             <span class="pill">{{ p.status.name }}</span>
                         </div>
                     </header>
+
                     <dl class="columns">
                         <dt>Recruitment Date</dt>
                         <dd>{{ p.start_date | date_format }}</dd>
+                    </dl>
+
+                    {% if p.identifiers | length > 0 %}
+                        <h4>Identifiers</h4>
+                        <dl class="columns">
+                            {% for k, v in p.identifiers.items() %}
+                                <dt>{{ k }}</dt>
+                                <dd>{{ v }}</dd>
+                            {% endfor %}
+                        </dl>
+                    {% endif %}
+
+                    <h4>Participant Details</h4>
+                    <dl class="columns">
                         <dt>NHS Number</dt>
                         <dd>{{ p.contact.contact_ids.nhs_number }}</dd>
                         <dt>UHL System Number</dt>
@@ -54,6 +69,27 @@
                         <dt>Gender</dt>
                         <dd>{{ p.contact.gender.name }}</dd>
                     </dl>
+
+                    {% if p.consents | length > 0 %}
+                        <h4>Consent</h4>
+                        <dl class="columns">
+                            {% for k, v in p.consents.items() %}
+                                <dt>{{ k }}</dt>
+                                <dd>{{ v }}</dd>
+                            {% endfor %}
+                        </dl>
+                    {% endif %}
+
+                    {% if p.other_details | length > 0 %}
+                        <h4>Other Details</h4>
+                        <dl class="columns">
+                            {% for k, v in p.other_details.items() %}
+                                <dt>{{ k }}</dt>
+                                <dd>{{ v }}</dd>
+                            {% endfor %}
+                        </dl>
+                    {% endif %}
+
                 </li>
             {% endfor %}
         </ul>

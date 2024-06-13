@@ -22,8 +22,8 @@
                 <li>
                     <header>
                         <div>
-                            <h2>{{ dr.filename }}</h2>
-                            <h3>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h3>
+                            <h3>{{ dr.filename }}</h3>
+                            <h5>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h5>
                         </div>
                         <div>
                             <span class="pill">{{ dr.status }}</span>

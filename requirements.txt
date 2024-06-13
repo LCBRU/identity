@@ -32,6 +32,8 @@ blinker==1.7.0
     #   flask-principal
 brotli==1.1.0
     # via fonttools
+cachetools==5.3.3
+    # via -r requirements.in
 celery==5.4.0
     # via -r requirements.in
 certifi==2023.11.17

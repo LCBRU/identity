@@ -20,3 +20,4 @@ alembic
 pymysql
 pyodbc
 faker
+cachetools
