@@ -71,10 +71,7 @@ class TrackerSearchGanttForm(TrackerSearchForm):
 
 @blueprint.route("/study_tracker/rag", methods=['GET', 'POST'])
 def study_tracker_rag():
-    if request.args:
-        search_form = TrackerSearchForm(formdata=request.args)
-    else:
-        search_form = TrackerSearchForm()
+    search_form = TrackerSearchForm(formdata=request.args, search_placeholder='Search Studies')
 
     ess = _get_edge_site_search_query(search_form).paginate(
         page=search_form.page.data, per_page=10, error_out=False
@@ -122,20 +119,14 @@ def _get_edge_site_search_query(search_form):
 
 @blueprint.route("/study_tracker/gantt", methods=['GET', 'POST'])
 def study_tracker_gantt():
-    if request.args:
-        search_form = TrackerSearchGanttForm(formdata=request.args)
-    else:
-        search_form = TrackerSearchGanttForm()
+    search_form = TrackerSearchGanttForm(formdata=request.args, search_placeholder='Search Studies')
 
     return render_template("ui/study_tracker/gantt.html", search_form=search_form)
 
 
 @blueprint.route("/study_tracker/gantt2", methods=['GET', 'POST'])
 def study_tracker_gantt2():
-    if request.args:
-        search_form = TrackerSearchGanttForm(formdata=request.args)
-    else:
-        search_form = TrackerSearchGanttForm()
+    search_form = TrackerSearchGanttForm(formdata=request.args, search_placeholder='Search Studies')
 
     return render_template("ui/study_tracker/gantt2.html", search_form=search_form)
 
@@ -205,12 +196,7 @@ class PeriodiserMonth(Periodiser):
 
 @blueprint.route("/study_tracker/gantt/json")
 def study_tracker_gantt_json():
-    if request.args:
-        search_form = TrackerSearchGanttForm(formdata=request.args)
-    else:
-        search_form = TrackerSearchGanttForm()
-
-    print(request.args)
+    search_form = TrackerSearchGanttForm(formdata=request.args)
 
     q = _get_edge_site_search_query(search_form)
 
@@ -248,10 +234,7 @@ def study_tracker_gantt_json():
 
 @blueprint.route("/study_tracker/gantt/image")
 def study_tracker_gantt_image():
-    if request.args:
-        search_form = TrackerSearchGanttForm(formdata=request.args)
-    else:
-        search_form = TrackerSearchGanttForm()
+    search_form = TrackerSearchGanttForm(formdata=request.args)
 
     q = _get_edge_site_search_query(search_form)
 

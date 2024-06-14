@@ -102,7 +102,7 @@ def must_be_request_owner():
 @blueprint.route("/demographics/")
 def demographics():
     if current_user.is_admin:
-        search_form = DemographicsAdminSearchForm(formdata=request.args)
+        search_form = DemographicsAdminSearchForm(formdata=request.args, search_placeholder='Search Demographics Requests')
 
         submitter_ids = DemographicsRequest.query.with_entities(DemographicsRequest.owner_user_id.distinct()).filter(DemographicsRequest.owner_user_id != current_user.id).subquery()
         submitters = sorted(User.query.filter(User.id.in_(submitter_ids)).all(), key=lambda u: u.full_name)

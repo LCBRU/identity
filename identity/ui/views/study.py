@@ -10,7 +10,7 @@ from flask_login import current_user
 from sqlalchemy import select
 
 from identity.model.civicrm import CiviCrmStudy
-from identity.services.civicrm import get_civicrm_study_choices, ParticipantSearchForm, get_participant_query
+from identity.services.civicrm import get_civicrm_study_choices, ParticipantSearchForm, get_civicrm_study_status_choices, get_participant_query
 from .. import blueprint, db
 from identity.model.blinding import Blinding
 from identity.model import Study
@@ -25,10 +25,10 @@ from identity.model.civicrm import CiviCrmParticipant
 
 
 class BlindingForm(FlashingForm):
-    id = StringField("ID", validators=[DataRequired(), Length(max=100)])
+    id = StringField("ID", validators=[DataRequired(), Length(max=100)], render_kw={"placeholder": "Participant ID"})
 
 class UnblindingForm(FlashingForm):
-    id = StringField("ID", validators=[DataRequired(), Length(max=100)])
+    id = StringField("ID", validators=[DataRequired(), Length(max=100)], render_kw={"placeholder": "Blinded ID"})
 
 
 class EditStudyForm(FlashingForm):
@@ -41,6 +41,16 @@ class EditStudyForm(FlashingForm):
         super().__init__(**kwargs)
 
         self.civicrm_study_id.choices = [('', '')] + get_civicrm_study_choices()
+
+
+class EditParticipantForm(FlashingForm):
+    id = HiddenField('id')
+    status_id = SelectField('Status', choices=[])
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.status_id.choices = [('', '')] + get_civicrm_study_status_choices()
 
 
 @blueprint.route("/study/<int:id>/blinding/", methods=['POST'])
@@ -104,7 +114,7 @@ def study(id):
     study = Study.query.get_or_404(id)
     blinding_form = None
     unblinding_form = None
-    search_form = ParticipantSearchForm(formdata=request.args)
+    search_form = ParticipantSearchForm(formdata=request.args, search_placeholder='Search name or identifiers')
 
     if study.edge_id:
         q = select(EdgeSiteStudy).where(EdgeSiteStudy.project_id == study.edge_id)
@@ -163,4 +173,26 @@ def study_edit(id):
         title=f"Edit Study {study.name}",
         form=form,
         url=url_for('ui.study_edit', id=id),
+    )
+
+
+@blueprint.route("/study/<int:id>/partcipant/<int:participant_id>/edit", methods=['GET', 'POST'])
+@assert_study_user()
+def participant_edit(id, participant_id):
+    study = db.get_or_404(Study, id)
+    participant = db.get_or_404(CiviCrmParticipant, participant_id)
+
+    form = EditParticipantForm(obj=participant)
+
+    if form.validate_on_submit():
+        participant.status_id = form.status_id.data
+        db.session.add(participant)
+        db.session.commit()
+        return refresh_response()
+
+    return render_template(
+        "lbrc/form_modal.html",
+        title=f"Edit Participant {participant.contact.full_name}",
+        form=form,
+        url=url_for('ui.participant_edit', id=id, participant_id=participant_id),
     )

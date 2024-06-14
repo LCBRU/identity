@@ -39,7 +39,7 @@
                             <h3>{{ p.contact.full_name }}</h3>
                         </div>
                         <div>
-                            <span class="pill">{{ p.status.name }}</span>
+                            <span class="pill">{{ p.status.name }}&nbsp;<a title="Edit participant details" href="#" hx-get="{{ url_for('ui.participant_edit', id=study.id, participant_id=p.id ) }}" hx-target="body" hx-swap="beforeend"><i class="fas fa-edit"></i></a></span>
                         </div>
                     </header>
 
@@ -116,7 +116,7 @@
                 <form action="{{ url_for('ui.blinding', id=study.id) }}" method="POST" enctype="multipart/form-data">
                     <fieldset>
                         {{blinding_form.hidden_tag()}}
-                        {{render_field_and_submit(blinding_form.id, submit_label="Blind", placeholder='Participant ID')}}
+                        {{render_field_and_submit(blinding_form.id, submit_label="Blind")}}
                     </fieldset>
                 </form>
             </aside>
@@ -128,7 +128,7 @@
                 <form id="study_data_upload" action="{{ url_for('ui.unblinding', id=study.id) }}" method="POST" enctype="multipart/form-data">
                     <fieldset>
                         {{unblinding_form.hidden_tag()}}
-                        {{render_field_and_submit(unblinding_form.id, submit_label="Unblind", placeholder='Blinded ID')}}
+                        {{render_field_and_submit(unblinding_form.id, submit_label="Unblind")}}
                     </fieldset>
                 </form>
             </aside>
