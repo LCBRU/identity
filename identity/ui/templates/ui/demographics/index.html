@@ -20,7 +20,7 @@
         <ul class="panel_list">
             {% for dr in demographics_requests.items %}
                 <li>
-                    <header>
+                    <header class="flex_two_left_grow">
                         <div>
                             <h3>{{ dr.filename }}</h3>
                             <h5>Uploaded on {{ dr.created_datetime | date_format }} by {{ dr.owner.full_name }}</h5>
