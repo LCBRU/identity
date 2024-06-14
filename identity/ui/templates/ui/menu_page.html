@@ -23,6 +23,7 @@
           </menu>
         </li>
       </menu>
+      {% if current_user.is_admin %}
       <menu>
         <li>
           <a>Admin</a>
@@ -38,6 +39,7 @@
           </menu>
         </li>
       </menu>
+      {% endif %}
     </div>
   </nav>
 
