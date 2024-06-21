@@ -54,7 +54,6 @@ from identity.setup import setup_data
 from faker import Faker
 fake = Faker()
 
-
 load_dotenv()
 
 from identity import create_app
