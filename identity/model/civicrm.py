@@ -124,7 +124,7 @@ class CiviCrmParticipantBraveDetails(CiviCrmParticipantDetails):
         "concrete": True,
     }
 
-    study_identifier: Mapped[str] = mapped_column('brave_id_54', String(255), nullable=True)
+    study_identifier: Mapped[str] = mapped_column('brave_id_74', String(255), nullable=True)
     source_study: Mapped[str] = mapped_column('brave_source_study_75', String(255), nullable=True)
     briccs_id: Mapped[str] = mapped_column('briccs_id_86', String(255), nullable=True)
     family_id: Mapped[str] = mapped_column('brave_family_id_87', String(255), nullable=True)
