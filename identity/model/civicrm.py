@@ -447,7 +447,7 @@ class CiviCrmParticipantIndapamideDetails(CiviCrmParticipantDetails):
         "concrete": True,
     }
 
-    study_identifier: Mapped[str] = mapped_column('indapamide_id', String(255), nullable=True)
+    study_identifier: Mapped[str] = mapped_column('indapamide_id_112', String(255), nullable=True)
 
     def identifiers(self):
         return {'Study Identifier': self.study_identifier}
