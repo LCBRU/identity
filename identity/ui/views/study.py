@@ -20,7 +20,7 @@ from identity.model.edge import EdgeSiteStudy
 from lbrc_flask.forms import FlashingForm
 from lbrc_flask.response import refresh_response
 from wtforms import HiddenField, SelectField, StringField, IntegerField
-from wtforms.validators import Length, DataRequired
+from wtforms.validators import Length, DataRequired, Optional
 from identity.model.civicrm import CiviCrmParticipant
 
 
@@ -34,7 +34,7 @@ class UnblindingForm(FlashingForm):
 class EditStudyForm(FlashingForm):
     id = HiddenField('id')
     name = StringField('Name', validators=[Length(max=50)])
-    edge_id = IntegerField('EDGE ID')
+    edge_id = IntegerField('EDGE ID', validators=[Optional()])
     civicrm_study_id = SelectField('CiviCRM Study', choices=[])
 
     def __init__(self, **kwargs):
