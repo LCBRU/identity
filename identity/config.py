@@ -40,6 +40,9 @@ class IdentityConfig():
     # PMI
     PMI_DB_URI=os.environ["PMI_DB_URI"]
 
+    # CiviCRM
+    CIVICRM_DB_URI=os.environ["CIVICRM_DB_URI"]
+
     # REDCap Database Details
     REDCAP_USERNAME=os.environ["REDCAP_USERNAME"]
     REDCAP_PASSWORD=os.environ["REDCAP_PASSWORD"]
