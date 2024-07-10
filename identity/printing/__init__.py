@@ -11,7 +11,7 @@ import re
 import socket
 import datetime
 import time
-from flask import current_app
+from flask import current_app, flash
 
 
 PRINTER_DEV = 'PRINTER_DEV'
@@ -435,6 +435,7 @@ class LabelPrinter(db.Model):
             host = self.hostname_or_ip_address
 
         if current_app.config['TESTING']:
+            flash('Testing, not printing')
             #current_app.logger.info(f'Fake print of {printer_code} to host {host}')
             current_app.logger.info(f'.')
         else:

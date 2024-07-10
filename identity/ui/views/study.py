@@ -27,6 +27,7 @@ from identity.model.civicrm import CiviCrmParticipant
 class BlindingForm(FlashingForm):
     id = StringField("ID", validators=[DataRequired(), Length(max=100)], render_kw={"placeholder": "Participant ID"})
 
+
 class UnblindingForm(FlashingForm):
     id = StringField("ID", validators=[DataRequired(), Length(max=100)], render_kw={"placeholder": "Blinded ID"})
 
