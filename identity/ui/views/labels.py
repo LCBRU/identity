@@ -68,7 +68,7 @@ def get_label_definition_form(label_bundle):
     class LabelDefinition(FlashingForm):
             pass
 
-    if not label_bundle.user_defined_participant_id:
+    if label_bundle.user_defined_participant_id:
         setattr(LabelDefinition, 'participant_id', StringField("Participant Identifier", validators=[DataRequired(), Length(max=100)]))
     
     if not label_bundle.disable_batch_printing:
