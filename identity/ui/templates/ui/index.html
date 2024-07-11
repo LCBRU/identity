@@ -3,7 +3,7 @@
 {% block menu_page_content %}
 <section class="container">
     <nav class="link_list">
-        {% for s in studies %}
+        {% for s in studies | sort(attribute='name') %}
             <a href="{{ url_for('ui.study', id=s.id) }}" role="button">{{ s.name }}</a>
         {% endfor %}
     </nav>
