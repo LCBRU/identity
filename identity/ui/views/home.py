@@ -9,7 +9,7 @@ from .. import blueprint, db
 @blueprint.route("/")
 def index():
     if current_user.is_admin:
-        studies = db.session.execute(select(Study)).unique().scalars()
+        studies = db.session.execute(select(Study).order_by(Study.name)).unique().scalars()
     else:
         studies = current_user.studies
 
