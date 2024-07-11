@@ -1,7 +1,19 @@
 from flask import render_template
-from .. import blueprint
+from flask_login import current_user
+from sqlalchemy import select
+
+from identity.model import Study
+from .. import blueprint, db
 
 
 @blueprint.route("/")
 def index():
-    return render_template("ui/index.html")
+    if current_user.is_admin:
+        studies = db.session.execute(select(Study)).unique().scalars()
+    else:
+        studies = current_user.studies
+
+    return render_template(
+        "ui/index.html",
+        studies=studies,
+    )

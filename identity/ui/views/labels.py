@@ -18,10 +18,10 @@ from wtforms.validators import Length, DataRequired
 
 @blueprint.route("/labels/")
 def labels():
-    return render_template(
-        "ui/labels.html",
-        studies=current_user.studies,
-    )
+    if len(current_user.studies) == 1:
+        return redirect(url_for('ui.study', id=current_user.studies[0].id))
+    else:
+        return redirect(url_for('ui.index'))
 
 
 def print_label_bundle(count, label_bundle):

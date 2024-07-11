@@ -1,8 +1,12 @@
 {% extends "ui/menu_page.html" %}
 
 {% block menu_page_content %}
-<section>
-
+<section class="container">
+    <nav class="link_list">
+        {% for s in studies %}
+            <a href="{{ url_for('ui.study', id=s.id) }}" role="button">{{ s.name }}</a>
+        {% endfor %}
+    </nav>
 </section>
     
 {% endblock %}
