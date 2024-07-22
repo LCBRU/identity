@@ -9,7 +9,7 @@ from flask import (
 from flask_login import current_user
 from identity.printing import LabelBundle
 from .. import blueprint, db
-from ..decorators import assert_study_user
+from ..decorators import assert_can_print_study_label
 from lbrc_flask.response import refresh_response
 from lbrc_flask.forms import FlashingForm
 from wtforms import HiddenField, StringField, SelectField
@@ -38,10 +38,10 @@ def print_label_bundle(count, label_bundle):
         flash("An error occurred while printing.  Check that the printer has paper and ink, and that a jam has not occurred.", "error")
 
 
-@blueprint.route("/label_bundle/<int:label_bundle_id>/print", methods=['GET', 'POST'])
-@assert_study_user()
-def label_bundle_definition(label_bundle_id):
-    label_bundle = db.get_or_404(LabelBundle, label_bundle_id)
+@blueprint.route("/label_bundle/<int:id>/print", methods=['GET', 'POST'])
+@assert_can_print_study_label()
+def label_bundle_definition(id):
+    label_bundle = db.get_or_404(LabelBundle, id)
     form = get_label_definition_form(label_bundle=label_bundle)
 
     if form.validate_on_submit():
@@ -59,7 +59,7 @@ def label_bundle_definition(label_bundle_id):
         title=f'Print {label_bundle.name} Labels',
         form=form,
         submit_label='Print',
-        url=url_for('ui.label_bundle_definition', label_bundle_id=label_bundle_id),
+        url=url_for('ui.label_bundle_definition', id=id),
     )
 
 

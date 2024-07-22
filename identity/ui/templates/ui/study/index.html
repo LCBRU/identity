@@ -104,7 +104,7 @@
                 <h2>Labels</h2>
                 {% for l in study.label_bundles | sort(attribute='name') %}
                     <section>
-                        <a class="lock_screen" href="#" hx-get="{{ url_for('ui.label_bundle_definition', label_bundle_id=l.id, count=5 ) }}" hx-target="body" hx-swap="beforeend" role="button">{{ l.name }}</a>
+                        <a class="lock_screen" href="#" hx-get="{{ url_for('ui.label_bundle_definition', id=l.id, count=5 ) }}" hx-target="body" hx-swap="beforeend" role="button">{{ l.name }}</a>
                     </section>
                 {% endfor %}
             </aside>
