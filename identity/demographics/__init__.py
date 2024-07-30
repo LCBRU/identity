@@ -403,8 +403,6 @@ def extract_post_pmi_details(request_id):
 
 def extract_pmi_details(request_id, data_selection_condition, request_completed_attribute, data_completed_attribute):
     current_app.logger.info(f'extract_pmi_details (request_id={request_id})')
-    current_app.logger.info(f'extract_pmi_details Skipping')
-    return
 
     try:
         dr = DemographicsRequest.query.get(request_id)
@@ -437,6 +435,8 @@ def extract_pmi_details(request_id, data_selection_condition, request_completed_
 
 def get_pmi_details(drd):
     current_app.logger.info(f'get_pmi_details (Data request Data={drd.id})')
+    current_app.logger.info(f'extract_pmi_details Skipping')
+    return
 
     try:
         error, v_nhs_number = convert_nhs_number(drd.nhs_number)
