@@ -403,6 +403,8 @@ def extract_post_pmi_details(request_id):
 
 def extract_pmi_details(request_id, data_selection_condition, request_completed_attribute, data_completed_attribute):
     current_app.logger.info(f'extract_pmi_details (request_id={request_id})')
+    current_app.logger.info(f'extract_pmi_details Skipping')
+    return
 
     try:
         dr = DemographicsRequest.query.get(request_id)
