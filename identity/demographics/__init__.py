@@ -435,8 +435,6 @@ def extract_pmi_details(request_id, data_selection_condition, request_completed_
 
 def get_pmi_details(drd):
     current_app.logger.info(f'get_pmi_details (Data request Data={drd.id})')
-    current_app.logger.info(f'extract_pmi_details Skipping')
-    return
 
     try:
         error, v_nhs_number = convert_nhs_number(drd.nhs_number)

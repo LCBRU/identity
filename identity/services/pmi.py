@@ -51,7 +51,6 @@ def get_pmi(nhs_number=None, uhl_system_number=None):
 
 
 def get_pmi_from_nhs_number(nhs_number):
-    return None
     if not nhs_number:
         return None
 
@@ -78,7 +77,6 @@ def get_pmi_from_nhs_number(nhs_number):
 
 
 def get_pmi_from_uhl_system_number(uhl_system_number):
-    return None
     if not uhl_system_number:
         return None
 
