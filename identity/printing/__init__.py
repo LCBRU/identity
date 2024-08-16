@@ -470,7 +470,7 @@ class LabelBundle(db.Model):
     print_recruited_notice = db.Column(db.Boolean)
     user_defined_participant_id = db.Column(db.Boolean)
     participant_label_count = db.Column(db.Integer)
-    sidebar_prefix = db.Column(db.String(50), default='')
+    sidebar_prefix = db.Column(db.String(50), default='', nullable=False)
 
     def __repr__(self):
         return f'{self.study.name}: {self.name}'
