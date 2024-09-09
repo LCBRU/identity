@@ -1,22 +1,9 @@
-Flask
-sqlalchemy
-WTForms
-six
 zeep
 requests
-openpyxl
-celery>=5.2.2
-chardet
-Werkzeug
-xlrd
 xlwt
 xlutils
-jsonschema
 matplotlib
-Flask-WeasyPrint
--e git+https://github.com/LCBRU/lbrc_flask.git@main#egg=lbrc_flask
-flask-security-too[fsqla,common]
-alembic
+git+https://github.com/LCBRU/lbrc_flask.git@pyproject
 pymysql
 pyodbc
 faker

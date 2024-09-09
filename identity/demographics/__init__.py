@@ -368,18 +368,18 @@ def produce_demographics_result(demographics_request_id):
         log_exception(e)
         save_demographics_error(demographics_request_id, e)
 
-    try:
-        email(
-            subject='Identity Demographics Request Complete',
-            recipients=[dr.owner.email],
-            message='Your demographics request {} is complete.'.format(
-                url_for('ui.demographics', _external=True),
-            ),
-            html=render_template('email/request_complete.html', request=dr),
-        )
-    except Exception as e:
-        current_app.logger.info('produce_demographics_result: Failed to send email, but everything else worked!')
-        log_exception(e)
+    # try:
+    #     email(
+    #         subject='Identity Demographics Request Complete',
+    #         recipients=[dr.owner.email],
+    #         message='Your demographics request {} is complete.'.format(
+    #             url_for('ui.demographics', _external=True),
+    #         ),
+    #         html=render_template('email/request_complete.html', request=dr),
+    #     )
+    # except Exception as e:
+    #     current_app.logger.info('produce_demographics_result: Failed to send email, but everything else worked!')
+    #     log_exception(e)
 
 
 @celery.task()
