@@ -360,7 +360,15 @@ def produce_demographics_result(demographics_request_id):
         dr.result_created_datetime = datetime.utcnow()
 
         db.session.add(dr)
+        db.session.commit()
 
+    except Exception as e:
+        current_app.logger.info('produce_demographics_result: Rolling Back')
+        db.session.rollback()
+        log_exception(e)
+        save_demographics_error(demographics_request_id, e)
+
+    try:
         email(
             subject='Identity Demographics Request Complete',
             recipients=[dr.owner.email],
@@ -369,12 +377,9 @@ def produce_demographics_result(demographics_request_id):
             ),
             html=render_template('email/request_complete.html', request=dr),
         )
-        db.session.commit()
     except Exception as e:
-        current_app.logger.info('produce_demographics_result: Rolling Back')
-        db.session.rollback()
+        current_app.logger.info('produce_demographics_result: Failed to send email, but everything else worked!')
         log_exception(e)
-        save_demographics_error(demographics_request_id, e)
 
 
 @celery.task()
