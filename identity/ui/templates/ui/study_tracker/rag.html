@@ -24,7 +24,7 @@
                 <li>
                     <header class="flex_two_left_grow">
                         <div>
-                            <h2><a href="https://www.edge.nhs.uk/Project/Details/{{ s.project_id }}" target='_blank'>{{s.project_short_title}}</a></h1>
+                            <h2><a href="https://www.edge.nhs.uk/#/Project/{{ s.project_id }}/index" target='_blank'>{{s.project_short_title}}</a></h1>
                             <h3>{{s.primary_clinical_management_areas}} {% if s.key_staff %}({{s.key_staff | blank_if_none }}){% endif %}</h2>
                         </div>
                         <div>
