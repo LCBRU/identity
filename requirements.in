@@ -3,7 +3,7 @@ requests
 xlwt
 xlutils
 matplotlib
-git+https://github.com/LCBRU/lbrc_flask.git@pyproject
+git+https://github.com/LCBRU/lbrc_flask.git
 pymysql
 pyodbc
 faker
