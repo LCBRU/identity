@@ -92,11 +92,23 @@ class EdgeSiteStudy(db.Model):
             self.rag_rating = None
         else:
             if self.current_target_recruited_percent >= 100:
-                self.rag_rating = 'success'
+                self.rag_rating = 'green'
             elif self.current_target_recruited_percent < 80:
-                self.rag_rating = 'danger'
+                self.rag_rating = 'red'
             else:
-                self.rag_rating = 'warning'
+                self.rag_rating = 'amber'
+    
+    @property
+    def red(self):
+        return self.rag_rating == 'red'
+
+    @property
+    def amber(self):
+        return self.rag_rating == 'amber'
+
+    @property
+    def green(self):
+        return self.rag_rating == 'green'
 
     def study_dates(self):
         result = {}

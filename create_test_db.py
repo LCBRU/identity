@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from datetime import date, timedelta
 from itertools import cycle
 from random import randint, choice
 from dotenv import load_dotenv
@@ -523,15 +524,37 @@ with civicrm_session() as sesh:
 
 
 # Edge Studies
-edge_studies = [EdgeSiteStudy(
-    project_id=fake.ean(length=8),
-    iras_number=fake.license_plate(),
-    project_short_title=s,
-    primary_clinical_management_areas=next(primary_clinical_management_areas),
-    project_site_status=next(status),
-    principal_investigator=next(principle_investigator),
-    project_site_lead_nurses=next(lead_nurse),
-) for s in study_names]
+edge_studies = []
+for s in study_names:
+    start_date = date.today() - timedelta(days=fake.pyint(30, 300))
+    study_length = fake.pyint(30, 600)
+    end_date = start_date + timedelta(days=study_length)
+    target_recruitment=10*fake.pyint(1, 100)
+
+    es = EdgeSiteStudy(
+        project_id=fake.ean(length=8),
+        iras_number=fake.license_plate(),
+        project_short_title=s,
+        primary_clinical_management_areas=next(primary_clinical_management_areas),
+        project_site_status=next(status),
+        principal_investigator=next(principle_investigator),
+        project_site_lead_nurses=next(lead_nurse),
+
+        project_site_rand_submission_date=fake.date_object(),
+        project_site_start_date_nhs_permission=start_date,
+        project_site_date_site_confirmed=start_date + timedelta(days=fake.pyint(-10,10)),
+        project_site_planned_closing_date=fake.date_object(),
+        project_site_closed_date=fake.date_object(),
+        project_site_actual_recruitment_end_date=end_date,
+        project_site_planned_recruitment_end_date=end_date + timedelta(days=fake.pyint(-10,10)),
+        project_site_target_participants=10*fake.pyint(1, 100),
+    )
+
+    es.calculate_values()
+    es.recruited_org = int(es.target_requirement_by or 0) * choice([0.1,0.5,0.6,0.8,0.85,0.9,0.95,1,1.05,1.10,1.50])
+    es.calculate_values()
+
+    edge_studies.append(es)
 
 db.session.add_all(edge_studies)
 db.session.commit()
