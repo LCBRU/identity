@@ -84,19 +84,19 @@
             text-align: right;
         }
 
-        .tr-red {
+        .tr-error {
             background-color: #d9534f;
             font-weight: bold;
             color: white;
         }
 
-        .tr-green {
+        .tr-success {
             background-color: #5cb85c;
             font-weight: bold;
             color: white;
         }
 
-        .tr-amber {
+        .tr-warning {
             background-color: #f0ad4e;
             font-weight: bold;
             color: white;
@@ -146,7 +146,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="tr-{{ s.rag_rating }}">
+                            <tr class="tr-{{ s.rag_class }}">
                                 <td>{{ s.effective_recruitment_start_date | date_format | nbsp }}</td>
                                 <td>{{ s.effective_recruitment_end_date | date_format | nbsp }}</td>
                                 <td>{{ s.project_site_target_participants | blank_if_none }}</td>
