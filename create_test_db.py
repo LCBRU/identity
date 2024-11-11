@@ -529,7 +529,10 @@ for s in study_names:
     start_date = date.today() - timedelta(days=fake.pyint(30, 300))
     study_length = fake.pyint(30, 600)
     end_date = start_date + timedelta(days=study_length)
-    target_recruitment=10*fake.pyint(1, 100)
+    if fake.pyint(1, 100) < 75:
+        target_recruitment=10*fake.pyint(1, 100)
+    else:
+        target_recruitment=None
 
     es = EdgeSiteStudy(
         project_id=fake.ean(length=8),
@@ -547,7 +550,7 @@ for s in study_names:
         project_site_closed_date=fake.date_object(),
         project_site_actual_recruitment_end_date=end_date,
         project_site_planned_recruitment_end_date=end_date + timedelta(days=fake.pyint(-10,10)),
-        project_site_target_participants=10*fake.pyint(1, 100),
+        project_site_target_participants=target_recruitment,
     )
 
     es.calculate_values()

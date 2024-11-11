@@ -23,7 +23,7 @@
             {% for s in edge_site_studies.items %}
                 <li>
                     <header class="flex_three_middle_grow">
-                        <h2 class="pill {{s.rag_class}}">{{ s.rag_code }}</h2>
+                        <h2 class="pill {{s.rag_class}}">{{ s.rag_code | default_if_none('?') }}</h2>
                         <div>
                             <h2><a href="https://www.edge.nhs.uk/#/Project/{{ s.project_id }}/index" target='_blank'>{{s.project_short_title}}</a></h2>
                             <h3>{{s.primary_clinical_management_areas}} {% if s.key_staff %}({{s.key_staff | blank_if_none }}){% endif %}</h3>
@@ -43,7 +43,7 @@
                             <th>Recruited % of Expected by {{ s.target_end_date_description | title_case }}</th>
                         </thead>
                         <tbody>
-                            <tr class="table-{{ s.rag_rating }}">
+                            <tr>
                                 <td>{{ s.effective_recruitment_start_date | date_format }}</td>
                                 <td>{{ s.effective_recruitment_end_date | date_format }}</td>
                                 <td>{{ s.project_site_target_participants | blank_if_none }}</td>
