@@ -461,7 +461,11 @@ class LabelBundle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     study_id = db.Column(db.Integer, db.ForeignKey(Study.id))
-    study = db.relationship(Study, backref=db.backref("label_bundles"))
+    study = db.relationship(
+        Study,
+        backref=db.backref("label_bundles"),
+        primaryjoin="and_(Study.id==LabelBundle.study_id, func.coalesce(LabelBundle.deleted, 0)==0)"
+        )
     participant_id_provider_id = db.Column(db.Integer, db.ForeignKey(IdProvider.id_provider_id))
     participant_id_provider = db.relationship(IdProvider, foreign_keys=[participant_id_provider_id])
     label_printer_set_id = db.Column(db.Integer, db.ForeignKey(LabelPrinterSet.id))
@@ -471,6 +475,7 @@ class LabelBundle(db.Model):
     user_defined_participant_id = db.Column(db.Boolean)
     participant_label_count = db.Column(db.Integer)
     sidebar_prefix = db.Column(db.String(50), default='', nullable=False)
+    deleted = db.Column(db.Boolean)
 
     def __repr__(self):
         return f'{self.study.name}: {self.name}'

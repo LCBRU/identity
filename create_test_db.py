@@ -54,6 +54,8 @@ from identity.model.id import PseudoRandomIdProvider
 from identity.printing import LabelBundle
 from identity.setup import setup_data
 from faker import Faker
+from alembic.config import Config
+from alembic import command
 fake = Faker()
 
 load_dotenv()
@@ -65,6 +67,9 @@ application.app_context().push()
 db.create_all()
 init_roles([])
 init_users()
+
+alembic_cfg = Config("alembic.ini")
+command.stamp(alembic_cfg, "head")
 
 setup_data()
 
@@ -571,6 +576,7 @@ with civicrm_session() as sesh:
 db.session.add_all(studies)
 db.session.commit()
 
+studies = db.session.execute(select(Study)).unique().scalars()
 
 # Labels
 disable_batch_printing=cycle([True, False])
@@ -579,7 +585,7 @@ bundles = []
 for s in studies:
     bundles.extend([LabelBundle(
         name=f'{s.name} {i}',
-        study_id=s.id,
+        study=s,
         disable_batch_printing=next(disable_batch_printing),
         user_defined_participant_id=next(user_defined_participant_id),
     ) for i in range(1, randint(1, 5))])

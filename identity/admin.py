@@ -110,6 +110,7 @@ class LabelPrinterSetView(AdminCustomView):
 
 
 class LabelBundleView(AdminCustomView):
+    can_delete = False
     form_excluded_columns = ['bags', 'aliquot_batches', 'medical_notes_label']
 
 
