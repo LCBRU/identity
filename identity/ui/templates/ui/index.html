@@ -2,6 +2,7 @@
 
 {% block menu_page_content %}
 <section class="container">
+    <h2>Your Studies</h2>
     <nav class="link_list">
         {% for s in studies | sort(attribute='name') %}
             <a href="{{ url_for('ui.study', id=s.id) }}" role="button">{{ s.name }}</a>
