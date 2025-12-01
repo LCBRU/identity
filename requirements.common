@@ -1,0 +1,6 @@
+zeep
+requests
+xlutils
+matplotlib
+pyodbc
+cachetools

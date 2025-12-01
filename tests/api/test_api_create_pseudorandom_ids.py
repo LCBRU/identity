@@ -61,9 +61,12 @@ def test__create_pseudorandom_ids__prefix_invalid(client, faker):
 )
 def test__create_pseudorandom_ids__invalid_id_count(client, faker, id_count):
     prip = faker.get_test_pseudo_random_id_provider()
-    resp = client.post(add_api_key_to_url(faker.get_api_key(), path), json=dict(
-        prefix=prip.prefix,
-        id_count=id_count,
-    ))
+    resp = client.post(
+        add_api_key_to_url(faker.get_api_key(), path),
+        json=dict(
+            prefix=prip.prefix,
+            id_count=id_count,
+        )
+    )
 
     assert resp.status_code == 400
