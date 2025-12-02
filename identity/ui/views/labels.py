@@ -12,7 +12,7 @@ from .. import blueprint, db
 from ..decorators import assert_can_print_study_label
 from lbrc_flask.response import refresh_response
 from lbrc_flask.forms import FlashingForm
-from wtforms import HiddenField, StringField, SelectField
+from wtforms import StringField, SelectField
 from wtforms.validators import Length, DataRequired
 
 

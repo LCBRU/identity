@@ -3,6 +3,7 @@ from identity.model.id import PseudoRandomId
 from identity.model.blinding import Blinding
 from lbrc_flask.pytest.helpers import login
 from lbrc_flask.database import db
+from sqlalchemy import select
 
 
 def _test_blinding(client, faker, study, expected_blinding_types):
@@ -10,6 +11,7 @@ def _test_blinding(client, faker, study, expected_blinding_types):
 
     ids = study.get_blind_ids('hello', u)
 
+    db.session.add_all(ids)
     db.session.commit()
 
     _assert_ids_created_correctly('hello', ids, expected_blinding_types)

@@ -10,11 +10,11 @@ from identity.services.pmi import PmiData
 from identity.model import Study
 from identity.api.model import ApiKey
 from lbrc_flask.database import db
-from lbrc_flask.pytest.faker import UserCreator
+from lbrc_flask.pytest.faker import UserCreator as BaseUserCreator
 from functools import cache
 
 
-class UserCreator(UserCreator):
+class UserCreator(BaseUserCreator):
     cls = User
 
 

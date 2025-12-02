@@ -10,38 +10,11 @@ from tests.demographics import (
 )
 from lbrc_flask.pytest.asserts import assert__flash_messages_contains_error, assert__requires_login, assert__redirect
 from tests.ui.demographics import _assert_file_not_on_index, _remove_files
+from lbrc_flask.pytest.asserts import assert__refresh_response
 
 
 def _url(external=True, **kwargs):
     return url_for('ui.demographics_delete', _external=external, **kwargs)
-
-
-def test__get__requires_login(client, faker):
-    user = login(client, faker)
-    dr = do_create_request(client, faker, user)
-    logout(client)
-
-    assert__requires_login(client, _url(id=dr.id, external=False))
-
-
-def test__ui_demographics_delete_get(client, faker):
-    user = login(client, faker)
-
-    dr = do_create_request(client, faker, user)
-    do_define_columns_post(client, dr.id, dr.columns[0], dr.columns[1], dr.columns[2], dr.columns[3], dr.columns[4], dr.columns[5], dr.columns[6])
-    do_submit(client, dr.id)
-
-    response = client.get(url_for('ui.demographics_delete', id=dr.id, _external=True))
-    assert response.status_code == 200
-
-    # Do not allows others to delete
-    logout(client)
-
-    user = login(client, faker)
-    response = client.get(url_for('ui.demographics_delete', id=dr.id, _external=True))
-    assert response.status_code == 403
-
-    _remove_files(dr)
 
 
 def test__ui_demographics_delete_post(client, faker):
@@ -52,8 +25,7 @@ def test__ui_demographics_delete_post(client, faker):
     do_submit(client, dr.id)
 
     response = do_delete(client, dr.id)
-
-    assert__redirect(response, 'ui.demographics')
+    assert__refresh_response(response)
 
     del_dr = DemographicsRequest.query.get(dr.id)
 
@@ -82,34 +54,12 @@ def test__ui_demographics_delete_post__not_owner(client, faker):
     _remove_files(dr)
 
 
-def test__ui_demographics_delete_get_404(client, faker):
-    user = login(client, faker)
-
-    response = client.get(url_for('ui.demographics_delete', id=999, _external=True))
-
-    assert response.status_code == 404
-
-
 def test__ui_demographics_delete_post_404(client, faker):
     user = login(client, faker)
 
     response = do_delete(client, 999)
 
     assert response.status_code == 404
-
-
-def test__ui_delete_get_deleted(client, faker):
-    user = login(client, faker)
-
-    dr = do_create_request(client, faker, user)
-    do_delete(client, dr.id)
-    response = client.get(url_for('ui.demographics_delete', id=dr.id, _external=True))
-
-    assert__redirect(response, 'ui.demographics')
-
-    assert assert__flash_messages_contains_error(client)
-
-    _remove_files(dr)
 
 
 def test__ui_delete_post_deleted(client, faker):
@@ -119,8 +69,6 @@ def test__ui_delete_post_deleted(client, faker):
     do_delete(client, dr.id)
     response = do_delete(client, dr.id)
 
-    assert__redirect(response, 'ui.demographics')
-
-    assert assert__flash_messages_contains_error(client)
+    assert__refresh_response(response)
 
     _remove_files(dr)

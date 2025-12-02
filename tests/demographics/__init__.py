@@ -108,7 +108,7 @@ def do_define_columns_post(client, id, uhl_system_number_column, nhs_number_colu
 
 def do_upload(client, data):
     return client.post(
-        url_for("ui.demographics"),
+        url_for("ui.demographics_upload"),
         buffered=True,
         content_type="multipart/form-data",
         data=data,
