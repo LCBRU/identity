@@ -1,4 +1,3 @@
-import pytest
 from flask import url_for
 from identity.demographics.model import DemographicsRequest
 from lbrc_flask.pytest.helpers import login, logout
@@ -8,7 +7,6 @@ from tests.demographics import (
     do_submit,
     do_delete,
 )
-from lbrc_flask.pytest.asserts import assert__flash_messages_contains_error, assert__requires_login, assert__redirect
 from tests.ui.demographics import _assert_file_not_on_index, _remove_files
 from lbrc_flask.pytest.asserts import assert__refresh_response
 

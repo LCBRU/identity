@@ -1,6 +1,6 @@
 from flask import url_for
 from lbrc_flask.pytest.helpers import login
-from lbrc_flask.pytest.asserts import assert__requires_login, assert__redirect, get_and_assert_standards_modal, assert__refresh_response
+from lbrc_flask.pytest.asserts import assert__requires_login, get_and_assert_standards_modal, assert__refresh_response
 
 
 def _url(external=True, **kwargs):

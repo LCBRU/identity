@@ -1,4 +1,3 @@
-import pytest
 from datetime import datetime
 from flask import url_for
 from identity.demographics.model import DemographicsRequest

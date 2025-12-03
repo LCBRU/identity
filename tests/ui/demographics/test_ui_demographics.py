@@ -1,7 +1,5 @@
-import pytest
 from io import BytesIO
 from flask import url_for
-from lbrc_flask.database import db
 from lbrc_flask.pytest.helpers import login
 from tests.demographics import (
     assert_uploaded_file,

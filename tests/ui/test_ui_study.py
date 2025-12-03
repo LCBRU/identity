@@ -55,15 +55,8 @@ def test__ui_print_buttons_visible(client, faker):
 
     assert resp.status_code == 200
 
-    assert (resp.soup.find("a", href=url_for('ui.label_bundle_print', referrer='study', label_bundle_id=bundle.id, count=1, study_id=study_visible.id)) is not None)
-    assert (resp.soup.find("a", href=url_for('ui.label_bundle_print', referrer='study', label_bundle_id=bundle.id, count=5, study_id=study_visible.id)) is not None)
-    assert (resp.soup.find("a", href=url_for('ui.label_bundle_print', referrer='study', label_bundle_id=bundle.id, count=10, study_id=study_visible.id)) is not None)
-    assert (resp.soup.find("a", href=url_for('ui.label_bundle_print', referrer='study', label_bundle_id=bundle.id, count=50, study_id=study_visible.id)) is not None)
-
-    assert not (resp.soup.find("a", href=url_for('ui.label_bundle_print', referrer='study', label_bundle_id=bundle_invisible.id, count=1, study_id=study_invisible.id)) is not None)
-    assert not (resp.soup.find("a", href=url_for('ui.label_bundle_print', referrer='study', label_bundle_id=bundle_invisible.id, count=5, study_id=study_invisible.id)) is not None)
-    assert not (resp.soup.find("a", href=url_for('ui.label_bundle_print', referrer='study', label_bundle_id=bundle_invisible.id, count=10, study_id=study_invisible.id)) is not None)
-    assert not (resp.soup.find("a", href=url_for('ui.label_bundle_print', referrer='study', label_bundle_id=bundle_invisible.id, count=50, study_id=study_invisible.id)) is not None)
+    assert resp.soup.find('a', attrs={"hx-get" : url_for('ui.label_bundle_definition', id=bundle.id, count=5)}) is not None
+    assert resp.soup.find('a', attrs={"hx-get" : url_for('ui.label_bundle_definition', id=bundle_invisible.id, count=5)}) is None
 
 
 def test__ui_blinding_and_unblinding_forms_visible(client, faker):
