@@ -2,7 +2,7 @@ import os
 import csv
 import xlwt
 from openpyxl import Workbook
-from datetime import datetime
+from datetime import datetime, UTC
 from io import BytesIO
 from flask import url_for
 from identity.demographics.model import DemographicsRequest, DemographicsRequestColumn
@@ -244,7 +244,7 @@ class DemographicsTestHelper():
     def get_demographics_request__data_extraction(self):
         result = self.get_demographics_request__awaiting_submission()
 
-        result.submitted_datetime = datetime.utcnow()
+        result.submitted_datetime = datetime.now(UTC)
         db.session.add(result)
         db.session.commit()
         return result
@@ -268,7 +268,7 @@ class DemographicsTestHelper():
                 postcode=p.get('postcode'),
             ))
 
-        result.data_extracted_datetime = datetime.utcnow()
+        result.data_extracted_datetime = datetime.now(UTC)
 
         db.session.add_all(rows)
         db.session.add(result)
@@ -295,7 +295,7 @@ class DemographicsTestHelper():
                     postcode=p['postcode'],
                 ))
 
-        result.pmi_data_pre_completed_datetime = datetime.utcnow()
+        result.pmi_data_pre_completed_datetime = datetime.now(UTC)
 
         db.session.add_all(rows)
         db.session.add(result)
@@ -333,7 +333,7 @@ class DemographicsTestHelper():
                     message=p['expected_message'],
                 ))
 
-        result.lookup_completed_datetime = datetime.utcnow()
+        result.lookup_completed_datetime = datetime.now(UTC)
 
         db.session.add_all(rows)
         db.session.add(result)
@@ -360,7 +360,7 @@ class DemographicsTestHelper():
                     postcode=p['postcode'],
                 ))
 
-        result.pmi_data_post_completed_datetime = datetime.utcnow()
+        result.pmi_data_post_completed_datetime = datetime.now(UTC)
 
         db.session.add_all(rows)
         db.session.add(result)
@@ -372,7 +372,7 @@ class DemographicsTestHelper():
         result = self.get_demographics_request__create_results()
 
         result.create_result()
-        result.result_created_datetime = datetime.utcnow()
+        result.result_created_datetime = datetime.now(UTC)
         db.session.add(result)
         db.session.commit()
 

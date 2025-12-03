@@ -57,7 +57,7 @@ class EditParticipantForm(FlashingForm):
 @blueprint.route("/study/<int:id>/blinding/", methods=['POST'])
 @assert_study_user()
 def blinding(id):
-    study = Study.query.get_or_404(id)
+    study: Study = db.get_or_404(Study, id)
 
     blinding_form = BlindingForm()
 
@@ -81,7 +81,7 @@ def blinding(id):
 @blueprint.route("/study/<int:id>/unblinding/", methods=['POST'])
 @assert_study_user()
 def unblinding(id):
-    study = Study.query.get_or_404(id)
+    study: Study = db.get_or_404(Study, id)
 
     un_blinding_form = UnblindingForm()
 
@@ -112,7 +112,7 @@ def unblinding(id):
 @blueprint.route("/study/<int:id>")
 @assert_study_user()
 def study(id):
-    study = Study.query.get_or_404(id)
+    study: Study = db.get_or_404(Study, id)
     blinding_form = None
     unblinding_form = None
     search_form = ParticipantSearchForm(formdata=request.args, search_placeholder='Search name or identifiers')

@@ -87,7 +87,7 @@ celery -A celery_worker.celery beat      # Start scheduled task scheduler
 - Use `from lbrc_flask.database import db` for all model definitions
 - Soft-delete pattern: check `deleted_datetime` rather than removing records
 - Polymorphic inheritance via `__mapper_args__` (e.g., ID providers, DemographicsRequest subclasses)
-- Timestamps: `created_datetime`, `last_updated_datetime` defaults to `datetime.utcnow`
+- Timestamps: `created_datetime`, `last_updated_datetime` defaults to `datetime.now(UTC)`
 
 ### Celery Tasks
 - Define with `@celery.task()` decorator in `identity/demographics/__init__.py`

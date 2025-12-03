@@ -9,7 +9,7 @@ from tests.demographics import (
 )
 from tests.ui.demographics import _assert_file_not_on_index, _remove_files
 from lbrc_flask.pytest.asserts import assert__refresh_response
-
+from lbrc_flask.database import db
 
 def _url(external=True, **kwargs):
     return url_for('ui.demographics_delete', _external=external, **kwargs)
@@ -25,7 +25,7 @@ def test__ui_demographics_delete_post(client, faker):
     response = do_delete(client, dr.id)
     assert__refresh_response(response)
 
-    del_dr = DemographicsRequest.query.get(dr.id)
+    del_dr: DemographicsRequest = db.get_or_404(DemographicsRequest, dr.id)
 
     assert del_dr.deleted == True
     assert del_dr.deleted_datetime is not None

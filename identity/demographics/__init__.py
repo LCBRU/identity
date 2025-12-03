@@ -1,6 +1,6 @@
 import traceback
 from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, UTC
 from dateutil.parser import parse
 from flask import url_for, current_app, render_template
 from lbrc_flask.database import db
@@ -42,7 +42,7 @@ def do_lookup_tasks(demographics_request_id):
     current_app.logger.info(f'schedule_lookup_tasks (demographics_request_id={demographics_request_id})')
 
     try:
-        dr = DemographicsRequest.query.get(demographics_request_id)
+        dr: DemographicsRequest = db.session.get(DemographicsRequest, demographics_request_id)
 
         if dr is None:
             raise Exception('Request id={} not found'.format(demographics_request_id))
@@ -244,7 +244,7 @@ def process_demographics_request_data(request_id):
     current_app.logger.info(f'process_demographics_request_data: request_id={request_id})')
 
     try:
-        dr = DemographicsRequest.query.get(request_id)
+        dr: DemographicsRequest = db.session.get(DemographicsRequest, request_id)
 
         if dr is None:
             raise Exception('request not found')
@@ -254,13 +254,13 @@ def process_demographics_request_data(request_id):
         ).first()
 
         if drd is None:
-            dr.lookup_completed_datetime = datetime.utcnow()
+            dr.lookup_completed_datetime = datetime.now(UTC)
             db.session.add(dr)
         else:
             # if not drd.has_error:
             spine_lookup(drd)
     
-            drd.processed_datetime = datetime.utcnow()
+            drd.processed_datetime = datetime.now(UTC)
 
             db.session.add(drd)
 
@@ -278,7 +278,7 @@ def extract_data(request_id):
     current_app.logger.info(f'extract_data (request_id={request_id})')
 
     try:
-        dr = DemographicsRequest.query.get(request_id)
+        dr: DemographicsRequest = db.session.get(DemographicsRequest, request_id)
 
         if dr is None:
             raise Exception('request not found')
@@ -325,7 +325,7 @@ def extract_data(request_id):
             else:
                 current_app.logger.info(f'Skipping empty data')
 
-        dr.data_extracted_datetime = datetime.utcnow()
+        dr.data_extracted_datetime = datetime.now(UTC)
         db.session.add(dr)
         db.session.commit()
 
@@ -352,12 +352,12 @@ def produce_demographics_result(demographics_request_id):
     current_app.logger.info(f'produce_demographics_result (demographics_request_id={demographics_request_id})')
 
     try:
-        dr = DemographicsRequest.query.get(demographics_request_id)
+        dr: DemographicsRequest = db.session.get(DemographicsRequest, demographics_request_id)
 
         current_app.logger.info(f'produce_demographics_result: Creating result')
         dr.create_result()
 
-        dr.result_created_datetime = datetime.utcnow()
+        dr.result_created_datetime = datetime.now(UTC)
 
         db.session.add(dr)
         db.session.commit()
@@ -410,7 +410,7 @@ def extract_pmi_details(request_id, data_selection_condition, request_completed_
     current_app.logger.info(f'extract_pmi_details (request_id={request_id})')
 
     try:
-        dr = DemographicsRequest.query.get(request_id)
+        dr: DemographicsRequest = db.session.get(DemographicsRequest, request_id)
 
         if dr is None:
             raise Exception('request not found')
@@ -419,13 +419,13 @@ def extract_pmi_details(request_id, data_selection_condition, request_completed_
 
         if drd is None:
             current_app.logger.info(f'extract_pmi_details (request_id={request_id}): Done')
-            setattr(dr, request_completed_attribute, datetime.utcnow())
+            setattr(dr, request_completed_attribute, datetime.now(UTC))
             db.session.add(dr)
         else:
             if not drd.has_error and drd.pmi_data is None:
                 get_pmi_details(drd)
 
-            setattr(drd, data_completed_attribute, datetime.utcnow())
+            setattr(drd, data_completed_attribute, datetime.now(UTC))
             db.session.add(drd)
 
         db.session.commit()
@@ -492,9 +492,9 @@ def get_pmi_details(drd):
 
 
 def save_demographics_error(demographics_request_id, e):
-    dr = DemographicsRequest.query.get(demographics_request_id)
+    dr: DemographicsRequest = db.session.get(DemographicsRequest, demographics_request_id)
     if dr is not None:
-        dr = DemographicsRequest.query.get(demographics_request_id)
+        dr: DemographicsRequest = db.session.get(DemographicsRequest, demographics_request_id)
         dr.set_error(traceback.format_exc())
         db.session.add(dr)
         db.session.commit()

@@ -16,6 +16,7 @@ from lbrc_flask.pytest.asserts import (
 )
 from tests.ui.demographics import AWAITING_SUBMISSION, _remove_files, _assert_uploaded_file_on_index
 from lbrc_flask.pytest.asserts import get_and_assert_standards_modal
+from lbrc_flask.database import db
 
 
 def _url(external=True, **kwargs):
@@ -44,10 +45,7 @@ def test__ui_demographics_define_columns_get(client, faker):
     response = get_and_assert_standards_modal(client, _url(id=dr.id))
     assert response.status_code == 200
 
-    print(response.soup.prettify())
-
     for sid in ['nhs_number_column_id', 'family_name_column_id', 'given_name_column_id', 'gender_column_id', 'dob_column_id', 'postcode_column_id']:
-        print(f'{sid=}')
         select = response.soup.find('select', id=sid)
         assert select is not None
 
@@ -108,7 +106,7 @@ def test__ui_demographics_define_columns_post(client, faker, uhl_system_number_c
     else:
         assert__redirect(response, 'ui.demographics_submit', id=dr.id)
 
-        dr = DemographicsRequest.query.get(dr.id)
+        dr: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
         
         assert dr.column_definition is not None
 

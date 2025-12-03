@@ -13,7 +13,7 @@ def assert_study_user():
         def decorated_function(*args, **kwargs):
             if not current_user.is_admin:
                 study_id = kwargs.get('id') or kwargs.get('study_id')
-                study = Study.query.get_or_404(study_id)
+                study: Study = db.get_or_404(Study, study_id)
 
                 if study not in current_user.studies:
                     abort(403)
