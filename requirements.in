@@ -1,8 +1,3 @@
-zeep
-requests
-xlwt
-xlutils
-matplotlib
+-r requirements.common
+
 git+https://github.com/LCBRU/lbrc_flask.git
-pyodbc
-cachetools

@@ -55,6 +55,9 @@ def test__ui_print_buttons_visible(client, faker):
 
     assert resp.status_code == 200
 
+    assert resp.soup.find('a', attrs={"hx-get" : url_for('ui.label_bundle_definition', id=bundle.id, count=5)}) is not None
+    assert resp.soup.find('a', attrs={"hx-get" : url_for('ui.label_bundle_definition', id=bundle_invisible.id, count=5)}) is None
+
 
 def test__ui_blinding_and_unblinding_forms_visible(client, faker):
     user = login(client, faker)

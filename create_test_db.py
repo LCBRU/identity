@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from datetime import date, timedelta
 from itertools import cycle

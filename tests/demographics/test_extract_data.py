@@ -31,7 +31,7 @@ def test__extract_data__normal(client, faker, extension, row_count, mock_schedul
 
     extract_data(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
     mock_log_exception.assert_not_called()
@@ -85,7 +85,7 @@ def test__extract_data__missing_columns(client, faker, column_headings, extensio
 
     extract_data(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
     mock_log_exception.assert_not_called()

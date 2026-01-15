@@ -49,6 +49,7 @@ def test__ui_demographics_result_created__download(client, faker):
     response = do_submit(client, dr.id)
 
     dr.result_created_datetime = datetime.now(UTC)
+    dr.result_created_datetime = datetime.now(UTC)
 
     db.session.add(dr)
     db.session.commit()
@@ -64,7 +65,7 @@ def test__ui_demographics_result_created__download(client, faker):
     assert response.status_code == 200
     assert response.get_data().decode("utf8") == contents
 
-    dr = db.session.get(DemographicsRequest, dr.id)
+    dr: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
     assert dr.result_downloaded_datetime is not None
     assert dr.result_downloaded == True
 

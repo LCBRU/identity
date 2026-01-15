@@ -40,7 +40,7 @@ from lbrc_flask.string_functions import similarity
 class DemographicsRequest(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    created_datetime = db.Column(db.DateTime, nullable=False, default=func.now())
+    created_datetime = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
     filename = db.Column(db.String(500))
     extension = db.Column(db.String(100), nullable=False)
     owner_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
@@ -56,7 +56,7 @@ class DemographicsRequest(db.Model):
     result_downloaded_datetime = db.Column(db.DateTime)
     error_datetime = db.Column(db.DateTime)
     error_message = db.Column(db.Text)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=func.now())
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User, foreign_keys=[last_updated_by_user_id])
     column_definition = db.relationship("DemographicsRequestColumnDefinition", uselist=False, back_populates="demographics_request")
@@ -602,7 +602,7 @@ class DemographicsRequestColumn(db.Model):
     demographics_request_id = db.Column(db.Integer, db.ForeignKey(DemographicsRequest.id))
     demographics_request = db.relationship(DemographicsRequest, foreign_keys=[demographics_request_id], backref=db.backref("columns"))
     name = db.Column(db.String(500))
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=func.now())
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User, foreign_keys=[last_updated_by_user_id])
 
@@ -618,7 +618,7 @@ class DemographicsRequestColumnDefinition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     demographics_request_id = db.Column(db.Integer, db.ForeignKey(DemographicsRequest.id))
     demographics_request = db.relationship(DemographicsRequest, foreign_keys=[demographics_request_id], back_populates="column_definition")
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=func.now())
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User, foreign_keys=[last_updated_by_user_id])
 
@@ -672,7 +672,7 @@ class DemographicsRequestData(db.Model):
     dob = db.Column(db.String(50))
     postcode = db.Column(db.String(50))
 
-    created_datetime = db.Column(db.DateTime, nullable=False, default=func.now())
+    created_datetime = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
     processed_datetime = db.Column(db.DateTime)
     pmi_pre_processed_datetime = db.Column(db.DateTime)
     pmi_post_processed_datetime = db.Column(db.DateTime)
@@ -735,7 +735,7 @@ class DemographicsRequestPmiData(db.Model):
     date_of_death = db.Column(db.Date)
     postcode = db.Column(db.String(50))
 
-    created_datetime = db.Column(db.DateTime, nullable=False, default=func.now())
+    created_datetime = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
 
     def __eq__(self, other):
         if isinstance(other, DemographicsRequestPmiData):
@@ -764,7 +764,7 @@ class DemographicsRequestDataMessage(db.Model):
     source = db.Column(db.String(200))
     scope = db.Column(db.String(200))
     message = db.Column(db.String(1000))
-    created_datetime = db.Column(db.DateTime, nullable=False, default=func.now())
+    created_datetime = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
 
     @property
     def is_error(self):
@@ -775,7 +775,7 @@ class DemographicsRequestDataResponse(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     demographics_request_data_id = db.Column(db.Integer, db.ForeignKey(DemographicsRequestData.id))
     demographics_request_data = db.relationship(DemographicsRequestData, foreign_keys=[demographics_request_data_id], back_populates="response")
-    created_datetime = db.Column(db.DateTime, nullable=False, default=func.now())
+    created_datetime = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(UTC))
 
     nhs_number = db.Column(db.String(50))
     title = db.Column(db.String(50))

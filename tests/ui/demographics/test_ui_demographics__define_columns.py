@@ -107,7 +107,7 @@ def test__ui_demographics_define_columns_post(client, faker, uhl_system_number_c
     else:
         assert__redirect(response, 'ui.demographics_submit', id=dr.id)
 
-        dr = db.session.get(DemographicsRequest, dr.id)
+        dr: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
         
         assert dr.column_definition is not None
 

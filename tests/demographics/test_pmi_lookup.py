@@ -25,7 +25,7 @@ def test__extract_pre_pmi_details__no_data(client, faker, mock_pmi_details, mock
 
     extract_pre_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_pre_completed_datetime is not None
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
@@ -50,7 +50,7 @@ def test__extract_pre_pmi_details__first_processed(client, faker, mock_pmi_detai
 
     extract_pre_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_pre_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 1
@@ -75,8 +75,8 @@ def test__extract_pre_pmi_details__next_processed(client, faker, mock_pmi_detail
 
     extract_pre_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
-
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
+ 
     assert actual.pmi_data_pre_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 2
     assert expected == actual.data[1].pmi_data
@@ -97,7 +97,7 @@ def test__extract_pre_pmi_details__last_processed(client, faker, mock_pmi_detail
 
     extract_pre_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_pre_completed_datetime is not None
     assert len(actual.data[0].messages) == 0
@@ -120,7 +120,7 @@ def test__extract_pre_pmi_details__invalid_nhs_number(client, faker, mock_pmi_de
 
     extract_pre_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_pre_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 1
@@ -151,7 +151,7 @@ def test__extract_pre_pmi_details__invalid_uhl_system_number(client, faker, mock
 
     extract_pre_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_pre_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 1
@@ -177,7 +177,7 @@ def test__extract_pre_pmi_details__pmi_not_found(client, faker, mock_pmi_details
 
     extract_pre_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_pre_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 1
@@ -199,7 +199,7 @@ def test__extract_pre_pmi_details__pmi_exception(client, faker, mock_pmi_details
 
     extract_pre_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_pre_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_pre_processed_datetime is not None) == 1
@@ -225,7 +225,7 @@ def test__extract_post_pmi_details__no_data(client, faker, mock_pmi_details, moc
 
     extract_post_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_post_completed_datetime is not None
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
@@ -250,7 +250,7 @@ def test__extract_post_pmi_details__first_processed(client, faker, mock_pmi_deta
 
     extract_post_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_post_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 1
@@ -275,7 +275,7 @@ def test__extract_post_pmi_details__next_processed(client, faker, mock_pmi_detai
 
     extract_post_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_post_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 2
@@ -297,7 +297,7 @@ def test__extract_post_pmi_details__last_processed(client, faker, mock_pmi_detai
 
     extract_post_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_post_completed_datetime is not None
     assert len(actual.data[0].messages) == 0
@@ -320,7 +320,7 @@ def test__extract_post_pmi_details__invalid_nhs_number(client, faker, mock_pmi_d
 
     extract_post_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_post_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 1
@@ -351,7 +351,7 @@ def test__extract_post_pmi_details__invalid_uhl_system_number(client, faker, moc
 
     extract_post_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_post_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 1
@@ -377,7 +377,7 @@ def test__extract_post_pmi_details__pmi_not_found(client, faker, mock_pmi_detail
 
     extract_post_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_post_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 1
@@ -399,7 +399,7 @@ def test__extract_post_pmi_details__pmi_exception(client, faker, mock_pmi_detail
 
     extract_post_pmi_details(dr.id)
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.pmi_data_post_completed_datetime is None
     assert sum(1 for d in actual.data if d.pmi_post_processed_datetime is not None) == 1

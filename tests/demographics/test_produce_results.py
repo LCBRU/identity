@@ -39,7 +39,7 @@ def test__produce_demographics_result(client, faker, mock_email, row_count, exte
 
     mock_email.assert_called_once()
 
-    actual = db.session.get(DemographicsRequest, dr.id)
+    actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.result_created_datetime is not None
     assert dr.result_created

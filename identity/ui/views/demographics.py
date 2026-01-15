@@ -87,7 +87,7 @@ def must_be_request_owner():
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            dr = db.get_or_404(DemographicsRequest, request.view_args.get("id"))
+            dr: DemographicsRequest = db.get_or_404(DemographicsRequest, request.view_args.get("id"))
 
             if current_user != dr.owner and not current_user.is_admin:
                 abort(403)
@@ -199,7 +199,7 @@ def demographics_upload():
 @blueprint.route("/demographics/define_columns/<int:id>", methods=['GET', 'POST'])
 @must_be_request_owner()
 def demographics_define_columns(id):
-    dr = db.get_or_404(DemographicsRequest, id)
+    dr: DemographicsRequest = db.get_or_404(DemographicsRequest, id)
 
     if dr.deleted:
         flash('Cannot amend a request that is deleted.', 'error')
@@ -267,7 +267,7 @@ def demographics_define_columns(id):
 @blueprint.route("/demographics/submit/<int:id>", methods=['GET', 'POST'])
 @must_be_request_owner()
 def demographics_submit(id):
-    dr = db.get_or_404(DemographicsRequest, id)
+    dr: DemographicsRequest = db.get_or_404(DemographicsRequest, id)
 
     if dr.deleted:
         flash('Cannot submit a request that is deleted.', 'error')
@@ -296,7 +296,7 @@ def demographics_submit(id):
 @blueprint.route("/demographics/resubmit/<int:id>")
 @must_be_admin()
 def demographics_resubmit(id):
-    dr = db.get_or_404(DemographicsRequest, id)
+    dr: DemographicsRequest = db.get_or_404(DemographicsRequest, id)
     dr.paused_datetime = None
 
     db.session.add(dr)
@@ -311,7 +311,7 @@ def demographics_resubmit(id):
 @blueprint.route("/demographics/clear_error/<int:id>")
 @must_be_admin()
 def demographics_clear_error(id):
-    dr = db.get_or_404(DemographicsRequest, id)
+    dr: DemographicsRequest = db.get_or_404(DemographicsRequest, id)
     dr.error_datetime = None
     dr.error_message = None
 
@@ -327,8 +327,7 @@ def demographics_clear_error(id):
 @blueprint.route("/demographics/pause/<int:id>")
 @must_be_admin()
 def demographics_pause(id):
-
-    dr = db.get_or_404(DemographicsRequest, id)
+    dr: DemographicsRequest = db.get_or_404(DemographicsRequest, id)
 
     if dr.deleted:
         flash('Request already deleted.', 'error')
@@ -348,7 +347,7 @@ def demographics_pause(id):
 @blueprint.route("/demographics/delete/<int:id>", methods=['POST'])
 @must_be_request_owner()
 def demographics_delete(id):
-    dr = db.get_or_404(DemographicsRequest, id)
+    dr: DemographicsRequest = db.get_or_404(DemographicsRequest, id)
 
     if dr.deleted:
         return refresh_response()
@@ -364,7 +363,7 @@ def demographics_delete(id):
 @blueprint.route("/demographics/download_result/<int:id>")
 @must_be_request_owner()
 def demographics_download_result(id):
-    dr = db.get_or_404(DemographicsRequest, id)
+    dr: DemographicsRequest = db.get_or_404(DemographicsRequest, id)
 
     if not dr.result_created:
         abort(404)
@@ -383,7 +382,7 @@ def demographics_download_result(id):
 @blueprint.route("/demographics/download_request/<int:id>")
 @must_be_request_owner()
 def demographics_download_request(id):
-    dr = db.get_or_404(DemographicsRequest, id)
+    dr: DemographicsRequest = db.get_or_404(DemographicsRequest, id)
 
     dr.result_downloaded_datetime = datetime.now(UTC)
     db.session.add(dr)

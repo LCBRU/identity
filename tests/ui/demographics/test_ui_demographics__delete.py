@@ -32,6 +32,7 @@ def test__ui_demographics_delete_post(client, faker):
     do_submit(client, dr.id)
 
     response = do_delete(client, dr.id)
+    assert__refresh_response(response)
 
     assert__refresh_response(response)
 
