@@ -15,6 +15,7 @@ class PmiData(typing.NamedTuple):
     date_of_birth: datetime.date
     date_of_death: datetime.date
     postcode: str
+    mapping: dict = {} # Just here for testing!
 
     def __eq__(self, other):
         return (
@@ -30,6 +31,11 @@ class PmiData(typing.NamedTuple):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+    
+    # Also just here for testing
+    @property
+    def _mapping(self):
+        return self.mapping
 
 
 class PmiException(Exception):

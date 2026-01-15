@@ -1,3 +1,4 @@
+from functools import cache
 from identity.printing import LabelBundle
 from identity.model.id import PseudoRandomIdProvider
 from identity.model.blinding import Blinding, BlindingType
@@ -10,9 +11,18 @@ from identity.services.pmi import PmiData
 from identity.model import Study
 from identity.api.model import ApiKey
 from lbrc_flask.database import db
+from lbrc_flask.pytest.faker import UserCreator as BaseUserCreator, FakeCreatorArgs
 
+
+class UserCreator(BaseUserCreator):
+    cls = User
+    
 
 class IdentityProvider(BaseProvider):
+    @cache
+    def user(self):
+        return UserCreator(self)
+
 
     def user_details(self):
         u = User(
@@ -234,6 +244,23 @@ class PmiProvider(BaseProvider):
             self._details[key] = self.create_pmi_details()
         
         return self._details[key]
+    
+    def pmi_details_cls(self, key):
+        dets = self.pmi_details(key)
+
+        result = PmiData(
+            nhs_number=dets.get('nhs_number'),
+            uhl_system_number=dets.get('uhl_system_number'),
+            family_name=dets.get('family_name'),
+            given_name=dets.get('given_name'),
+            gender=dets.get('gender'),
+            date_of_birth=dets.get('date_of_birth'),
+            date_of_death=dets.get('date_of_death'),
+            postcode=dets.get('postcode'),
+            mapping=dets,
+        )
+
+        return result
 
     def create_pmi_details(self):
         return {key: value for key, value in self.generator.person_details().items() if key in PmiData._fields}

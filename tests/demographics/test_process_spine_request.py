@@ -49,7 +49,7 @@ def test__process_demographics_request_data__no_data(client, faker, mock_schedul
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
     mock_log_exception.assert_not_called()
 
-    actual = DemographicsRequest.query.get(dr.id)
+    actual = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.lookup_completed_datetime is not None
 
@@ -67,7 +67,7 @@ def test__process_demographics_request_data__with_data(client, faker, mock_sched
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
     mock_log_exception.assert_not_called()
 
-    actual = DemographicsRequest.query.get(dr.id)
+    actual = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.lookup_completed_datetime is None
     assert actual.data[0].processed_datetime is not None
@@ -96,7 +96,7 @@ def test__process_demographics_request_data__data_has_error(client, faker, mock_
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
     mock_log_exception.assert_not_called()
 
-    actual = DemographicsRequest.query.get(dr.id)
+    actual = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.lookup_completed_datetime is None
     assert actual.data[0].processed_datetime is not None

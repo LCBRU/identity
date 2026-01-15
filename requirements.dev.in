@@ -1,0 +1,8 @@
+zeep
+requests
+xlwt
+xlutils
+matplotlib
+pyodbc
+cachetools
+-e /home/richard/Projects/LCBRU/lbrc_flask

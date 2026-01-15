@@ -34,6 +34,6 @@ def test__authorisation__correct_api_key(client, faker, path):
 
 @pytest.mark.parametrize("path", paths)
 def test__api_call__no_json(client, faker, path):
-    resp = client.post(add_api_key_to_url(faker.get_api_key(), path))
+    resp = client.post(add_api_key_to_url(faker.get_api_key(), path), json={})
 
     assert resp.status_code == 400

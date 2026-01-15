@@ -14,8 +14,9 @@ from lbrc_flask.pytest.asserts import (
     assert__requires_login,
     assert__redirect
 )
-from tests import lbrc_identity_get
+from tests import lbrc_identity_get_modal
 from tests.ui.demographics import AWAITING_SUBMISSION, _remove_files, _assert_uploaded_file_on_index
+from lbrc_flask.database import db
 
 
 def _url(external=True, **kwargs):
@@ -41,15 +42,16 @@ def test__ui_demographics_define_columns_get(client, faker):
 
     dr = do_create_request(client, faker, user, headers=headers)
 
-    response = lbrc_identity_get(client, _url(id=dr.id), user)
+    response = lbrc_identity_get_modal(client, _url(id=dr.id), user)
     assert response.status_code == 200
 
     for sid in ['nhs_number_column_id', 'family_name_column_id', 'given_name_column_id', 'gender_column_id', 'dob_column_id', 'postcode_column_id']:
         select = response.soup.find('select', id=sid)
         assert select is not None
 
-        for o in ['', *headers]:
-            assert select.find('option', string=o) is not None
+        found_options = [o.text for o in select.find_all('option')]
+
+        assert found_options == ['', *headers]
 
     _remove_files(dr)
 
@@ -105,7 +107,7 @@ def test__ui_demographics_define_columns_post(client, faker, uhl_system_number_c
     else:
         assert__redirect(response, 'ui.demographics_submit', id=dr.id)
 
-        dr = DemographicsRequest.query.get(dr.id)
+        dr = db.session.get(DemographicsRequest, dr.id)
         
         assert dr.column_definition is not None
 

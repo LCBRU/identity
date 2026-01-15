@@ -9,7 +9,7 @@ def _test_blinding(client, faker, study, expected_blinding_types):
     u = login(client, faker)
 
     ids = study.get_blind_ids('hello', u)
-
+    db.session.add_all(ids)
     db.session.commit()
 
     _assert_ids_created_correctly('hello', ids, expected_blinding_types)

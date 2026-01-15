@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, UTC
 from functools import wraps
 from flask import (
     render_template,
@@ -87,7 +87,7 @@ def must_be_request_owner():
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            dr = DemographicsRequest.query.get_or_404(request.view_args.get("id"))
+            dr = db.get_or_404(DemographicsRequest, request.view_args.get("id"))
 
             if current_user != dr.owner and not current_user.is_admin:
                 abort(403)
@@ -199,7 +199,7 @@ def demographics_upload():
 @blueprint.route("/demographics/define_columns/<int:id>", methods=['GET', 'POST'])
 @must_be_request_owner()
 def demographics_define_columns(id):
-    dr = DemographicsRequest.query.get_or_404(id)
+    dr = db.get_or_404(DemographicsRequest, id)
 
     if dr.deleted:
         flash('Cannot amend a request that is deleted.', 'error')
@@ -267,7 +267,7 @@ def demographics_define_columns(id):
 @blueprint.route("/demographics/submit/<int:id>", methods=['GET', 'POST'])
 @must_be_request_owner()
 def demographics_submit(id):
-    dr = DemographicsRequest.query.get_or_404(id)
+    dr = db.get_or_404(DemographicsRequest, id)
 
     if dr.deleted:
         flash('Cannot submit a request that is deleted.', 'error')
@@ -280,7 +280,7 @@ def demographics_submit(id):
     form = ConfirmForm(obj=dr)
 
     if form.validate_on_submit():
-        dr.submitted_datetime = datetime.utcnow()
+        dr.submitted_datetime = datetime.now(UTC)
 
         db.session.add(dr)
         db.session.commit()
@@ -296,7 +296,7 @@ def demographics_submit(id):
 @blueprint.route("/demographics/resubmit/<int:id>")
 @must_be_admin()
 def demographics_resubmit(id):
-    dr = DemographicsRequest.query.get_or_404(id)
+    dr = db.get_or_404(DemographicsRequest, id)
     dr.paused_datetime = None
 
     db.session.add(dr)
@@ -311,7 +311,7 @@ def demographics_resubmit(id):
 @blueprint.route("/demographics/clear_error/<int:id>")
 @must_be_admin()
 def demographics_clear_error(id):
-    dr = DemographicsRequest.query.get_or_404(id)
+    dr = db.get_or_404(DemographicsRequest, id)
     dr.error_datetime = None
     dr.error_message = None
 
@@ -328,14 +328,14 @@ def demographics_clear_error(id):
 @must_be_admin()
 def demographics_pause(id):
 
-    dr = DemographicsRequest.query.get_or_404(id)
+    dr = db.get_or_404(DemographicsRequest, id)
 
     if dr.deleted:
         flash('Request already deleted.', 'error')
     elif dr.result_created:
         flash('Request result already created.', 'error')
     else:
-        dr.paused_datetime = datetime.utcnow()
+        dr.paused_datetime = datetime.now(UTC)
 
         db.session.add(dr)
         db.session.commit()
@@ -348,12 +348,12 @@ def demographics_pause(id):
 @blueprint.route("/demographics/delete/<int:id>", methods=['POST'])
 @must_be_request_owner()
 def demographics_delete(id):
-    dr = DemographicsRequest.query.get_or_404(id)
+    dr = db.get_or_404(DemographicsRequest, id)
 
     if dr.deleted:
         return refresh_response()
 
-    dr.deleted_datetime = datetime.utcnow()
+    dr.deleted_datetime = datetime.now(UTC)
 
     db.session.add(dr)
     db.session.commit()
@@ -364,12 +364,12 @@ def demographics_delete(id):
 @blueprint.route("/demographics/download_result/<int:id>")
 @must_be_request_owner()
 def demographics_download_result(id):
-    dr = DemographicsRequest.query.get_or_404(id)
+    dr = db.get_or_404(DemographicsRequest, id)
 
     if not dr.result_created:
         abort(404)
 
-    dr.result_downloaded_datetime = datetime.utcnow()
+    dr.result_downloaded_datetime = datetime.now(UTC)
     db.session.add(dr)
     db.session.commit()
 
@@ -383,9 +383,9 @@ def demographics_download_result(id):
 @blueprint.route("/demographics/download_request/<int:id>")
 @must_be_request_owner()
 def demographics_download_request(id):
-    dr = DemographicsRequest.query.get_or_404(id)
+    dr = db.get_or_404(DemographicsRequest, id)
 
-    dr.result_downloaded_datetime = datetime.utcnow()
+    dr.result_downloaded_datetime = datetime.now(UTC)
     db.session.add(dr)
     db.session.commit()
 

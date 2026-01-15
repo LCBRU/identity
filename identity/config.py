@@ -66,6 +66,11 @@ class TestConfig(BaseTestConfig):
     # PMI
     PMI_DB_URI=os.environ["PMI_DB_URI"]
 
+    SQLALCHEMY_BINDS = {
+        'etl_central': "sqlite://",
+        'civicrm': "sqlite://",
+    }
+
 
 class TestConfigCRSF(TestConfig):
     WTF_CSRF_ENABLED = True

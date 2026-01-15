@@ -11,26 +11,44 @@ RESULT_CREATED = 'RESULT_CREATED'
 
 def _assert_uploaded_file_on_index(client, filename, id, status):
     response = client.get(url_for('ui.demographics'))
+    soup = response.soup
 
-    assert response.soup.find(string=re.compile(filename)) is not None
+    assert soup.find(string=re.compile(filename)) is not None
+
+    print(soup.prettify())
+
+    url_define_columns = url_for('ui.demographics_define_columns', id=id)
+    a_define_columns = soup.select(f'a[hx-get="{url_define_columns}"]')
+
+    url_submit = url_for('ui.demographics_submit', id=id)
+    a_submit = soup.select(f'a[hx-get="{url_submit}"]')
+
+    url_delete = url_for('ui.demographics_delete', id=id)
+    a_delete = soup.select(f'a[hx-post="{url_delete}"]')
+
+    url_download = url_for('ui.demographics_download_result', id=id)
+    a_download = soup.select(f'a[href="{url_download}"]')
 
     if status == AWAITING_DEFINE_COLUMNS:
-        assert response.soup.find('a', href=url_for('ui.demographics_define_columns', id=id)) is not None
-        assert response.soup.find('a', href=url_for('ui.demographics_submit', id=id)) is None
-        assert response.soup.find('a', href=url_for('ui.demographics_delete', id=id)) is not None
+        assert len(a_define_columns) == 1
+        assert len(a_submit) == 0
+        assert len(a_delete) == 1
+        assert len(a_download) == 0
     elif status == AWAITING_SUBMISSION:
-        assert response.soup.find('a', href=url_for('ui.demographics_define_columns', id=id)) is not None
-        assert response.soup.find('a', href=url_for('ui.demographics_submit', id=id)) is not None
-        assert response.soup.find('a', href=url_for('ui.demographics_delete', id=id)) is not None
+        assert len(a_define_columns) == 1
+        assert len(a_submit) == 1
+        assert len(a_delete) == 1
+        assert len(a_download) == 0
     elif status == AWAITING_COMPLETION:
-        assert response.soup.find('a', href=url_for('ui.demographics_define_columns', id=id)) is None
-        assert response.soup.find('a', href=url_for('ui.demographics_submit', id=id)) is None
-        assert response.soup.find('a', href=url_for('ui.demographics_delete', id=id)) is not None
+        assert len(a_define_columns) == 0
+        assert len(a_submit) == 0
+        assert len(a_delete) == 1
+        assert len(a_download) == 0
     elif status == RESULT_CREATED:
-        assert response.soup.find('a', href=url_for('ui.demographics_define_columns', id=id)) is None
-        assert response.soup.find('a', href=url_for('ui.demographics_submit', id=id)) is None
-        assert response.soup.find('a', href=url_for('ui.demographics_delete', id=id)) is not None
-        assert response.soup.find('a', href=url_for('ui.demographics_download_result', id=id)) is not None
+        assert len(a_define_columns) == 0
+        assert len(a_submit) == 0
+        assert len(a_delete) == 1
+        assert len(a_download) == 1
 
 
 def _assert_file_not_on_index(client, filename):

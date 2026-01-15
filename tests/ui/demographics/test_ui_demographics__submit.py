@@ -7,7 +7,7 @@ from tests.demographics import (
     do_submit,
     do_delete,
 )
-from lbrc_flask.pytest.asserts import assert__flash_messages_contains_error, assert__requires_login, assert__redirect
+from lbrc_flask.pytest.asserts import assert__flash_messages_contains_error, assert__requires_login, assert__redirect, assert__refresh_response
 from tests.ui.demographics import AWAITING_COMPLETION, _assert_uploaded_file_on_index, _remove_files
 
 
@@ -60,7 +60,7 @@ def test__ui_demographics_submit_post(client, faker):
 
     response = do_submit(client, dr.id)
 
-    assert__redirect(response, 'ui.demographics')
+    assert__refresh_response(response)
 
     _assert_uploaded_file_on_index(client, dr.filename, dr.id, AWAITING_COMPLETION)
 
@@ -105,7 +105,7 @@ def test__ui_demographics_submit_get_submitted(client, faker):
     do_submit(client, dr.id)
     response = client.get(url_for('ui.demographics_submit', id=dr.id, _external=True))
 
-    assert__redirect(response, 'ui.demographics')
+    assert__refresh_response(response)
 
     assert assert__flash_messages_contains_error(client)
 
@@ -119,7 +119,7 @@ def test__ui_demographics_submit_post_submitted(client, faker):
     do_submit(client, dr.id)
     response = do_submit(client, dr.id)
 
-    assert__redirect(response, 'ui.demographics')
+    assert__refresh_response(response)
 
     assert assert__flash_messages_contains_error(client)
 
@@ -133,7 +133,7 @@ def test__ui_demographics_submit_get_deleted(client, faker):
     do_delete(client, dr.id)
     response = do_submit(client, dr.id)
 
-    assert__redirect(response, 'ui.demographics')
+    assert__refresh_response(response)
 
     assert assert__flash_messages_contains_error(client)
 
@@ -147,7 +147,7 @@ def test__ui_demographics_submit_post_deleted(client, faker):
     do_delete(client, dr.id)
     response = do_submit(client, dr.id)
 
-    assert__redirect(response, 'ui.demographics')
+    assert__refresh_response(response)
 
     assert assert__flash_messages_contains_error(client)
 

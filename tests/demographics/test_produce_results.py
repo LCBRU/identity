@@ -7,6 +7,7 @@ from identity.demographics.model import DemographicsRequest
 from lbrc_flask.validators import parse_date
 from lbrc_flask.pytest.helpers import login
 from tests.demographics import DemographicsTestHelper
+from lbrc_flask.database import db
 
 
 @pytest.fixture(scope="function")
@@ -38,7 +39,7 @@ def test__produce_demographics_result(client, faker, mock_email, row_count, exte
 
     mock_email.assert_called_once()
 
-    actual = DemographicsRequest.query.get(dr.id)
+    actual = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.result_created_datetime is not None
     assert dr.result_created

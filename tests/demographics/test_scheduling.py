@@ -1,5 +1,5 @@
 import contextlib
-from datetime import datetime
+from datetime import datetime, UTC
 import os
 from lbrc_flask.database import db
 from identity.demographics import do_lookup_tasks
@@ -43,7 +43,7 @@ def test__schedule_lookup_tasks__in_error(
     u = login(client, faker)
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__uploaded()
-    dr.error_datetime = datetime.utcnow()
+    dr.error_datetime = datetime.now(UTC)
     db.session.add(dr)
     db.session.commit()
 
@@ -73,7 +73,7 @@ def test__schedule_lookup_tasks__paused(
     u = login(client, faker)
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__uploaded()
-    dr.paused_datetime = datetime.utcnow()
+    dr.paused_datetime = datetime.now(UTC)
     db.session.add(dr)
     db.session.commit()
 
@@ -103,7 +103,7 @@ def test__schedule_lookup_tasks__deleted(
     u = login(client, faker)
     dth = DemographicsTestHelper(faker=faker, user=u)
     dr = dth.get_demographics_request__uploaded()
-    dr.deleted_datetime = datetime.utcnow()
+    dr.deleted_datetime = datetime.now(UTC)
     db.session.add(dr)
     db.session.commit()
 

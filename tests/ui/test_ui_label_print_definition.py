@@ -1,7 +1,7 @@
 from flask import url_for
 from lbrc_flask.pytest.helpers import login
-from lbrc_flask.pytest.asserts import assert__requires_login, assert__redirect
-from tests import lbrc_identity_get
+from lbrc_flask.pytest.asserts import assert__requires_login, assert__redirect, assert__refresh_response
+from tests import lbrc_identity_get_modal
 
 
 def _url(external=True, **kwargs):
@@ -13,9 +13,7 @@ def test__get__requires_login(client, faker):
 
     assert__requires_login(client, _url(
         referrer='study',
-        study_id=bundle.study_id,
-        label_bundle_id=bundle.id,
-        count=1,
+        id=bundle.id,
         external=False,
     ))
 
@@ -27,9 +25,7 @@ def test__label_print_definition__not_a_user_study(client, faker):
 
     resp = client.get(_url(
         referrer='study',
-        study_id=bundle.study_id,
-        label_bundle_id=bundle.id,
-        count=1,
+        id=bundle.id,
     ))
 
     assert resp.status_code == 403
@@ -41,11 +37,9 @@ def test__label_print_definition__get(client, faker):
     bundle = faker.get_test_label_bundle()
     user.studies.append(bundle.study)
 
-    resp = lbrc_identity_get(client, _url(
+    resp = lbrc_identity_get_modal(client, _url(
         referrer='study',
-        study_id=bundle.study_id,
-        label_bundle_id=bundle.id,
-        count=1,
+        id=bundle.id,
     ), user)
 
     assert resp.status_code == 200
@@ -58,22 +52,21 @@ def test__label_print_definition__post__study_redirect(client, faker):
     user.studies.append(bundle.study)
 
     data = {
-        'participant_id': 'ABCDEFG'
+        'participant_id': 'ABCDEFG',
+        'count': 1,
     }
 
     resp = client.post(
         _url(
             referrer='study',
-            study_id=bundle.study_id,
-            label_bundle_id=bundle.id,
-            count=1,
+            id=bundle.id,
         ),
         buffered=True,
         content_type="multipart/form-data",
         data=data,
     )
 
-    assert__redirect(resp, 'ui.study', id=bundle.study_id)
+    assert__refresh_response(resp)
 
 
 def test__label_print_definition__post__labels_redirect(client, faker):
@@ -83,22 +76,21 @@ def test__label_print_definition__post__labels_redirect(client, faker):
     user.studies.append(bundle.study)
 
     data = {
-        'participant_id': 'ABCDEFG'
+        'participant_id': 'ABCDEFG',
+        'count': 1,
     }
 
     resp = client.post(
         _url(
             referrer='labels',
-            study_id=bundle.study_id,
-            label_bundle_id=bundle.id,
-            count=1,
+            id=bundle.id,
         ),
         buffered=True,
         content_type="multipart/form-data",
         data=data,
     )
 
-    assert__redirect(resp, 'ui.labels')
+    assert__refresh_response(resp)
 
 
 def test__label_print_definition__post__no_id_given(client, faker):
@@ -108,15 +100,14 @@ def test__label_print_definition__post__no_id_given(client, faker):
     user.studies.append(bundle.study)
 
     data = {
-        'participant_id': ''
+        'participant_id': '',
+        'count': 1,
     }
 
     resp = client.post(
         _url(
             referrer='labels',
-            study_id=bundle.study_id,
-            label_bundle_id=bundle.id,
-            count=1,
+            id=bundle.id,
         ),
         buffered=True,
         content_type="multipart/form-data",
