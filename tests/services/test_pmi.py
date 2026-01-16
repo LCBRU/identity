@@ -11,7 +11,6 @@ from identity.services.pmi import (
 
 def test__get_pmi_from_nhs_number__one(client, faker, mock_pmi_engine):
     expected = faker.pmi_details_cls(1)
-    print('A'*10, expected)
     mock_pmi_engine.return_value.__enter__.return_value.execute.return_value.fetchall.return_value = [expected]
 
     actual = get_pmi_from_nhs_number(expected.nhs_number)
