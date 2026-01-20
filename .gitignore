@@ -114,3 +114,5 @@ celerybeat.pid
 identity/tests
 tests/file_uploads
 src/
+
+requirements.dev
