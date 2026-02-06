@@ -14,30 +14,42 @@ from datetime import datetime
 from wtforms import SelectField, SelectMultipleField
 from lbrc_flask.forms import SearchForm
 from identity.model.edge import EdgeSiteStudy
+from lbrc_flask.database import db
+from sqlalchemy import select
 
 
 def _get_clinical_area_choices():
-    ess = EdgeSiteStudy.query.with_entities(EdgeSiteStudy.primary_clinical_management_areas.distinct()).all()
+    ess = db.session.execute(
+        select(EdgeSiteStudy.primary_clinical_management_areas).distinct()
+    ).scalars().all()
     return [(s[0], s[0]) for s in ess]
 
 
 def _get_status_choices():
-    ess = EdgeSiteStudy.query.with_entities(EdgeSiteStudy.project_site_status.distinct()).all()
+    ess = db.session.execute(
+        select(EdgeSiteStudy.project_site_status).distinct()
+    ).scalars().all()
     return [(s[0], s[0]) for s in ess]
 
 
 def _get_principal_investigator_choices():
-    ess = EdgeSiteStudy.query.with_entities(EdgeSiteStudy.principal_investigator.distinct()).all()
+    ess = db.session.execute(
+        select(EdgeSiteStudy.principal_investigator).distinct()
+    ).scalars().all()
     return [('', '')] + [(s, s) for s in sorted(filter(None, [s[0] for s in ess]))]
 
 
 def _get_lead_nurse_choices():
-    ess = EdgeSiteStudy.query.with_entities(EdgeSiteStudy.project_site_lead_nurses.distinct()).all()
+    ess = db.session.execute(
+        select(EdgeSiteStudy.project_site_lead_nurses).distinct()
+    ).scalars().all()
     return [('', '')] + [(s, s) for s in sorted(filter(None, [s[0] for s in ess]))]
 
 
 def _get_rag_rating_choices():
-    ess = EdgeSiteStudy.query.with_entities(EdgeSiteStudy.rag_rating.distinct()).all()
+    ess = db.session.execute(
+        select(EdgeSiteStudy.rag_rating).distinct()
+    ).scalars().all()
     return [('', '')] + [(s, s.title()) for s in sorted(filter(None, [s[0] for s in ess]))]
 
 

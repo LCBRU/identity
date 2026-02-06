@@ -86,7 +86,11 @@ def unblinding(id):
     un_blinding_form = UnblindingForm()
 
     if un_blinding_form.validate_on_submit():
-        blinding = Blinding.query.join(PseudoRandomId).filter_by(full_code=un_blinding_form.id.data).first()
+        blinding = db.session.execute(
+            select(Blinding)
+            .join(Blinding.pseudo_random_id)
+            .where(PseudoRandomId.full_code == un_blinding_form.id.data)
+        ).scalars().first()
 
         if blinding is None or blinding.blinding_type.study != study:
             flash(

@@ -2,10 +2,9 @@ import pytest
 from lbrc_flask.pytest.asserts import assert__requires_login
 from flask import url_for
 from lbrc_flask.pytest.helpers import login
-from identity.model.blinding import (
-    Blinding,
-)
+from identity.model.blinding import Blinding
 from lbrc_flask.database import db
+from sqlalchemy import select, func
 
 
 def _url(study_id, external=True):
@@ -76,14 +75,12 @@ def test__ui_blinding__existing(client, faker):
     resp = _blinding_post(client, b.blinding_type.study, b.unblind_id)
 
     assert resp.status_code == 200
-
-    assert Blinding.query.filter_by(
-            blinding_type_id=b.blinding_type.id
-        ).filter_by(
-            unblind_id=b.unblind_id
-        ).filter_by(
-            pseudo_random_id_id=b.pseudo_random_id.id
-        ).count() == 1
+    assert db.session.execute(
+        select(func.count(1))
+        .where(Blinding.blinding_type_id == b.blinding_type.id)
+        .where(Blinding.unblind_id == b.unblind_id)
+        .where(Blinding.pseudo_random_id_id == b.pseudo_random_id.id)
+    ).scalar() == 1
 
     dt = resp.soup.find("dt", string=b.blinding_type.name)
     assert dt is not None

@@ -15,6 +15,7 @@ from werkzeug.utils import secure_filename
 from lbrc_flask.database import db
 from identity.model.security import User
 from lbrc_flask.string_functions import similarity
+from sqlalchemy import select, func
 
 
 # Statuses:
@@ -198,31 +199,35 @@ class DemographicsRequest(db.Model):
 
     @property
     def data_count(self):
-        return DemographicsRequestData.query.filter(DemographicsRequestData.demographics_request_id == self.id).count()
+        q = select(func.count(1)).where(DemographicsRequestData.demographics_request_id == self.id)
+        return db.session.execute(q).scalar()
 
     @property
     def fetched_count(self):
-        return DemographicsRequestData.query.filter(
-                DemographicsRequestData.demographics_request_id == self.id
-            ).filter(
-                DemographicsRequestData.processed_datetime.isnot(None)
-            ).count()
+        q = (
+            select(func.count(1))
+            .where(DemographicsRequestData.demographics_request_id == self.id)
+            .where(DemographicsRequestData.processed_datetime.isnot(None))
+        )
+        return db.session.execute(q).scalar()
 
     @property
     def prepmi_count(self):
-        return DemographicsRequestData.query.filter(
-                DemographicsRequestData.demographics_request_id == self.id
-            ).filter(
-                DemographicsRequestData.pmi_pre_processed_datetime.isnot(None)
-            ).count()
+        q = (
+            select(func.count(1))
+            .where(DemographicsRequestData.demographics_request_id == self.id)
+            .where(DemographicsRequestData.pmi_pre_processed_datetime.isnot(None))
+        )
+        return db.session.execute(q).scalar()
 
     @property
     def postpmi_count(self):
-        return DemographicsRequestData.query.filter(
-                DemographicsRequestData.demographics_request_id == self.id
-            ).filter(
-                DemographicsRequestData.pmi_post_processed_datetime.isnot(None)
-            ).count()
+        q = (
+            select(func.count(1))
+            .where(DemographicsRequestData.demographics_request_id == self.id)
+            .where(DemographicsRequestData.pmi_post_processed_datetime.isnot(None))
+        )
+        return db.session.execute(q).scalar()
 
     def get_most_likely_uhl_system_number_column_id(self):
         return self._get_most_likely_column_id('(uhl|\bs).*(number|no|)')

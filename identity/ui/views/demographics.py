@@ -30,6 +30,7 @@ from flask_wtf.file import FileRequired
 from wtforms import BooleanField, SelectField, StringField
 from lbrc_flask.response import refresh_response
 from wtforms.validators import Length
+from sqlalchemy import select
 
 
 class DemographicsDefineColumnsForm(FlashingForm):
@@ -104,8 +105,15 @@ def demographics():
     if current_user.is_admin:
         search_form = DemographicsAdminSearchForm(formdata=request.args, search_placeholder='Search Demographics Requests')
 
-        submitter_ids = DemographicsRequest.query.with_entities(DemographicsRequest.owner_user_id.distinct()).filter(DemographicsRequest.owner_user_id != current_user.id).subquery()
-        submitters = sorted(User.query.filter(User.id.in_(submitter_ids)).all(), key=lambda u: u.full_name)
+        submitter_ids = (
+            select(DemographicsRequest.owner_user_id).distinct()
+            .where(DemographicsRequest.owner_user_id != current_user.id)
+        ).subquery()
+        submitters = db.session.execute(
+            select(User)
+            .where(User.id.in_(submitter_ids))
+            .order_by(User.last_name, User.first_name)
+        ).scalars().all()
 
         search_form.owner_user_id.choices = [(current_user.id, current_user.full_name)] + [(u.id, u.full_name) for u in submitters] + [(0, 'All')]
     else:

@@ -28,6 +28,7 @@ from lbrc_flask.data_conversions import (
     convert_postcode,
     convert_uhl_system_number,
 )
+from sqlalchemy import select
 
 
 class ScheduleException(Exception):
@@ -249,9 +250,13 @@ def process_demographics_request_data(request_id):
         if dr is None:
             raise Exception('request not found')
 
-        drd = DemographicsRequestData.query.filter_by(demographics_request_id=request_id).filter(
-            DemographicsRequestData.processed_datetime.is_(None)
-        ).first()
+        q = (
+            select(DemographicsRequestData)
+            .where(DemographicsRequestData.demographics_request_id == request_id)
+            .where(DemographicsRequestData.processed_datetime.is_(None))
+        )
+
+        drd = db.session.execute(q).scalars().first()
 
         if drd is None:
             dr.lookup_completed_datetime = datetime.now(UTC)
@@ -415,7 +420,12 @@ def extract_pmi_details(request_id, data_selection_condition, request_completed_
         if dr is None:
             raise Exception('request not found')
 
-        drd = DemographicsRequestData.query.filter_by(demographics_request_id=request_id).filter(data_selection_condition).first()
+        q = (
+            select(DemographicsRequestData)
+            .where(DemographicsRequestData.demographics_request_id == request_id)
+            .where(data_selection_condition)
+        )
+        drd = db.session.execute(q).scalars().first()
 
         if drd is None:
             current_app.logger.info(f'extract_pmi_details (request_id={request_id}): Done')

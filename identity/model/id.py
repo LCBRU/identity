@@ -1,9 +1,7 @@
 import random
-from datetime import datetime
 from lbrc_flask.database import db
-from .security import User
-from . import Study
 from lbrc_flask.security.model import AuditMixin
+from sqlalchemy import select, func
 
 
 class IdProvider(db.Model, AuditMixin):
@@ -76,11 +74,13 @@ class LegacyIdProvider(IdProvider):
             prospective_id = random.randint(1, 900000)
             tries = tries + 1
 
-            found = LegacyId.query.filter(
-                LegacyId.legacy_id_provider_id == self.id
-            ).filter(
-                LegacyId.number == prospective_id
-            ).count()
+            q = (
+                select(func.count(1))
+                .where(LegacyId.legacy_id_provider_id == self.id)
+                .where(LegacyId.number == prospective_id)
+            )
+
+            found = db.session.execute(q).scalar()
 
         actual_id = LegacyId(
             legacy_id_provider=self,
@@ -137,11 +137,13 @@ class BioresourceIdProvider(IdProvider):
             prospective_id = random.randint(1000000, 9999999)
             tries = tries + 1
 
-            found = BioresourceId.query.filter(
-                BioresourceId.bioresource_id_provider_id == self.id
-            ).filter(
-                BioresourceId.number == prospective_id
-            ).count()
+            q = (
+                select(func.count(1))
+                .where(BioresourceId.bioresource_id_provider_id == self.id)
+                .where(BioresourceId.number == prospective_id)
+            )
+
+            found = db.session.execute(q).scalar()
 
         actual_id = BioresourceId(
             bioresource_id_provider=self,

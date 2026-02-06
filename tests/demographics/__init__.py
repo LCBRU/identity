@@ -24,23 +24,26 @@ from identity.demographics.model import (
 from lbrc_flask.database import db
 from lbrc_flask.pytest.helpers import login
 from lbrc_flask.pytest.asserts import assert__redirect
+from sqlalchemy import select, func
 
 
 def assert_uploaded_file(user, filename, content, headers, skip_pmi):
-    dr = DemographicsRequest.query.filter(
-        DemographicsRequest.filename == filename
-        and DemographicsRequest.owner == user
-    ).first()
+    dr = db.session.execute(
+        select(DemographicsRequest)
+        .where(DemographicsRequest.filename == filename)
+        .where(DemographicsRequest.owner == user)
+    ).scalars().first()
 
     assert dr
     assert len(dr.columns) == len(headers)
     assert dr.skip_pmi == skip_pmi
 
     for h in headers:
-        assert DemographicsRequestColumn.query.filter(
-            DemographicsRequestColumn.demographics_request_id == dr.id
-            and DemographicsRequestColumn.name == h
-        ).first()
+        assert db.session.execute(
+            select(DemographicsRequestColumn)
+            .where(DemographicsRequestColumn.demographics_request_id == dr.id)
+            .where(DemographicsRequestColumn.name == h)
+        )
 
     assert os.path.isfile(dr.filepath)
 
@@ -51,10 +54,11 @@ def assert_uploaded_file(user, filename, content, headers, skip_pmi):
 
 
 def assert_uploaded_file_not_exists(user, filename, content, headers):
-    assert DemographicsRequest.query.filter(
-        DemographicsRequest.filename == filename
-        and DemographicsRequest.owner == user
-    ).count() == 0
+    assert db.session.execute(
+        select(func.count(1))
+        .where(DemographicsRequest.filename == filename)
+        .where(DemographicsRequest.owner == user)
+    ).scalar_one() == 0
 
 
 def do_create_request(client, faker, user, headers=None, data=None, extension='csv'):
@@ -79,10 +83,11 @@ def do_create_request(client, faker, user, headers=None, data=None, extension='c
 
     response = do_upload(client, data)
 
-    dr = DemographicsRequest.query.filter(
-        DemographicsRequest.filename == filename
-        and DemographicsRequest.owner == user
-    ).first()
+    dr = db.session.execute(
+        select(DemographicsRequest)
+        .where(DemographicsRequest.filename == filename)
+        .where(DemographicsRequest.owner == user)
+    ).scalars().first()
 
     assert__redirect(response, 'ui.demographics_define_columns', id=dr.id)
 

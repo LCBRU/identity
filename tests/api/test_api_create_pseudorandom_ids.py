@@ -1,6 +1,8 @@
 import pytest
 from identity.model.id import PseudoRandomId
 from tests.api import add_api_key_to_url
+from lbrc_flask.database import db
+from sqlalchemy import select, func
 
 
 path = '/api/create_pseudorandom_ids'
@@ -23,7 +25,10 @@ def test__create_pseudorandom_ids__valid_json(client, faker, id_count):
     assert resp.json is not None
     assert resp.json['ids'] is not None
     assert len(resp.json['ids']) == id_count
-    assert PseudoRandomId.query.filter(PseudoRandomId.full_code.in_(resp.json['ids'])).count() == id_count
+    assert db.session.execute(
+        select(func.count(1))
+        .where(PseudoRandomId.full_code.in_(resp.json['ids']))
+    ).scalar() == id_count
 
 
 def test__create_pseudorandom_ids__no_prefix(client, faker):

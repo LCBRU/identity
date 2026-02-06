@@ -3,6 +3,7 @@ from identity.model.id import PseudoRandomIdProvider
 from .. import blueprint, db
 from ..decorators import validate_json
 from ..model import get_api_key
+from sqlalchemy import select
 
 
 @blueprint.route('/create_pseudorandom_ids', methods=['POST'])
@@ -15,7 +16,7 @@ from ..model import get_api_key
     "required": ["prefix", "id_count"]
 })
 def create_pseudorandom_ids():
-    id_provider = PseudoRandomIdProvider.query.filter_by(prefix=request.json.get('prefix')).first()
+    id_provider = db.session.execute(select(PseudoRandomIdProvider).where(PseudoRandomIdProvider.prefix == request.json.get('prefix'))).scalars().first()
 
     if id_provider is None:
         abort(400)

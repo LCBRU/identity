@@ -1,6 +1,7 @@
 from lbrc_flask.database import db
 from identity.printing import LabelPrinter, LabelPrinterSet
 from identity.printing import PRINTER_BRU_CRF_BAG, PRINTER_BRU_CRF_SAMPLE, PRINTER_CVRC_LAB_SAMPLE, PRINTER_DEV, PRINTER_LIMB, PRINTER_TMF_BAG, PRINTER_TMF_SAMPLE
+from sqlalchemy import select
 
 
 def setup_data():
@@ -46,17 +47,21 @@ _printer_sets = [
 ]
 def _create_printer_sets():
     for p in _printer_sets:
-        s = LabelPrinterSet.query.filter_by(name=p['name']).first()
+        s = db.session.execute(select(LabelPrinterSet).where(LabelPrinterSet.name == p['name'])).scalars().first()
 
         if s:
             continue
 
-        bag_printer = LabelPrinter.query.filter_by(name=p['bag_printer_name']).first()
+        bag_printer = db.session.execute(
+            select(LabelPrinter).where(LabelPrinter.name == p['bag_printer_name'])
+        ).scalars().first()
 
         if not bag_printer:
             bag_printer = LabelPrinter(name=p['bag_printer_name'], hostname_or_ip_address=p['bag_printer_host'])
 
-        sample_printer = LabelPrinter.query.filter_by(name=p['sample_printer_name']).first()
+        sample_printer = db.session.execute(
+            select(LabelPrinter).where(LabelPrinter.name == p['sample_printer_name'])
+        ).scalars().first()
 
         if not sample_printer:
             sample_printer = LabelPrinter(name=p['sample_printer_name'], hostname_or_ip_address=p['sample_printer_host'])
