@@ -120,7 +120,7 @@ celery -A celery_worker.celery beat      # Start scheduled task scheduler
 ### Request State Transitions
 - Always check current state (datetime fields) before scheduling next stage
 - Requests can be paused/deleted/errored—always guard against these in task runners
-- Use `DemographicsRequest.query.get(id)` then check status before processing
+- Use `db.get(DemographicsRequest, id)` then check status before processing
 
 ### File Handling
 - Uploaded demographics files stored in `FILE_UPLOAD_DIRECTORY`
