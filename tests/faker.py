@@ -1,6 +1,6 @@
 from functools import cache
 from identity.printing import LabelBundle
-from identity.model.id import PseudoRandomIdProvider
+from identity.model.id import PseudoRandomId, PseudoRandomIdProvider
 from identity.model.blinding import Blinding, BlindingType
 from identity.model.security import User
 import io
@@ -11,192 +11,183 @@ from identity.services.pmi import PmiData
 from identity.model import Study
 from identity.api.model import ApiKey
 from lbrc_flask.database import db
-from lbrc_flask.pytest.faker import UserCreator as BaseUserCreator
-from functools import cache
+from lbrc_flask.pytest.faker import UserCreator as BaseUserCreator, FakeCreator, FakeCreatorArgs
 
 
 class UserCreator(BaseUserCreator):
     cls = User
 
 
-class UserCreator(BaseUserCreator):
-    cls = User
-    
+class ApiKeyCreator(FakeCreator):
+    @property
+    def cls(self):
+        return ApiKey
+
+    def _create_item(self, save, args: FakeCreatorArgs):
+        params = dict(
+            user = args.get('user', self.faker.user().get(save=save)),
+        )
+
+        return self.cls(**params)
+
+
+class StudyCreator(FakeCreator):
+    @property
+    def cls(self):
+        return Study
+
+    def _create_item(self, save, args: FakeCreatorArgs):
+        params = dict(
+            name = args.get('name', self.faker.pystr(min_chars=5, max_chars=100)),
+        )
+
+        result: Study = self.cls(**params)
+
+        if 'owner' in args:
+            result.users.append(args.get('owner'))
+
+        return result
+
+
+class PseudoRandomIdProviderCreator(FakeCreator):
+    @property
+    def cls(self):
+        return PseudoRandomIdProvider
+
+    def _create_item(self, save, args: FakeCreatorArgs):
+        params = dict(
+            name = args.get('name', self.faker.pystr(min_chars=5, max_chars=100)),
+            prefix = args.get('prefix', self.faker.pystr(min_chars=3, max_chars=3).upper()),
+        )
+
+        return self.cls(**params)
+
+
+class PseudoRandomIdCreator(FakeCreator):
+    @property
+    def cls(self):
+        return PseudoRandomId
+
+    def _create_item(self, save, args: FakeCreatorArgs):
+        provider: PseudoRandomIdProvider = args.get('pseudo_random_id_provider', self.faker.pseudo_random_id_provider().get(save=True))
+
+        return provider.allocate_id()
+
+
+class BlindingTypeCreator(FakeCreator):
+    @property
+    def cls(self):
+        return BlindingType
+
+    def _create_item(self, save, args: FakeCreatorArgs):
+        params = dict(
+            name = args.get('name', self.faker.pystr(min_chars=5, max_chars=100)),
+            deleted = args.get('deleted', False),
+        )
+
+        args.set_params_with_object(params, 'study', creator=self.faker.study())
+        args.set_params_with_object(params, 'pseudo_random_id_provider', creator=self.faker.pseudo_random_id_provider())
+            
+        return self.cls(**params)
+
+
+class BlindingCreator(FakeCreator):
+    @property
+    def cls(self):
+        return Blinding
+
+    def _create_item(self, save, args: FakeCreatorArgs):
+        owner = args.get('owner', self.faker.user().get(save=True))
+        blinding_type: BlindingType = args.get('blinding_type', self.faker.blinding_type().get(save=True, study=self.faker.study().get(save=True, owner=owner)))
+
+        return blinding_type.get_blind_id(
+            unblind_id=args.get('unblind_id', self.faker.pystr(min_chars=5, max_chars=100)),
+            user=owner,
+        )
+
+
+class LabelBundleCreator(FakeCreator):
+    @property
+    def cls(self):
+        return LabelBundle
+
+    def _create_item(self, save, args: FakeCreatorArgs):
+        params = dict(
+            name = args.get('name', self.faker.pystr(min_chars=5, max_chars=100)),
+        )
+
+        args.set_params_with_object(params, 'study', creator=self.faker.study())
+
+        return self.cls(**params)
+
+
+class PmiDataCreator(FakeCreator):
+    @property
+    def cls(self):
+        return PmiData
+
+    def _create_item(self, save, args: FakeCreatorArgs):
+
+        dets = self._create_pmi_details()
+
+        result = PmiData(
+            nhs_number=dets.get('nhs_number'),
+            uhl_system_number=dets.get('uhl_system_number'),
+            family_name=dets.get('family_name'),
+            given_name=dets.get('given_name'),
+            gender=dets.get('gender'),
+            date_of_birth=dets.get('date_of_birth'),
+            date_of_death=dets.get('date_of_death'),
+            postcode=dets.get('postcode'),
+            mapping=dets,
+        )
+
+        return result
+
+    def _create_pmi_details(self) -> dict:
+        return {key: value for key, value in self.faker.person_details().items() if key in PmiData._fields}
+
 
 class IdentityProvider(BaseProvider):
     @cache
     def user(self):
         return UserCreator(self)
 
-    def user_details(self):
-        u = User(
-            first_name=self.generator.first_name(),
-            last_name=self.generator.last_name(),
-            email=self.generator.email(),
-            active=True,
-        )
-        return u
+    @cache
+    def api_key(self):
+        return ApiKeyCreator(self)
 
-    def get_test_user(self,  **kwargs):
-        u = self.user_details(**kwargs)
+    @cache
+    def study(self):
+        return StudyCreator(self)
 
-        db.session.add(u)
-        db.session.commit()
+    @cache
+    def pseudo_random_id_provider(self):
+        return PseudoRandomIdProviderCreator(self)
+    
+    @cache
+    def pseudo_random_id(self):
+        return PseudoRandomIdCreator(self)
+    
+    @cache
+    def blinding_type(self):
+        return BlindingTypeCreator(self)
 
-        return u
+    @cache
+    def blinding(self):
+        return BlindingCreator(self)
 
-    def get_api_key(self):
-        u = self.user_details()
-        db.session.add(u)
-
-        a = ApiKey()
-        a.user = u
-        db.session.add(a)
-
-        db.session.commit()
-
-        return a
+    @cache
+    def label_bundle(self):
+        return LabelBundleCreator(self)
+    
+    @cache
+    def pmi_data(self):
+        return PmiDataCreator(self)
 
     def column_headers(self, columns):
         return ['X' * i for i in range(1, columns)]
 
-    def study_details(self, name=None, owner=None):
-        if name is None:
-            name = self.generator.pystr(min_chars=5, max_chars=100)
-
-        result = Study(
-            name=name,
-        )
-
-        if owner:
-            result.users.append(owner)
-
-        return result
-
-    def get_test_study(self,  **kwargs):
-        s = self.study_details(**kwargs)
-
-        db.session.add(s)
-        db.session.commit()
-
-        return s
-
-    def pseudo_random_id_provider_details(self, name=None, prefix=None):
-        if name is None:
-            name = self.generator.pystr(min_chars=5, max_chars=100)
-        if prefix is None:
-            prefix = self.generator.pystr(min_chars=3, max_chars=3).upper()
-        
-        return PseudoRandomIdProvider(name=name, prefix=prefix)
-
-
-    def get_test_pseudo_random_id_provider(self,  **kwargs):
-        p = self.pseudo_random_id_provider_details(**kwargs)
-
-        db.session.add(p)
-        db.session.commit()
-
-        return p
-
-    def blinding_type_details(self, name=None, study=None, pseudo_random_id_provider=None, deleted=False):
-        if name is None:
-            name = self.generator.pystr(min_chars=5, max_chars=100)
-        
-        result = BlindingType(name=name, deleted=deleted)
-
-        if study is None:
-            result.study = self.study_details()
-        elif study.id is None:
-            result.study = study
-        else:
-            result.study_id = study.id
-
-        if pseudo_random_id_provider is None:
-            result.pseudo_random_id_provider = self.pseudo_random_id_provider_details()
-        elif pseudo_random_id_provider.id is None:
-            result.pseudo_random_id_provider = pseudo_random_id_provider
-        else:
-            result.pseudo_random_id_provider_id = pseudo_random_id_provider.id
-
-        return result
-
-
-    def get_test_blinding_type(self,  **kwargs):
-        bt = self.blinding_type_details(**kwargs)
-
-        db.session.add(bt)
-        db.session.commit()
-
-        return bt
-
-    def blinding_details(self, unblind_id=None, blinding_type=None, pseudo_random_id=None):
-        if unblind_id is None:
-            unblind_id = self.generator.pystr(min_chars=5, max_chars=100)
-
-        result = Blinding(unblind_id=unblind_id)
-
-        if blinding_type is None:
-            result.blinding_type = self.blinding_type_details()
-        elif blinding_type.id is None:
-            result.blinding_type = blinding_type
-        else:
-            result.blinding_type_id = blinding_type.id
-
-        if pseudo_random_id is None:
-            result.pseudo_random_id = self.pseudo_random_id_details()
-        elif pseudo_random_id.id is None:
-            result.pseudo_random_id = pseudo_random_id
-        else:
-            result.pseudo_random_id_id = pseudo_random_id.id
-
-        return result
-
-    def get_test_blinding(self, **kwargs):
-        b = self.blinding_details(**kwargs)
-
-        db.session.add(b)
-        db.session.commit()
-
-        return b
-
-    def get_test_blinding_with_owner(self, owner, unblind_id=None, **kwargs):
-        if unblind_id is None:
-            unblind_id = self.generator.pystr(min_chars=5, max_chars=100)
-
-        s = self.get_test_study(owner=owner)
-        bt = self.get_test_blinding_type(study=s)
-        b = bt.get_blind_id(unblind_id, owner)
-
-        db.session.add(b)
-        db.session.commit()
-
-        return b
-
-    def label_bundle_details(self, name=None, study=None):
-        if name is None:
-            name = self.generator.pystr(min_chars=5, max_chars=100)
-
-        result = LabelBundle(name=name)
-
-        if study is None:
-            result.study = self.study_details()
-        elif study.id is None:
-            result.study = study
-        else:
-            result.study_id = study.id
-
-        return result
-
-    def get_test_label_bundle(self, **kwargs):
-        lb = self.label_bundle_details(**kwargs)
-
-        db.session.add(lb)
-        db.session.commit()
-
-        return lb
-
-
-class DemographicsCsvProvider(BaseProvider):
     def csv_string(self, headers, data=None, rows=10):
 
         csf_file = io.StringIO()
@@ -213,8 +204,6 @@ class DemographicsCsvProvider(BaseProvider):
 
         return csf_file.getvalue()
 
-
-class DemographicsXslxProvider(BaseProvider):
     def xslx_data(self, headers, data=None, rows=10):
 
         wb = Workbook()
@@ -235,36 +224,3 @@ class DemographicsXslxProvider(BaseProvider):
         return result.getvalue()
 
 
-class PmiProvider(BaseProvider):
-
-    def __init__(self, generator):
-        super().__init__(generator)
-
-        self._details = {}
-
-    
-    def pmi_details(self, key):
-        if not key in self._details:
-            self._details[key] = self.create_pmi_details()
-        
-        return self._details[key]
-    
-    def pmi_details_cls(self, key):
-        dets = self.pmi_details(key)
-
-        result = PmiData(
-            nhs_number=dets.get('nhs_number'),
-            uhl_system_number=dets.get('uhl_system_number'),
-            family_name=dets.get('family_name'),
-            given_name=dets.get('given_name'),
-            gender=dets.get('gender'),
-            date_of_birth=dets.get('date_of_birth'),
-            date_of_death=dets.get('date_of_death'),
-            postcode=dets.get('postcode'),
-            mapping=dets,
-        )
-
-        return result
-
-    def create_pmi_details(self):
-        return {key: value for key, value in self.generator.person_details().items() if key in PmiData._fields}

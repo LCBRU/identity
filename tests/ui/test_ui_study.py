@@ -8,15 +8,15 @@ def _url(external=True, **kwargs):
 
 
 def test__get__requires_login(client, faker):
-    s = faker.get_test_study()
+    s = faker.study().get(save=True)
     assert__requires_login(client, _url(id=s.id, external=False))
 
 
 def test__ui_study_menu_visible(client, faker):
     user = login(client, faker)
 
-    study_visible = faker.get_test_study()
-    study_invisible = faker.get_test_study()
+    study_visible = faker.study().get(save=True)
+    study_invisible = faker.study().get(save=True)
 
     user.studies.append(study_visible)
 
@@ -31,8 +31,8 @@ def test__ui_study_menu_visible(client, faker):
 def test__ui_study_page_visible(client, faker):
     user = login(client, faker)
 
-    study_visible = faker.get_test_study()
-    study_invisible = faker.get_test_study()
+    study_visible = faker.study().get(save=True)
+    study_invisible = faker.study().get(save=True)
 
     user.studies.append(study_visible)
 
@@ -43,11 +43,11 @@ def test__ui_study_page_visible(client, faker):
 def test__ui_print_buttons_visible(client, faker):
     user = login(client, faker)
 
-    study_visible = faker.get_test_study()
-    study_invisible = faker.get_test_study()
+    study_visible = faker.study().get(save=True)
+    study_invisible = faker.study().get(save=True)
 
-    bundle = faker.get_test_label_bundle(study=study_visible)
-    bundle_invisible = faker.get_test_label_bundle(study=study_invisible)
+    bundle = faker.label_bundle().get(save=True, study=study_visible)
+    bundle_invisible = faker.label_bundle().get(save=True, study=study_invisible)
 
     user.studies.append(study_visible)
 
@@ -62,11 +62,11 @@ def test__ui_print_buttons_visible(client, faker):
 def test__ui_blinding_and_unblinding_forms_visible(client, faker):
     user = login(client, faker)
 
-    study_visible = faker.get_test_study()
-    study_invisible = faker.get_test_study()
+    study_visible = faker.study().get(save=True)
+    study_invisible = faker.study().get(save=True)
 
-    blind = faker.get_test_blinding_type(study=study_visible)
-    blind_invisible = faker.get_test_blinding_type(study=study_invisible)
+    blind = faker.blinding_type().get(save=True, study=study_visible)
+    blind_invisible = faker.blinding_type().get(save=True, study=study_invisible)
 
     user.studies.append(study_visible)
 

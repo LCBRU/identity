@@ -45,7 +45,7 @@ def test__extract_pre_pmi_details__first_processed(client, faker, mock_pmi_detai
     dth = DemographicsTestHelper(faker=faker, user=u, row_count=row_count)
     dr = dth.get_demographics_request__pre_pmi_lookup()
 
-    expected = PmiData(**faker.pmi_details(1))
+    expected = faker.pmi_data().get(save=False)
     mock_pmi_details.return_value = expected
 
     extract_pre_pmi_details(dr.id)
@@ -70,7 +70,7 @@ def test__extract_pre_pmi_details__next_processed(client, faker, mock_pmi_detail
     db.session.add(dr.data[0])
     db.session.commit()
 
-    expected = PmiData(**faker.pmi_details(1))
+    expected = faker.pmi_data().get(save=False)
     mock_pmi_details.return_value = expected
 
     extract_pre_pmi_details(dr.id)
@@ -115,7 +115,7 @@ def test__extract_pre_pmi_details__invalid_nhs_number(client, faker, mock_pmi_de
     db.session.add(dr.data[0])
     db.session.commit()
 
-    expected = PmiData(**faker.pmi_details(1))
+    expected = faker.pmi_data().get(save=False)
     mock_pmi_details.return_value = expected
 
     extract_pre_pmi_details(dr.id)
@@ -146,7 +146,7 @@ def test__extract_pre_pmi_details__invalid_uhl_system_number(client, faker, mock
     db.session.add(dr.data[0])
     db.session.commit()
 
-    expected = PmiData(**faker.pmi_details(1))
+    expected = faker.pmi_data().get(save=False)
     mock_pmi_details.return_value = expected
 
     extract_pre_pmi_details(dr.id)
@@ -245,7 +245,7 @@ def test__extract_post_pmi_details__first_processed(client, faker, mock_pmi_deta
     dth = DemographicsTestHelper(faker=faker, user=u, row_count=row_count, find_pre_pmi_details=False)
     dr = dth.get_demographics_request__post_pmi_lookup()
 
-    expected = PmiData(**faker.pmi_details(1))
+    expected = faker.pmi_data().get(save=False)
     mock_pmi_details.return_value = expected
 
     extract_post_pmi_details(dr.id)
@@ -270,7 +270,7 @@ def test__extract_post_pmi_details__next_processed(client, faker, mock_pmi_detai
     db.session.add(dr.data[0])
     db.session.commit()
 
-    expected = PmiData(**faker.pmi_details(1))
+    expected = faker.pmi_data().get(save=False)
     mock_pmi_details.return_value = expected
 
     extract_post_pmi_details(dr.id)
@@ -315,7 +315,7 @@ def test__extract_post_pmi_details__invalid_nhs_number(client, faker, mock_pmi_d
     db.session.add(dr.data[0])
     db.session.commit()
 
-    expected = PmiData(**faker.pmi_details(1))
+    expected = faker.pmi_data().get(save=False)
     mock_pmi_details.return_value = expected
 
     extract_post_pmi_details(dr.id)
@@ -346,7 +346,7 @@ def test__extract_post_pmi_details__invalid_uhl_system_number(client, faker, moc
     db.session.add(dr.data[0])
     db.session.commit()
 
-    expected = PmiData(**faker.pmi_details(1))
+    expected = faker.pmi_data().get(save=False)
     mock_pmi_details.return_value = expected
 
     extract_post_pmi_details(dr.id)

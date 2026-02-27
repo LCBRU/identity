@@ -8,7 +8,7 @@ def _url(external=True, **kwargs):
 
 
 def test__get__requires_login(client, faker):
-    bundle = faker.get_test_label_bundle()
+    bundle = faker.label_bundle().get(save=True)
 
     assert__requires_login(client, _url(
         id=bundle.id,
@@ -19,7 +19,7 @@ def test__get__requires_login(client, faker):
 def test__label_print_definition__not_a_user_study(client, faker):
     user = login(client, faker)
 
-    bundle = faker.get_test_label_bundle()
+    bundle = faker.label_bundle().get(save=True)
 
     resp = client.get(_url(id=bundle.id))
 
@@ -29,7 +29,7 @@ def test__label_print_definition__not_a_user_study(client, faker):
 def test__label_print_definition__get(client, faker):
     user = login(client, faker)
 
-    bundle = faker.get_test_label_bundle()
+    bundle = faker.label_bundle().get(save=True)
     user.studies.append(bundle.study)
 
     resp = get_and_assert_standards_modal(client, _url(id=bundle.id))
@@ -40,7 +40,7 @@ def test__label_print_definition__get(client, faker):
 def test__label_print_definition__post__study_redirect(client, faker):
     user = login(client, faker)
 
-    bundle = faker.get_test_label_bundle()
+    bundle = faker.label_bundle().get(save=True)
     user.studies.append(bundle.study)
 
     data = {
@@ -61,7 +61,7 @@ def test__label_print_definition__post__study_redirect(client, faker):
 def test__label_print_definition__post__labels_redirect(client, faker):
     user = login(client, faker)
 
-    bundle = faker.get_test_label_bundle()
+    bundle = faker.label_bundle().get(save=True)
     user.studies.append(bundle.study)
 
     data = {
@@ -85,7 +85,7 @@ def test__label_print_definition__post__labels_redirect(client, faker):
 def test__label_print_definition__post__no_id_given(client, faker):
     user = login(client, faker)
 
-    bundle = faker.get_test_label_bundle()
+    bundle = faker.label_bundle().get(save=True)
     user.studies.append(bundle.study)
 
     data = {

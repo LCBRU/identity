@@ -18,7 +18,7 @@ def test__authorisation__no_api_key(client, faker, path):
 
 @pytest.mark.parametrize("path", paths)
 def test__authorisation__wrong_api_key(client, faker, path):
-    api_key = faker.get_api_key()
+    api_key = faker.api_key().get(save=True)
 
     resp = client.post(add_api_key_to_url(ApiKey(key=uuid.uuid4()), path))
 
@@ -27,13 +27,13 @@ def test__authorisation__wrong_api_key(client, faker, path):
 
 @pytest.mark.parametrize("path", paths)
 def test__authorisation__correct_api_key(client, faker, path):
-    resp = client.post(add_api_key_to_url(faker.get_api_key(), path))
+    resp = client.post(add_api_key_to_url(faker.api_key().get(save=True), path))
 
     assert resp.status_code != 401
 
 
 @pytest.mark.parametrize("path", paths)
 def test__api_call__no_json(client, faker, path):
-    resp = client.post(add_api_key_to_url(faker.get_api_key(), path), json={})
+    resp = client.post(add_api_key_to_url(faker.api_key().get(save=True), path), json={})
 
     assert resp.status_code == 400

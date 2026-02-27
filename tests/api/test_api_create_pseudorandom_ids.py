@@ -15,8 +15,8 @@ path = '/api/create_pseudorandom_ids'
     ],
 )
 def test__create_pseudorandom_ids__valid_json(client, faker, id_count):
-    prip = faker.get_test_pseudo_random_id_provider()
-    resp = client.post(add_api_key_to_url(faker.get_api_key(), path), json=dict(
+    prip = faker.pseudo_random_id_provider().get(save=True)
+    resp = client.post(add_api_key_to_url(faker.api_key().get(save=True), path), json=dict(
         prefix=prip.prefix,
         id_count=id_count,
     ))
@@ -32,7 +32,7 @@ def test__create_pseudorandom_ids__valid_json(client, faker, id_count):
 
 
 def test__create_pseudorandom_ids__no_prefix(client, faker):
-    resp = client.post(add_api_key_to_url(faker.get_api_key(), path), json=dict(
+    resp = client.post(add_api_key_to_url(faker.api_key().get(save=True), path), json=dict(
         id_count=1,
     ))
 
@@ -40,8 +40,8 @@ def test__create_pseudorandom_ids__no_prefix(client, faker):
 
 
 def test__create_pseudorandom_ids__no_id_count(client, faker):
-    prip = faker.get_test_pseudo_random_id_provider()
-    resp = client.post(add_api_key_to_url(faker.get_api_key(), path), json=dict(
+    prip = faker.pseudo_random_id_provider().get(save=True)
+    resp = client.post(add_api_key_to_url(faker.api_key().get(save=True), path), json=dict(
         prefix=prip.prefix,
     ))
 
@@ -49,7 +49,7 @@ def test__create_pseudorandom_ids__no_id_count(client, faker):
 
 
 def test__create_pseudorandom_ids__prefix_invalid(client, faker):
-    resp = client.post(add_api_key_to_url(faker.get_api_key(), path), json=dict(
+    resp = client.post(add_api_key_to_url(faker.api_key().get(save=True), path), json=dict(
         prefix='NONENEHIUEIUEIUG',
         id_count=1,
     ))
@@ -65,9 +65,9 @@ def test__create_pseudorandom_ids__prefix_invalid(client, faker):
     ],
 )
 def test__create_pseudorandom_ids__invalid_id_count(client, faker, id_count):
-    prip = faker.get_test_pseudo_random_id_provider()
+    prip = faker.pseudo_random_id_provider().get(save=True)
     resp = client.post(
-        add_api_key_to_url(faker.get_api_key(), path),
+        add_api_key_to_url(faker.api_key().get(save=True), path),
         json=dict(
             prefix=prip.prefix,
             id_count=id_count,

@@ -42,37 +42,34 @@ def _assert_ids_created_correctly(unblind_id, ids, blinding_types):
 
 
 def test__get_blind_ids___no_types(client, faker):
-    _test_blinding(client, faker, faker.get_test_study(), [])
+    _test_blinding(client, faker, faker.study().get(save=True), [])
 
 
 def test__get_blind_ids___one_type(client, faker):
-    bt = faker.get_test_blinding_type()
+    bt = faker.blinding_type().get(save=True)
 
     _test_blinding(client, faker, bt.study, [bt])
 
 
 def test__get_blind_ids___two_types(client, faker):
-    s = faker.get_test_study()
+    s = faker.study().get(save=True)
 
     bts = [
-        faker.get_test_blinding_type(study=s),
-        faker.get_test_blinding_type(study=s),
+        faker.blinding_type().get(save=True, study=s),
+        faker.blinding_type().get(save=True, study=s),
     ]
 
     _test_blinding(client, faker, s, bts)
 
 
 def test__get_blind_ids___type_deleted(client, faker):
-    s = faker.get_test_study()
+    s = faker.study().get(save=True)
 
     bts = [
-        faker.get_test_blinding_type(study=s),
-        faker.get_test_blinding_type(study=s),
+        faker.blinding_type().get(save=True, study=s),
+        faker.blinding_type().get(save=True, study=s),
     ]
 
-    bt_deleted = faker.get_test_blinding_type(
-        study=s,
-        deleted=True,
-    )
+    bt_deleted = faker.blinding_type().get(save=True, study=s, deleted=True)
 
     _test_blinding(client, faker, s, bts)

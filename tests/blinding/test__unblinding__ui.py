@@ -20,7 +20,7 @@ def _unblinding_post(client, study, id):
 def test__ui_unblinding__existing(client, faker):
     user = login(client, faker)
 
-    b = faker.get_test_blinding_with_owner(owner=user)
+    b = faker.blinding().get(save=True, owner=user)
 
     resp = _unblinding_post(client, b.blinding_type.study, b.pseudo_random_id.full_code)
 
@@ -31,7 +31,7 @@ def test__ui_unblinding__existing(client, faker):
 def test__ui_unblinding__not_existing(client, faker):
     user = login(client, faker)
 
-    b = faker.get_test_blinding_with_owner(owner=user)
+    b = faker.blinding().get(save=True, owner=user)
 
     resp = _unblinding_post(client, b.blinding_type.study, '1234567')
 
@@ -41,9 +41,9 @@ def test__ui_unblinding__not_existing(client, faker):
 
 def test__ui_unblinding__not_owner(client, faker):
     user = login(client, faker)
-    owner = faker.get_test_user()
+    owner = faker.user().get(save=True)
 
-    b = faker.get_test_blinding_with_owner(owner=owner)
+    b = faker.blinding().get(save=True, owner=owner)
 
     resp = _unblinding_post(client, b.blinding_type.study, b.pseudo_random_id.full_code)
 

@@ -43,7 +43,7 @@ def _assert__blinding(study, resp):
 
 
 def test_url_requires_login_post(client, faker):
-    s = faker.get_test_study()
+    s = faker.study().get(save=True)
     print('*'*100)
     print(_url(study_id=s.id, external=False))
     print('*'*100)
@@ -55,10 +55,10 @@ def test_url_requires_login_post(client, faker):
 def test__ui_blinding__blinding(client, faker, count):
     user = login(client, faker)
 
-    s = faker.get_test_study(owner=user)
+    s = faker.study().get(save=True, owner=user)
 
     for _ in range(count):
-        faker.get_test_blinding_type(study=s)
+        faker.blinding_type().get(save=True, study=s)
 
     resp = _blinding_post(client, s, 'hello')
 
@@ -70,7 +70,7 @@ def test__ui_blinding__blinding(client, faker, count):
 def test__ui_blinding__existing(client, faker):
     user = login(client, faker)
 
-    b = faker.get_test_blinding_with_owner(owner=user)
+    b = faker.blinding().get(save=True, owner=user)
 
     resp = _blinding_post(client, b.blinding_type.study, b.unblind_id)
 
@@ -90,11 +90,11 @@ def test__ui_blinding__existing(client, faker):
 
 def test__ui_blinding__not_owner(client, faker):
     user = login(client, faker)
-    owner = faker.get_test_user()
+    owner = faker.user().get(save=True)
 
-    s = faker.get_test_study(owner=owner)
+    s = faker.study().get(save=True, owner=owner)
 
-    faker.get_test_blinding_type(study=s)
+    faker.blinding_type().get(save=True, study=s)
 
     resp = _blinding_post(client, s, 'hello')
 
