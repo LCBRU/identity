@@ -3,8 +3,6 @@ from lbrc_flask.config import BaseConfig, BaseTestConfig
 
 
 class IdentityConfig():
-    IMPORT_OLD_IDS = os.getenv("IMPORT_OLD_IDS", "True") == 'True'
-
     PRINTER_DEV = os.environ["PRINTER_DEV"]
     PRINTER_CVRC_LAB_SAMPLE = os.environ["PRINTER_CVRC_LAB_SAMPLE"]
     PRINTER_BRU_CRF_SAMPLE = os.environ["PRINTER_BRU_CRF_SAMPLE"]
@@ -35,17 +33,6 @@ class IdentityConfig():
 
     # CiviCRM
     CIVICRM_DB_URI=os.environ["CIVICRM_DB_URI"]
-
-    # REDCap Database Details
-    REDCAP_USERNAME=os.environ["REDCAP_USERNAME"]
-    REDCAP_PASSWORD=os.environ["REDCAP_PASSWORD"]
-    REDCAP_HOST=os.environ["REDCAP_HOST"]
-
-    # REDCap Import Schedule
-    REDCAP_PROJECT_SCHEDULE_MINUTE=os.environ["REDCAP_PROJECT_SCHEDULE_MINUTE"]
-    REDCAP_PROJECT_SCHEDULE_HOUR=os.environ["REDCAP_PROJECT_SCHEDULE_HOUR"]
-    REDCAP_PARTICIPANTS_SCHEDULE_MINUTE=os.environ["REDCAP_PARTICIPANTS_SCHEDULE_MINUTE"]
-    REDCAP_PARTICIPANTS_SCHEDULE_HOUR=os.environ["REDCAP_PARTICIPANTS_SCHEDULE_HOUR"]
 
     SQLALCHEMY_BINDS = {
         'etl_central': os.environ["ETL_CENTRAL_DB_URI"],

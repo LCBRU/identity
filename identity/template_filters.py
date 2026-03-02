@@ -11,7 +11,7 @@ def init_template_filters(app):
 
         if current_user and not current_user.is_anonymous:
             if current_user.is_admin:
-                user_studies = db.session.execute(select(Study)).scalars().all()
+                user_studies = db.session.execute(select(Study)).unique().scalars().all()
             else:
                 user_studies = current_user.studies
 
