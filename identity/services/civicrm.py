@@ -1,6 +1,6 @@
 from sqlalchemy import and_, or_, select
 from lbrc_flask.database import db
-from identity.model.civicrm import CiviCrmCaseStatus, CiviCrmContact, CiviCrmContactIds, CiviCrmParticipantAmazeDetails, CiviCrmParticipantArchiveDetails, CiviCrmParticipantBioresourceDetails, CiviCrmParticipantBraveDetails, CiviCrmParticipantBriccsDetails, CiviCrmParticipantCardiometDetails, CiviCrmParticipantContact, CiviCrmParticipantDiscordanceDetails, CiviCrmParticipantDreamDetails, CiviCrmParticipantEmmace4Details, CiviCrmParticipantFastDetails, CiviCrmParticipantFoamiDetails, CiviCrmParticipantGenvascDetails, CiviCrmParticipantGlobalLeadersDetails, CiviCrmParticipantGraphic2Details, CiviCrmParticipantIndapamideDetails, CiviCrmParticipantIntervalDetails, CiviCrmParticipantLentenDetails, CiviCrmParticipantLimbDetails, CiviCrmParticipantNationalBioresourceDetails, CiviCrmParticipantOmicsDetails, CiviCrmParticipantPredictDetails, CiviCrmParticipantPreeclampsiaDetails, CiviCrmParticipantScadDetails, CiviCrmParticipantScadRegisterDetails, CiviCrmParticipantSpiralDetails, CiviCrmParticipantTmaoDetails, CiviCrmStudy, CiviCrmParticipant
+from identity.model.civicrm import CiviCrmCaseStatus, CiviCrmContact, CiviCrmContactIds, CiviCrmParticipantAmazeDetails, CiviCrmParticipantArchiveDetails, CiviCrmParticipantBioresourceDetails, CiviCrmParticipantBraveDetails, CiviCrmParticipantBriccsDetails, CiviCrmParticipantCardiometDetails, CiviCrmCaseContact, CiviCrmParticipantDiscordanceDetails, CiviCrmParticipantDreamDetails, CiviCrmParticipantEmmace4Details, CiviCrmParticipantFastDetails, CiviCrmParticipantFoamiDetails, CiviCrmParticipantGenvascDetails, CiviCrmParticipantGlobalLeadersDetails, CiviCrmParticipantGraphic2Details, CiviCrmParticipantIndapamideDetails, CiviCrmParticipantIntervalDetails, CiviCrmParticipantLentenDetails, CiviCrmParticipantLimbDetails, CiviCrmParticipantNationalBioresourceDetails, CiviCrmParticipantOmicsDetails, CiviCrmParticipantPredictDetails, CiviCrmParticipantPreeclampsiaDetails, CiviCrmParticipantScadDetails, CiviCrmParticipantScadRegisterDetails, CiviCrmParticipantSpiralDetails, CiviCrmParticipantTmaoDetails, CiviCrmStudy, CiviCrmParticipant
 from lbrc_flask.forms import SearchForm
 from wtforms import BooleanField
 
@@ -28,14 +28,14 @@ def get_participant_query(form, study_id):
             or_wheres = []
             or_wheres.append(
                 CiviCrmParticipant.participant_contacts.any(
-                    CiviCrmParticipantContact.contact.has(or_(
+                    CiviCrmCaseContact.contact.has(or_(
                         CiviCrmContact.first_name.like(f'%{s}%'),
                         CiviCrmContact.last_name.like(f'%{s}%'),
                     )
                 )))
             or_wheres.append(
                 CiviCrmParticipant.participant_contacts.any(
-                    CiviCrmParticipantContact.contact.has(
+                    CiviCrmCaseContact.contact.has(
                         CiviCrmContact.contact_ids.has(or_(
                             CiviCrmContactIds.nhs_number == s,
                             CiviCrmContactIds.uhl_system_number == s,

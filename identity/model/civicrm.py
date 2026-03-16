@@ -990,24 +990,24 @@ class CiviCrmParticipant(db.Model):
             return self.participant_contacts[0].contact
 
 
-class CiviCrmParticipantContact(db.Model):
+class CiviCrmCaseContact(db.Model):
     __tablename__ = 'civicrm_case_contact'
     __bind_key__ = 'civicrm'
 
     id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
-    participant_id: Mapped[int] = mapped_column('case_id', Integer, nullable=False)
+    case_id: Mapped[int] = mapped_column('case_id', Integer, nullable=False)
     contact_id: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    participant: Mapped[CiviCrmParticipant] = relationship(
+    case: Mapped[CiviCrmParticipant] = relationship(
         CiviCrmParticipant,
-        foreign_keys=[participant_id],
-        primaryjoin='CiviCrmParticipantContact.participant_id == CiviCrmParticipant.id',
+        foreign_keys=[case_id],
+        primaryjoin='CiviCrmCaseContact.case_id == CiviCrmParticipant.id',
         backref=backref("participant_contacts", cascade="delete, delete-orphan")
     )
 
     contact: Mapped[CiviCrmParticipant] = relationship(
         CiviCrmContact,
         foreign_keys=[contact_id],
-        primaryjoin='CiviCrmParticipantContact.contact_id == CiviCrmContact.id',
+        primaryjoin='CiviCrmCaseContact.contact_id == CiviCrmContact.id',
         backref=backref("participant_contacts", cascade="delete, delete-orphan")
     )
