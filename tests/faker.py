@@ -1,4 +1,5 @@
 from functools import cache
+from random import randint
 from identity.printing import LabelBundle
 from identity.model.id import PseudoRandomId, PseudoRandomIdProvider
 from identity.model.blinding import Blinding, BlindingType
@@ -37,7 +38,7 @@ class StudyCreator(FakeCreator):
 
     def _create_item(self, save, args: FakeCreatorArgs):
         params = dict(
-            name = args.get('name', self.faker.pystr(min_chars=5, max_chars=100)),
+            name = args.get('name', self.faker.unique.sentence(nb_words=randint(2, 4)).removesuffix(".").title()),
         )
 
         result: Study = self.cls(**params)
@@ -55,7 +56,7 @@ class PseudoRandomIdProviderCreator(FakeCreator):
 
     def _create_item(self, save, args: FakeCreatorArgs):
         params = dict(
-            name = args.get('name', self.faker.pystr(min_chars=5, max_chars=100)),
+            name = args.get('name', self.faker.unique.sentence(nb_words=randint(2, 4)).removesuffix(".").title()),
             prefix = args.get('prefix', self.faker.pystr(min_chars=3, max_chars=3).upper()),
         )
 
@@ -80,7 +81,7 @@ class BlindingTypeCreator(FakeCreator):
 
     def _create_item(self, save, args: FakeCreatorArgs):
         params = dict(
-            name = args.get('name', self.faker.pystr(min_chars=5, max_chars=100)),
+            name = args.get('name', self.faker.unique.sentence(nb_words=randint(2, 4)).removesuffix(".").title()),
             deleted = args.get('deleted', False),
         )
 
@@ -112,7 +113,7 @@ class LabelBundleCreator(FakeCreator):
 
     def _create_item(self, save, args: FakeCreatorArgs):
         params = dict(
-            name = args.get('name', self.faker.pystr(min_chars=5, max_chars=100)),
+            name = args.get('name', self.faker.unique.sentence(nb_words=randint(2, 4)).removesuffix(".").title()),
             disable_batch_printing=self.faker.pybool(),
             user_defined_participant_id=self.faker.pybool(),
         )
