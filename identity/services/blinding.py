@@ -2,7 +2,6 @@ from flask_login import current_user
 from lbrc_flask.database import db
 from sqlalchemy import select
 from identity.model.blinding import Blinding
-from identity.model.id import PseudoRandomId
 
 
 def get_study_blinding_ids(study, unblind_id):
