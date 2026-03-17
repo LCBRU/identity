@@ -44,9 +44,6 @@ def _assert__blinding(study, resp):
 
 def test_url_requires_login_post(client, faker):
     s = faker.study().get(save=True)
-    print('*'*100)
-    print(_url(study_id=s.id, external=False))
-    print('*'*100)
     assert__requires_login(client, _url(study_id=s.id, external=False), post=True)
 
 @pytest.mark.parametrize(
@@ -57,8 +54,7 @@ def test__ui_blinding__blinding(client, faker, count):
 
     s = faker.study().get(save=True, owner=user)
 
-    for _ in range(count):
-        faker.blinding_type().get(save=True, study=s)
+    faker.blinding_type().get_list(save=True, item_count=count, study=s)
 
     resp = _blinding_post(client, s, 'hello')
 

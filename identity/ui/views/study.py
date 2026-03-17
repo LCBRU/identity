@@ -10,6 +10,7 @@ from flask_login import current_user
 from sqlalchemy import select
 
 from identity.model.civicrm import CiviCrmStudy
+from identity.services.blinding import get_study_blinding_ids
 from identity.services.civicrm import get_civicrm_study_choices, ParticipantSearchForm, get_civicrm_study_status_choices, get_participant_query
 from .. import blueprint, db
 from identity.model.blinding import Blinding
@@ -62,7 +63,7 @@ def blinding(id):
     blinding_form = BlindingForm()
 
     if blinding_form.validate_on_submit():
-        ids = study.get_blind_ids(blinding_form.id.data, current_user)
+        ids = get_study_blinding_ids(study, blinding_form.id.data)
 
         db.session.add_all(ids)
         db.session.commit()

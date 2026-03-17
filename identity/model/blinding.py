@@ -1,6 +1,5 @@
-from datetime import datetime, UTC
 from lbrc_flask.database import db
-from sqlalchemy import func, select
+from sqlalchemy import func
 from identity.model import Study
 from identity.model.id import (
     PseudoRandomIdProvider,
@@ -24,36 +23,6 @@ class BlindingType(db.Model):
 
     def __lt__(self, other):
         return self.name < other.name
-
-    def get_blind_id(self, unblind_id, user):
-        blinding = db.session.execute(
-            select(Blinding)
-            .where(Blinding.blinding_type_id == self.id)
-            .where(Blinding.unblind_id == unblind_id)
-        ).scalar_one_or_none()
-
-        if not blinding:
-            pseudo_random_id = self.pseudo_random_id_provider.allocate_id()
-
-            blinding = Blinding(
-                unblind_id=unblind_id,
-                blinding_type=self,
-                pseudo_random_id=pseudo_random_id,
-                last_updated_by_user=user,
-            )
-        
-        return blinding
-
-    def get_unblind_id(self, blind_id):
-        blinding = (
-            Blinding.query
-            .filter_by(blinding_type_id=self.id)
-            .join(PseudoRandomId)
-            .filter_by(full_code=blind_id)
-            .first()
-        )
-        
-        return blinding
 
 
 class Blinding(db.Model):

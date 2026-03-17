@@ -8,6 +8,7 @@ import io
 import csv
 from faker.providers import BaseProvider
 from openpyxl import Workbook
+from identity.services.blinding import get_blinding_type_id
 from identity.services.pmi import PmiData
 from identity.model import Study
 from identity.api.model import ApiKey
@@ -100,9 +101,9 @@ class BlindingCreator(FakeCreator):
         owner = args.get('owner', self.faker.user().get(save=True))
         blinding_type: BlindingType = args.get('blinding_type', self.faker.blinding_type().get(save=True, study=self.faker.study().get(save=True, owner=owner)))
 
-        return blinding_type.get_blind_id(
+        return get_blinding_type_id(
+            blinding_type,
             unblind_id=args.get('unblind_id', self.faker.pystr(min_chars=5, max_chars=100)),
-            user=owner,
         )
 
 

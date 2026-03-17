@@ -5,11 +5,13 @@ from lbrc_flask.pytest.helpers import login
 from lbrc_flask.database import db
 from sqlalchemy import select, func
 
+from identity.services.blinding import get_study_blinding_ids
+
 
 def _test_blinding(client, faker, study, expected_blinding_types):
     u = login(client, faker)
 
-    ids = study.get_blind_ids('hello', u)
+    ids = get_study_blinding_ids(study, 'hello')
     db.session.add_all(ids)
     db.session.commit()
 
