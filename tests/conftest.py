@@ -3,6 +3,8 @@ from faker import Faker
 from lbrc_flask.pytest.fixtures import *
 from identity.config import TestConfig
 from identity import create_app
+from tests.faker_civicrm import CivicrmProvider
+from tests.faker_etl_central import EtlCentralProvider
 from .faker import IdentityProvider
 from lbrc_flask.pytest.faker import LbrcFlaskFakerProvider
 from .mocks import *
@@ -24,5 +26,7 @@ def faker():
     result = Faker("en_GB")
     result.add_provider(LbrcFlaskFakerProvider)
     result.add_provider(IdentityProvider)
+    result.add_provider(CivicrmProvider)
+    result.add_provider(EtlCentralProvider)
 
     yield result

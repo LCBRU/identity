@@ -57,16 +57,12 @@ class CiviCrmStudy(db.Model):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
 
-class CiviCrmParticipantDetails(AbstractConcreteBase, db.Model):
-    __bind_key__ = 'civicrm'
-    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
-    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
-
-
-class CiviCrmParticipantAmazeDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantAmazeDetails(db.Model):
     __tablename__ = 'civicrm_value_amaze_23'
     __bind_key__ = 'civicrm'
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('amaze_id_104', String(255), nullable=True)
 
     def identifiers(self):
@@ -79,13 +75,12 @@ class CiviCrmParticipantAmazeDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantArchiveDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantArchiveDetails(db.Model):
     __tablename__ = 'civicrm_value_archiving_custom_data_22'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     box_barcode: Mapped[str] = mapped_column('archiving_box_barcode_103', String(255), nullable=True)
 
     def identifiers(self):
@@ -98,13 +93,12 @@ class CiviCrmParticipantArchiveDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantBioresourceSubStudyDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantBioresourceSubStudyDetails(db.Model):
     __tablename__ = 'civicrm_value_bioresource_sub_study_28'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     sub_study: Mapped[str] = mapped_column('sub_study_118', String(255), nullable=True)
 
     def identifiers(self):
@@ -117,13 +111,12 @@ class CiviCrmParticipantBioresourceSubStudyDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantBraveDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantBraveDetails(db.Model):
     __tablename__ = 'civicrm_value_brave_16'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('brave_id_74', String(255), nullable=True)
     source_study: Mapped[str] = mapped_column('brave_source_study_75', String(255), nullable=True)
     briccs_id: Mapped[str] = mapped_column('briccs_id_86', String(255), nullable=True)
@@ -143,13 +136,12 @@ class CiviCrmParticipantBraveDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantBriccsDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantBriccsDetails(db.Model):
     __tablename__ = 'civicrm_value_briccs_recruitment_data_10'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('briccs_id_31', String(255), nullable=True)
     interview_date_and_time: Mapped[datetime] = mapped_column('interview_date_and_time_32', DateTime, nullable=True)
     interviewer: Mapped[str] = mapped_column('interviewer_33', String(255), nullable=True)
@@ -184,13 +176,12 @@ class CiviCrmParticipantBriccsDetails(CiviCrmParticipantDetails):
         }
 
 
-class CiviCrmParticipantCardiometDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantCardiometDetails(db.Model):
     __tablename__ = 'civicrm_value_cardiomet_31'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('cardiomet_id_123', String(255), nullable=True)
 
     def identifiers(self):
@@ -203,13 +194,12 @@ class CiviCrmParticipantCardiometDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantDiscordanceDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantDiscordanceDetails(db.Model):
     __tablename__ = 'civicrm_value_discordance_36'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('discordance_id_130', String(255), nullable=True)
 
     def identifiers(self):
@@ -222,13 +212,12 @@ class CiviCrmParticipantDiscordanceDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantDreamDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantDreamDetails(db.Model):
     __tablename__ = 'civicrm_value_dream_recruitment_data_6'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('dream_study_id_18', String(255), nullable=True)
     consent_to_participate_in_dream: Mapped[bool] = mapped_column('consent_to_participate_in_dream__19', Boolean, nullable=True)
     consent_to_store_dream_study_sam: Mapped[bool] = mapped_column('consent_to_store_dream_study_sam_20', Boolean, nullable=True)
@@ -246,13 +235,12 @@ class CiviCrmParticipantDreamDetails(CiviCrmParticipantDetails):
         }
 
 
-class CiviCrmParticipantEmmace4Details(CiviCrmParticipantDetails):
+class CiviCrmParticipantEmmace4Details(db.Model):
     __tablename__ = 'civicrm_value_emmace_4_recruitment_data_13'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('emmace_4_id_50', String(255), nullable=True)
 
     def identifiers(self):
@@ -265,13 +253,12 @@ class CiviCrmParticipantEmmace4Details(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantFastDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantFastDetails(db.Model):
     __tablename__ = 'civicrm_value_fast_24'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('fast_id_106', String(255), nullable=True)
 
     def identifiers(self):
@@ -284,13 +271,12 @@ class CiviCrmParticipantFastDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantFoamiDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantFoamiDetails(db.Model):
     __tablename__ = 'civicrm_value_foami_27'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('foami_id_117', String(255), nullable=True)
 
     def identifiers(self):
@@ -303,13 +289,12 @@ class CiviCrmParticipantFoamiDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantGenvascInvoiceDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantGenvascInvoiceDetails(db.Model):
     __tablename__ = 'civicrm_value_genvasc_invoice_data_25'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     invoice_year: Mapped[str] = mapped_column('invoice_year_107', String(255), nullable=True)
     invoice_quarter: Mapped[str] = mapped_column('invoice_quarter_108', String(255), nullable=True)
     processed_by: Mapped[str] = mapped_column('processed_by_110', String(255), nullable=True)
@@ -334,13 +319,12 @@ class CiviCrmParticipantGenvascInvoiceDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantGenvascDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantGenvascDetails(db.Model):
     __tablename__ = 'civicrm_value_genvasc_recruitment_data_5'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('genvasc_id_10', String(255), nullable=True)
     consent_q1: Mapped[bool] = mapped_column('genvasc_consent_q1_11', Boolean, nullable=True)
     consent_q2: Mapped[bool] = mapped_column('genvasc_consent_q2_12', Boolean, nullable=True)
@@ -369,13 +353,12 @@ class CiviCrmParticipantGenvascDetails(CiviCrmParticipantDetails):
         }
 
 
-class CiviCrmParticipantGenvascWithdrawalDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantGenvascWithdrawalDetails(db.Model):
     __tablename__ = 'civicrm_value_genvasc_withdrawal_status_8'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     withdrawal_status: Mapped[str] = mapped_column('withdrawal_status_24', String(255), nullable=True)
 
     def identifiers(self):
@@ -388,13 +371,12 @@ class CiviCrmParticipantGenvascWithdrawalDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantGlobalLeadersDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantGlobalLeadersDetails(db.Model):
     __tablename__ = 'civicrm_value_global_leaders_17'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('global_leaders_id_76', String(255), nullable=True)
     treatment_arm: Mapped[str] = mapped_column('treatment_arm_77', String(255), nullable=True)
 
@@ -408,13 +390,12 @@ class CiviCrmParticipantGlobalLeadersDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantGraphic2Details(CiviCrmParticipantDetails):
+class CiviCrmParticipantGraphic2Details(db.Model):
     __tablename__ = 'civicrm_value_graphic2_9'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('graphic_participant_id_26', String(255), nullable=True)
     graphic_lab_id: Mapped[str] = mapped_column('graphic_lab_id_25', String(255), nullable=True)
     graphic_family_id: Mapped[str] = mapped_column('graphic_family_id_27', String(255), nullable=True)
@@ -440,13 +421,12 @@ class CiviCrmParticipantGraphic2Details(CiviCrmParticipantDetails):
         }
 
 
-class CiviCrmParticipantIndapamideDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantIndapamideDetails(db.Model):
     __tablename__ = 'civicrm_value_indapamide_26'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('indapamide_id_112', String(255), nullable=True)
 
     def identifiers(self):
@@ -459,13 +439,12 @@ class CiviCrmParticipantIndapamideDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantIntervalDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantIntervalDetails(db.Model):
     __tablename__ = 'civicrm_value_interval_data_21'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('interval_id_98', String(255), nullable=True)
     consent_date: Mapped[date] = mapped_column('consent_date_99', Date, nullable=True)
     consent_version: Mapped[str] = mapped_column('consent_version_100', String(255), nullable=True)
@@ -485,13 +464,12 @@ class CiviCrmParticipantIntervalDetails(CiviCrmParticipantDetails):
         }
 
 
-class CiviCrmParticipantLentenDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantLentenDetails(db.Model):
     __tablename__ = 'civicrm_value_lenten_29'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('lenten_id_119', String(255), nullable=True)
 
     def identifiers(self):
@@ -504,13 +482,12 @@ class CiviCrmParticipantLentenDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantLimbDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantLimbDetails(db.Model):
     __tablename__ = 'civicrm_value_limb_35'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('limb_id_129', String(255), nullable=True)
 
     def identifiers(self):
@@ -523,13 +500,12 @@ class CiviCrmParticipantLimbDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantNationalBioresourceDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantNationalBioresourceDetails(db.Model):
     __tablename__ = 'civicrm_value_national_bioresource_34'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('national_bioresource_id_126', String(255), nullable=True)
     leicester_bioresource_id: Mapped[str] = mapped_column('leicester_bioresource_id_127', String(255), nullable=True)
     legacy_bioresource_id: Mapped[str] = mapped_column('legacy_bioresource_id_128', String(255), nullable=True)
@@ -548,13 +524,12 @@ class CiviCrmParticipantNationalBioresourceDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantBioresourceDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantBioresourceDetails(db.Model):
     __tablename__ = 'civicrm_value_nihr_bioresource_11'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('nihr_bioresource_id_41', String(255), nullable=True)
     date_of_consent: Mapped[datetime] = mapped_column('date_of_consent_42', DateTime, nullable=True)
     nihr_bioresource_consent_q1: Mapped[bool] = mapped_column('nihr_bioresource_consent_q1_43', Boolean, nullable=True)
@@ -586,13 +561,12 @@ class CiviCrmParticipantBioresourceDetails(CiviCrmParticipantDetails):
         }
 
 
-class CiviCrmParticipantBioresourceWithdrawalDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantBioresourceWithdrawalDetails(db.Model):
     __tablename__ = 'civicrm_value_nihr_bioresource_withdrawal_12'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     nihr_bioresource_withdrawal_stat: Mapped[str] = mapped_column('nihr_bioresource_withdrawal_stat_49', String(255), nullable=True)
 
     def identifiers(self):
@@ -605,13 +579,12 @@ class CiviCrmParticipantBioresourceWithdrawalDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantOmicsDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantOmicsDetails(db.Model):
     __tablename__ = 'civicrm_value_omics_register_20'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('omics_id_102', String(255), nullable=True)
     sample_source_study: Mapped[str] = mapped_column('sample_source_study_95', String(255), nullable=True)
     failed_qc: Mapped[bool] = mapped_column('failed_qc_96', Boolean, nullable=True)
@@ -633,13 +606,12 @@ class CiviCrmParticipantOmicsDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantPredictDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantPredictDetails(db.Model):
     __tablename__ = 'civicrm_value_predict_30'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('predict_id_121', String(255), nullable=True)
 
     def identifiers(self):
@@ -652,13 +624,12 @@ class CiviCrmParticipantPredictDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantPreeclampsiaDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantPreeclampsiaDetails(db.Model):
     __tablename__ = 'civicrm_value_preeclampsia_33'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('preeclampsia_id_125', String(255), nullable=True)
 
     def identifiers(self):
@@ -671,13 +642,12 @@ class CiviCrmParticipantPreeclampsiaDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantScadDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantScadDetails(db.Model):
     __tablename__ = 'civicrm_value_scad_15'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('scad_id_58', String(255), nullable=True)
     consent_read_information: Mapped[bool] = mapped_column('consent_read_information_59', Boolean, nullable=True)
     consent_understands_withdrawal: Mapped[bool] = mapped_column('consent_understands_withdrawal_60', Boolean, nullable=True)
@@ -736,13 +706,12 @@ class CiviCrmParticipantScadDetails(CiviCrmParticipantDetails):
         }
 
 
-class CiviCrmParticipantScadRegisterDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantScadRegisterDetails(db.Model):
     __tablename__ = 'civicrm_value_scad_register_37'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('scad_registry_id_131', String(255), nullable=True)
 
     def identifiers(self):
@@ -755,13 +724,12 @@ class CiviCrmParticipantScadRegisterDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantSpiralDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantSpiralDetails(db.Model):
     __tablename__ = 'civicrm_value_spiral_32'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('spiral_id_124', String(255), nullable=True)
 
     def identifiers(self):
@@ -774,13 +742,12 @@ class CiviCrmParticipantSpiralDetails(CiviCrmParticipantDetails):
         return {}
 
 
-class CiviCrmParticipantTmaoDetails(CiviCrmParticipantDetails):
+class CiviCrmParticipantTmaoDetails(db.Model):
     __tablename__ = 'civicrm_value_tmao_18'
     __bind_key__ = 'civicrm'
-    __mapper_args__ = {
-        "concrete": True,
-    }
 
+    id: Mapped[int] = mapped_column(Integer, nullable=False, primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, nullable=False)
     study_identifier: Mapped[str] = mapped_column('tmao_id_79', String(255), nullable=True)
     tmao_consent_has_read_informatio: Mapped[bool] = mapped_column('tmao_consent_has_read_informatio_80', Boolean, nullable=True)
     tmao_consent_understands_withdra: Mapped[bool] = mapped_column('tmao_consent_understands_withdra_81', Boolean, nullable=True)
