@@ -16,11 +16,11 @@ from lbrc_flask.pytest.faker import LbrcFlaskFakerProvider
 from identity import create_app
 
 
-fake = Faker("en_GB")
-fake.add_provider(LbrcFlaskFakerProvider)
-fake.add_provider(IdentityProvider)
-fake.add_provider(CivicrmProvider)
-fake.add_provider(EtlCentralProvider)
+faker = Faker("en_GB")
+faker.add_provider(LbrcFlaskFakerProvider)
+faker.add_provider(IdentityProvider)
+faker.add_provider(CivicrmProvider)
+faker.add_provider(EtlCentralProvider)
 
 application = create_app()
 application.app_context().push()
@@ -33,33 +33,33 @@ command.stamp(alembic_cfg, "head")
 
 setup_data()
 
-fake.civicrm_gender().create_defaults()
-fake.civicrm_gender().all_from_db()
-fake.civicrm_case_status().create_defaults()
-fake.civicrm_case_status().all_from_db()
-fake.civicrm_study().create_defaults()
+faker.civicrm_gender().create_defaults()
+faker.civicrm_gender().all_from_db()
+faker.civicrm_case_status().create_defaults()
+faker.civicrm_case_status().all_from_db()
+faker.civicrm_study().create_defaults()
 
-fake.civicrm_participant().get_list(
+faker.civicrm_participant().get_list(
     save=True,
     item_count=200,
-    study=fake.civicrm_study().choice_from_db,
-    status=fake.civicrm_case_status().choice_from_db,
+    study=faker.civicrm_study().choice_from_db,
+    status=faker.civicrm_case_status().choice_from_db,
 )
 
-for cs in fake.civicrm_study().all_from_db():
-    es = fake.edge_site_study().get(
+for cs in faker.civicrm_study().all_from_db():
+    es = faker.edge_site_study().get(
         save=True,
         project_short_title=cs.name,
     )
 
-    fake.study().get(
+    faker.study().get(
         save=True,
         name=cs.name,
         edge_id=es.project_id,
         civicrm_study_id=cs.id,
     )
 
-fake.label_bundle().get_list(save=True, item_count=fake.study().count_in_db() * 3, study=fake.study().choice_from_db)
-fake.blinding_type().get_list(save=True, item_count=fake.study().count_in_db() * 3, study=fake.study().choice_from_db)
+faker.label_bundle().get_list(save=True, item_count=faker.study().count_in_db() * 3, study=faker.study().choice_from_db)
+faker.blinding_type().get_list(save=True, item_count=faker.study().count_in_db() * 3, study=faker.study().choice_from_db)
 
 db.session.close()
