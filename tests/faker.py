@@ -13,10 +13,14 @@ from identity.services.pmi import PmiData
 from identity.model import Study
 from identity.api.model import ApiKey
 from lbrc_flask.pytest.faker import UserCreator as BaseUserCreator, FakeCreator, FakeCreatorArgs
+from lbrc_flask.security.model import Role
 
 
 class UserCreator(BaseUserCreator):
     cls = User
+
+    def admin(self, save):
+        return self.get(rolename=Role.ADMIN_ROLENAME, save=save)
 
 
 class ApiKeyCreator(FakeCreator):
