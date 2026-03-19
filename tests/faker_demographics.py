@@ -1,4 +1,5 @@
 from functools import cache
+import os
 from random import choice
 from faker.providers import BaseProvider
 from lbrc_flask.pytest.faker import FakeCreator, FakeCreatorArgs
@@ -32,12 +33,15 @@ class DemographicsRequestCreator(FakeCreator):
             skip_pmi=args.get('skip_pmi', self.faker.pybool())
         )
 
-        result = self.cls(**params)
-
         args.set_params_with_object(params, 'owner', field_id_name='owner_user_id', creator=self.faker.user())
         args.set_params_with_object(params, 'last_updated_by_user', creator=self.faker.user())
 
-        return result
+        return self.cls(**params)
+    
+    def create_file(self, demographics_request, content):
+        os.makedirs(os.path.dirname(demographics_request.filepath), exist_ok=True)
+        with open(demographics_request.filepath, 'w') as f:
+            f.write(content)
 
 
 class DemographicsProvider(BaseProvider):
