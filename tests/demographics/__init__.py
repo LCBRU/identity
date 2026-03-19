@@ -269,7 +269,7 @@ class DemographicsTestHelper():
                 family_name=p.get('family_name'),
                 given_name=p.get('given_name'),
                 gender=p.get('gender'),
-                dob=p.get('date_of_birth'),
+                dob=str(p.get('date_of_birth')),
                 postcode=p.get('postcode'),
             ))
 

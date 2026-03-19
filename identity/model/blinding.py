@@ -1,5 +1,5 @@
+import datetime
 from lbrc_flask.database import db
-from sqlalchemy import func
 from identity.model import Study
 from identity.model.id import (
     PseudoRandomIdProvider,
@@ -32,7 +32,7 @@ class Blinding(db.Model):
     blinding_type = db.relationship(BlindingType, backref=db.backref("blindings"))
     pseudo_random_id_id = db.Column(db.Integer, db.ForeignKey(PseudoRandomId.id), nullable=False)
     pseudo_random_id = db.relationship(PseudoRandomId)
-    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=func.now())
+    last_updated_datetime = db.Column(db.DateTime, nullable=False, default=lambda: datetime.datetime.now(datetime.UTC))
     last_updated_by_user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     last_updated_by_user = db.relationship(User)
 

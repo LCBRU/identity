@@ -1,9 +1,7 @@
-from itertools import chain
 from lbrc_flask.database import db
 from datetime import datetime
 from sqlalchemy.orm import Mapped, mapped_column, relationship, backref
 from sqlalchemy import Boolean, Integer, String, Date, DateTime, select
-from sqlalchemy.ext.declarative import AbstractConcreteBase
 from datetime import date
 from cachetools import cached, TTLCache
 
