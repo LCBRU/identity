@@ -1,8 +1,7 @@
-from functools import cache
-from unittest.mock import Mock, patch
-
 import pytest
 import http
+from functools import cache
+from unittest.mock import Mock, patch
 from lbrc_flask.pytest.testers import RequiresLoginTester, FlaskViewLoggedInTester, FlaskViewTester, RequiresRoleTester
 
 
