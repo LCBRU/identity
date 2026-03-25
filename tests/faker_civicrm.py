@@ -134,7 +134,7 @@ class CiviCrmContactCreator(FakeCreator):
             first_name=self.faker.first_name(),
             middle_name=self.faker.first_name(),
             last_name=self.faker.last_name(),
-            birth_date=self.faker.date(),
+            birth_date=self.faker.date_object(),
             is_deleted=(randint(1, 10) > 9),
         )
 
@@ -903,6 +903,8 @@ class CivicrmProvider(BaseProvider):
 
     @cache
     def civicrm_contact(self):
+        self.civicrm_gender().create_defaults()
+
         return CiviCrmContactCreator(self)  
     
     @cache

@@ -1,6 +1,4 @@
-import contextlib
 from datetime import datetime, UTC
-import os
 from lbrc_flask.database import db
 from identity.demographics import do_lookup_tasks
 from lbrc_flask.pytest.helpers import login
@@ -56,8 +54,6 @@ def test__schedule_lookup_tasks__in_error(
     mock_produce_demographics_result.delay.assert_not_called()
     mock_log_exception.assert_not_called()
 
-    _remove_files(dr)
-
 
 def test__schedule_lookup_tasks__paused(
     client,
@@ -85,8 +81,6 @@ def test__schedule_lookup_tasks__paused(
     mock_extract_post_pmi_details.delay.assert_not_called()
     mock_produce_demographics_result.delay.assert_not_called()
     mock_log_exception.assert_not_called()
-
-    _remove_files(dr)
 
 
 def test__schedule_lookup_tasks__deleted(
@@ -116,8 +110,6 @@ def test__schedule_lookup_tasks__deleted(
     mock_produce_demographics_result.delay.assert_not_called()
     mock_log_exception.assert_not_called()
 
-    _remove_files(dr)
-
 
 def test__schedule_lookup_tasks__submitted(
     client,
@@ -142,8 +134,6 @@ def test__schedule_lookup_tasks__submitted(
     mock_extract_post_pmi_details.delay.assert_not_called()
     mock_produce_demographics_result.delay.assert_not_called()
     mock_log_exception.assert_not_called()
-
-    _remove_files(dr)
 
 
 def test__schedule_lookup_tasks__extracted(
@@ -170,8 +160,6 @@ def test__schedule_lookup_tasks__extracted(
     mock_produce_demographics_result.delay.assert_not_called()
     mock_log_exception.assert_not_called()
 
-    _remove_files(dr)
-
 
 def test__schedule_lookup_tasks__extracted__skip_pmi(
     client,
@@ -196,8 +184,6 @@ def test__schedule_lookup_tasks__extracted__skip_pmi(
     mock_extract_post_pmi_details.delay.assert_not_called()
     mock_produce_demographics_result.delay.assert_not_called()
     mock_log_exception.assert_not_called()
-
-    _remove_files(dr)
 
 
 def test__schedule_lookup_tasks__got_pre_pmi(
@@ -224,8 +210,6 @@ def test__schedule_lookup_tasks__got_pre_pmi(
     mock_produce_demographics_result.delay.assert_not_called()
     mock_log_exception.assert_not_called()
 
-    _remove_files(dr)
-
 
 def test__schedule_lookup_tasks__spine_looked_up(
     client,
@@ -250,8 +234,6 @@ def test__schedule_lookup_tasks__spine_looked_up(
     mock_extract_post_pmi_details.delay.assert_called_once_with(dr.id)
     mock_produce_demographics_result.delay.assert_not_called()
     mock_log_exception.assert_not_called()
-
-    _remove_files(dr)
 
 
 def test__schedule_lookup_tasks__spine_looked_up__skip_pmi(
@@ -278,8 +260,6 @@ def test__schedule_lookup_tasks__spine_looked_up__skip_pmi(
     mock_produce_demographics_result.delay.assert_called_once_with(dr.id)
     mock_log_exception.assert_not_called()
 
-    _remove_files(dr)
-
 
 def test__schedule_lookup_tasks__got_post_pmi(
     client,
@@ -305,8 +285,6 @@ def test__schedule_lookup_tasks__got_post_pmi(
     mock_produce_demographics_result.delay.assert_called_once_with(dr.id)
     mock_log_exception.assert_not_called()
 
-    _remove_files(dr)
-
 
 def test__schedule_lookup_tasks__result_created(
     client,
@@ -331,11 +309,3 @@ def test__schedule_lookup_tasks__result_created(
     mock_extract_post_pmi_details.delay.assert_not_called()
     mock_produce_demographics_result.delay.assert_not_called()
     mock_log_exception.assert_not_called()
-
-    _remove_files(dr)
-
-
-def _remove_files(dr):
-    with contextlib.suppress(FileNotFoundError):
-        os.remove(dr.filepath)
-        os.remove(dr.result_filepath)

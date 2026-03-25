@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-
 import pytest
 from identity.services.pmi import (
-    PmiData,
     PmiException,
     get_pmi_from_nhs_number,
     get_pmi_from_uhl_system_number,
     get_pmi,
 )
+
 
 def test__get_pmi_from_nhs_number__one(client, faker, mock_pmi_engine):
     expected = faker.pmi_data().get(save=False)

@@ -1,15 +1,9 @@
-import contextlib
-import os
 import pytest
 from identity.demographics import extract_data
-from identity.demographics.model import (
-    DemographicsRequest,
-)
+from identity.demographics.model import DemographicsRequest
 from lbrc_flask.validators import parse_date
 from lbrc_flask.pytest.helpers import login
-from tests.demographics import (
-    DemographicsTestHelper,
-)
+from tests.demographics import DemographicsTestHelper
 from lbrc_flask.database import db
 
 
@@ -48,8 +42,6 @@ def test__extract_data__normal(client, faker, extension, row_count, mock_schedul
         assert e['gender'] == a.gender
         assert parse_date(e['date_of_birth']) == parse_date(a.dob)
         assert e['postcode'] == a.postcode
-    
-    _remove_files(dr)
 
 
 @pytest.mark.parametrize(
@@ -103,7 +95,6 @@ def test__extract_data__missing_columns(client, faker, column_headings, extensio
         assert parse_date(e.get('date_of_birth', '')) == parse_date(a.dob)
         assert e.get('postcode', '') == a.postcode
 
-    _remove_files(dr)
 
 def test__extract_data__columns_not_defined(client, faker, mock_schedule_lookup_tasks, mock_log_exception):
     u = login(client, faker)
@@ -114,8 +105,6 @@ def test__extract_data__columns_not_defined(client, faker, mock_schedule_lookup_
 
     mock_schedule_lookup_tasks.assert_not_called()
     mock_log_exception.assert_called_once()
-
-    _remove_files(dr)
 
 
 def test__extract_data__already_extracted(client, faker, mock_schedule_lookup_tasks, mock_log_exception):
@@ -128,17 +117,9 @@ def test__extract_data__already_extracted(client, faker, mock_schedule_lookup_ta
     mock_schedule_lookup_tasks.assert_not_called()
     mock_log_exception.assert_called_once()
 
-    _remove_files(dr)
-
 
 def test__extract_data__request_not_exists(client, faker, mock_schedule_lookup_tasks, mock_log_exception):
     extract_data(1)
 
     mock_schedule_lookup_tasks.assert_not_called()
     mock_log_exception.assert_called_once()
-
-
-def _remove_files(dr):
-    with contextlib.suppress(FileNotFoundError):
-        os.remove(dr.filepath)
-        os.remove(dr.result_filepath)

@@ -1,14 +1,8 @@
-import contextlib
-import os
 from lbrc_flask.validators import parse_date
 from identity.demographics import get_spine_parameters
-from lbrc_flask.data_conversions import (
-    convert_gender,
-)
+from lbrc_flask.data_conversions import convert_gender
 from lbrc_flask.pytest.helpers import login
-from tests.demographics import (
-    DemographicsTestHelper,
-)
+from tests.demographics import DemographicsTestHelper
 
 
 def test__get_spine_parameters__no_pmi__valid_except_nhs_number(client, faker, mock_convert_nhs_number):
@@ -36,8 +30,6 @@ def test__get_spine_parameters__no_pmi__valid_except_nhs_number(client, faker, m
     assert actual.warnings[0].scope == 'nhs_number'
     assert actual.warnings[0].message == error_message
 
-    _remove_files(dr)
-
 
 def test__get_spine_parameters__no_pmi__valid_except_gender(client, faker, mock_convert_gender):
     u = login(client, faker)
@@ -63,8 +55,6 @@ def test__get_spine_parameters__no_pmi__valid_except_gender(client, faker, mock_
     assert len(actual.warnings) == 1
     assert actual.warnings[0].scope == 'gender'
     assert actual.warnings[0].message == error_message
-
-    _remove_files(dr)
 
 
 def test__get_spine_parameters__no_pmi__valid_except_names(client, faker, mock_convert_name):
@@ -94,8 +84,6 @@ def test__get_spine_parameters__no_pmi__valid_except_names(client, faker, mock_c
     assert actual.warnings[1].scope == 'given_name'
     assert actual.warnings[1].message == error_message
 
-    _remove_files(dr)
-
 
 def test__get_spine_parameters__no_pmi__valid_except_dob(client, faker, mock_convert_dob):
     u = login(client, faker)
@@ -121,8 +109,6 @@ def test__get_spine_parameters__no_pmi__valid_except_dob(client, faker, mock_con
     assert len(actual.warnings) == 1
     assert actual.warnings[0].scope == 'dob'
     assert actual.warnings[0].message == error_message
-
-    _remove_files(dr)
 
 
 def test__get_spine_parameters__no_pmi__valid_except_postcode(client, faker, mock_convert_postcode):
@@ -150,8 +136,6 @@ def test__get_spine_parameters__no_pmi__valid_except_postcode(client, faker, moc
     assert actual.warnings[0].scope == 'postcode'
     assert actual.warnings[0].message == error_message
 
-    _remove_files(dr)
-
 
 def test__get_spine_parameters__with_pmi__valid_except_nhs_number(client, faker, mock_convert_nhs_number):
     u = login(client, faker)
@@ -177,8 +161,6 @@ def test__get_spine_parameters__with_pmi__valid_except_nhs_number(client, faker,
     assert len(actual.warnings) == 1
     assert actual.warnings[0].scope == 'nhs_number'
     assert actual.warnings[0].message == error_message
-
-    _remove_files(dr)
 
 
 def test__get_spine_parameters__with_pmi__valid_except_pmi_nhs_number(client, faker, mock_convert_nhs_number):
@@ -206,8 +188,6 @@ def test__get_spine_parameters__with_pmi__valid_except_pmi_nhs_number(client, fa
     assert actual.warnings[0].scope == 'pmi_nhs_number'
     assert actual.warnings[0].message == error_message
 
-    _remove_files(dr)
-
 
 def test__get_spine_parameters__with_pmi__valid_except_gender(client, faker, mock_convert_gender):
     u = login(client, faker)
@@ -234,8 +214,6 @@ def test__get_spine_parameters__with_pmi__valid_except_gender(client, faker, moc
     assert actual.warnings[0].scope == 'gender'
     assert actual.warnings[0].message == error_message
 
-    _remove_files(dr)
-
 
 def test__get_spine_parameters__with_pmi__valid_except_pmi_gender(client, faker, mock_convert_gender):
     u = login(client, faker)
@@ -261,8 +239,6 @@ def test__get_spine_parameters__with_pmi__valid_except_pmi_gender(client, faker,
     assert len(actual.warnings) == 1
     assert actual.warnings[0].scope == 'pmi_gender'
     assert actual.warnings[0].message == error_message
-
-    _remove_files(dr)
 
 
 def test__get_spine_parameters__with_pmi__valid_except_names(client, faker, mock_convert_name):
@@ -297,8 +273,6 @@ def test__get_spine_parameters__with_pmi__valid_except_names(client, faker, mock
     assert actual.warnings[1].scope == 'given_name'
     assert actual.warnings[1].message == error_message
 
-    _remove_files(dr)
-
 
 def test__get_spine_parameters__with_pmi__valid_except_pmi_names(client, faker, mock_convert_name):
     u = login(client, faker)
@@ -332,8 +306,6 @@ def test__get_spine_parameters__with_pmi__valid_except_pmi_names(client, faker, 
     assert actual.warnings[1].scope == 'pmi_given_name'
     assert actual.warnings[1].message == error_message
 
-    _remove_files(dr)
-
 
 def test__get_spine_parameters__with_pmi__valid_except_dob(client, faker, mock_convert_dob):
     u = login(client, faker)
@@ -362,8 +334,6 @@ def test__get_spine_parameters__with_pmi__valid_except_dob(client, faker, mock_c
     assert len(actual.warnings) == 1
     assert actual.warnings[0].scope == 'dob'
     assert actual.warnings[0].message == error_message
-
-    _remove_files(dr)
 
 
 def test__get_spine_parameters__with_pmi__valid_except_pmi_dob(client, faker, mock_convert_dob):
@@ -394,8 +364,6 @@ def test__get_spine_parameters__with_pmi__valid_except_pmi_dob(client, faker, mo
     assert actual.warnings[0].scope == 'pmi_date_of_birth'
     assert actual.warnings[0].message == error_message
 
-    _remove_files(dr)
-
 
 def test__get_spine_parameters__with_pmi__valid_except_postcode(client, faker, mock_convert_postcode):
     u = login(client, faker)
@@ -425,8 +393,6 @@ def test__get_spine_parameters__with_pmi__valid_except_postcode(client, faker, m
     assert actual.warnings[0].scope == 'postcode'
     assert actual.warnings[0].message == error_message
 
-    _remove_files(dr)
-
 
 def test__get_spine_parameters__with_pmi__valid_except_pmi_postcode(client, faker, mock_convert_postcode):
     u = login(client, faker)
@@ -455,11 +421,3 @@ def test__get_spine_parameters__with_pmi__valid_except_pmi_postcode(client, fake
     assert len(actual.warnings) == 1
     assert actual.warnings[0].scope == 'pmi_postcode'
     assert actual.warnings[0].message == error_message
-
-    _remove_files(dr)
-
-
-def _remove_files(dr):
-    with contextlib.suppress(FileNotFoundError):
-        os.remove(dr.filepath)
-        os.remove(dr.result_filepath)

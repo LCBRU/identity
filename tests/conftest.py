@@ -1,6 +1,6 @@
 import pytest
 from faker import Faker
-from lbrc_flask.pytest.fixtures import *
+from lbrc_flask.pytest.fixtures import client, initialised_app
 from identity.config import TestConfig
 from identity import create_app
 from tests.faker_civicrm import CivicrmProvider
@@ -13,13 +13,11 @@ from lbrc_flask.pytest.helpers import login
 
 
 @pytest.fixture(scope="function")
-def app():
-    return create_app(TestConfig)
+def app(tmp_path):
+    class LocalTestConfig(TestConfig):
+        FILE_UPLOAD_DIRECTORY = tmp_path
 
-
-@pytest.fixture(scope="function")
-def loggedin_user(client, faker):
-    return login(client, faker)
+    yield create_app(LocalTestConfig)
 
 
 @pytest.fixture(scope="function")

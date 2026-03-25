@@ -1,19 +1,11 @@
-# -*- coding: utf-8 -*-
-
-import contextlib
-import os
 import pytest
 import datetime
-from identity.demographics.model import (
-    DemographicsRequest,
-)
+from identity.demographics.model import DemographicsRequest
 from identity.demographics import extract_pre_pmi_details, extract_post_pmi_details
-from identity.services.pmi import PmiData, PmiException
+from identity.services.pmi import PmiException
 from lbrc_flask.database import db
 from lbrc_flask.pytest.helpers import login
-from tests.demographics import (
-    DemographicsTestHelper,
-)
+from tests.demographics import DemographicsTestHelper
 from lbrc_flask.database import db
 
 # Pre-Lookup
@@ -29,8 +21,6 @@ def test__extract_pre_pmi_details__no_data(client, faker, mock_pmi_details, mock
 
     assert actual.pmi_data_pre_completed_datetime is not None
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
-
-    _remove_files(dr)
     
 
 @pytest.mark.parametrize(
@@ -58,8 +48,6 @@ def test__extract_pre_pmi_details__first_processed(client, faker, mock_pmi_detai
     assert len(actual.data[0].messages) == 0
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
 
-    _remove_files(dr)
-
 
 def test__extract_pre_pmi_details__next_processed(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
@@ -83,8 +71,6 @@ def test__extract_pre_pmi_details__next_processed(client, faker, mock_pmi_detail
     assert len(actual.data[0].messages) == 0
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
 
-    _remove_files(dr)
-
 
 def test__extract_pre_pmi_details__last_processed(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
@@ -102,8 +88,6 @@ def test__extract_pre_pmi_details__last_processed(client, faker, mock_pmi_detail
     assert actual.pmi_data_pre_completed_datetime is not None
     assert len(actual.data[0].messages) == 0
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
-
-    _remove_files(dr)
 
 
 def test__extract_pre_pmi_details__invalid_nhs_number(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
@@ -134,8 +118,6 @@ def test__extract_pre_pmi_details__invalid_nhs_number(client, faker, mock_pmi_de
     assert m.message == f'Invalid format {faker.invalid_nhs_number()}'
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
 
-    _remove_files(dr)
-
 
 def test__extract_pre_pmi_details__invalid_uhl_system_number(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
@@ -165,8 +147,6 @@ def test__extract_pre_pmi_details__invalid_uhl_system_number(client, faker, mock
     assert m.message == f'Invalid format {faker.invalid_uhl_system_number()}'
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
 
-    _remove_files(dr)
-
 
 def test__extract_pre_pmi_details__pmi_not_found(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
@@ -184,8 +164,6 @@ def test__extract_pre_pmi_details__pmi_not_found(client, faker, mock_pmi_details
     assert actual.data[0].pmi_data is None
     assert len(actual.data[0].messages) == 0
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
-
-    _remove_files(dr)
 
 
 def test__extract_pre_pmi_details__pmi_exception(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
@@ -213,8 +191,6 @@ def test__extract_pre_pmi_details__pmi_exception(client, faker, mock_pmi_details
     assert m.message == ERROR_MESSAGE
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
 
-    _remove_files(dr)
-
 
 # Post-Lookup
 
@@ -229,8 +205,6 @@ def test__extract_post_pmi_details__no_data(client, faker, mock_pmi_details, moc
 
     assert actual.pmi_data_post_completed_datetime is not None
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
-
-    _remove_files(dr)
     
 
 @pytest.mark.parametrize(
@@ -258,8 +232,6 @@ def test__extract_post_pmi_details__first_processed(client, faker, mock_pmi_deta
     assert len(actual.data[0].messages) == 0
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
 
-    _remove_files(dr)
-
 
 def test__extract_post_pmi_details__next_processed(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
@@ -283,8 +255,6 @@ def test__extract_post_pmi_details__next_processed(client, faker, mock_pmi_detai
     assert len(actual.data[0].messages) == 0
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
 
-    _remove_files(dr)
-
 
 def test__extract_post_pmi_details__last_processed(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
@@ -302,8 +272,6 @@ def test__extract_post_pmi_details__last_processed(client, faker, mock_pmi_detai
     assert actual.pmi_data_post_completed_datetime is not None
     assert len(actual.data[0].messages) == 0
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
-
-    _remove_files(dr)
 
 
 def test__extract_post_pmi_details__invalid_nhs_number(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
@@ -334,8 +302,6 @@ def test__extract_post_pmi_details__invalid_nhs_number(client, faker, mock_pmi_d
     assert m.message == f'Invalid format {faker.invalid_nhs_number()}'
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
 
-    _remove_files(dr)
-
 
 def test__extract_post_pmi_details__invalid_uhl_system_number(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
@@ -365,8 +331,6 @@ def test__extract_post_pmi_details__invalid_uhl_system_number(client, faker, moc
     assert m.message == f'Invalid format {faker.invalid_uhl_system_number()}'
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
 
-    _remove_files(dr)
-
 
 def test__extract_post_pmi_details__pmi_not_found(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
     u = login(client, faker)
@@ -384,8 +348,6 @@ def test__extract_post_pmi_details__pmi_not_found(client, faker, mock_pmi_detail
     assert actual.data[0].pmi_data is None
     assert len(actual.data[0].messages) == 0
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
-
-    _remove_files(dr)
 
 
 def test__extract_post_pmi_details__pmi_exception(client, faker, mock_pmi_details, mock_schedule_lookup_tasks):
@@ -412,11 +374,3 @@ def test__extract_post_pmi_details__pmi_exception(client, faker, mock_pmi_detail
     assert m.scope == 'pmi_details'
     assert m.message == ERROR_MESSAGE
     mock_schedule_lookup_tasks.assert_called_once_with(dr.id)
-
-    _remove_files(dr)
-
-
-def _remove_files(dr):
-    with contextlib.suppress(FileNotFoundError):
-        os.remove(dr.filepath)
-        os.remove(dr.result_filepath)

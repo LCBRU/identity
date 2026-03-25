@@ -1,9 +1,7 @@
 import typing
 import datetime
-import logging
 from sqlalchemy.sql import text
 from identity.database import pmi_engine
-from flask import current_app
 
 
 class PmiData(typing.NamedTuple):

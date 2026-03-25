@@ -1,5 +1,3 @@
-import contextlib
-import os
 from lbrc_flask.database import db
 from identity.demographics import process_demographics_request_data
 from identity.demographics.model import (
@@ -35,8 +33,6 @@ def test__process_demographics_request_data__spine_exception(client, faker, mock
     mock_schedule_lookup_tasks.assert_not_called()
     mock_log_exception.assert_called_once_with(e)
 
-    _remove_files(dr)
-
 
 def test__process_demographics_request_data__no_data(client, faker, mock_schedule_lookup_tasks, mock_spine_lookup, mock_log_exception):
     u = login(client, faker)
@@ -52,8 +48,6 @@ def test__process_demographics_request_data__no_data(client, faker, mock_schedul
     actual: DemographicsRequest = db.session.get(DemographicsRequest, dr.id)
 
     assert actual.lookup_completed_datetime is not None
-
-    _remove_files(dr)
 
 
 def test__process_demographics_request_data__with_data(client, faker, mock_schedule_lookup_tasks, mock_spine_lookup, mock_log_exception):
@@ -72,8 +66,6 @@ def test__process_demographics_request_data__with_data(client, faker, mock_sched
     assert actual.lookup_completed_datetime is None
     assert actual.data[0].processed_datetime is not None
     assert actual.data[1].processed_datetime is None
-
-    _remove_files(dr)
 
 
 def test__process_demographics_request_data__data_has_error(client, faker, mock_schedule_lookup_tasks, mock_spine_lookup, mock_log_exception):
@@ -100,11 +92,3 @@ def test__process_demographics_request_data__data_has_error(client, faker, mock_
 
     assert actual.lookup_completed_datetime is None
     assert actual.data[0].processed_datetime is not None
-
-    _remove_files(dr)
-
-
-def _remove_files(dr):
-    with contextlib.suppress(FileNotFoundError):
-        os.remove(dr.filepath)
-        os.remove(dr.result_filepath)
