@@ -9,7 +9,7 @@ from tests.faker_etl_central import EtlCentralProvider
 from .faker import IdentityProvider
 from lbrc_flask.pytest.faker import LbrcFlaskFakerProvider
 from .mocks import *
-from lbrc_flask.pytest.helpers import login
+from lbrc_flask.pytest.fakers.column_data_faker import LbrcFileProvider
 
 
 @pytest.fixture(scope="function")
@@ -24,6 +24,7 @@ def app(tmp_path):
 def faker():
     result = Faker("en_GB")
     result.add_provider(LbrcFlaskFakerProvider)
+    result.add_provider(LbrcFileProvider)
     result.add_provider(IdentityProvider)
     result.add_provider(CivicrmProvider)
     result.add_provider(EtlCentralProvider)

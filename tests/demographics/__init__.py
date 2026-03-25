@@ -1,20 +1,13 @@
 import os
-import csv
 import xlwt
-from openpyxl import Workbook
 from datetime import datetime, UTC
 from io import BytesIO
 from flask import url_for
 from identity.demographics.model import DemographicsRequest, DemographicsRequestColumn
 from unittest.mock import patch
-from identity.demographics import (
-    extract_data,
-)
+from identity.demographics import extract_data
 from time import sleep
 from identity.demographics.model import (
-    DemographicsRequestCsv,
-    DemographicsRequestXlsx,
-    DemographicsRequestExcel97,
     DemographicsRequestColumnDefinition,
     DemographicsRequestData,
     DemographicsRequestPmiData,
@@ -385,91 +378,61 @@ class DemographicsTestHelper():
 
 
     def _create_csv_file(self):
-        result = DemographicsRequestCsv(
+        result = self._faker.demographics_request().get(
+            save=True,
             owner=self._user,
             last_updated_by_user=self._user,
             filename=self._filename,
+            extension='csv',
             skip_pmi=self._skip_pmi,
         )
 
-        db.session.add(result)
-        db.session.commit()
-
         os.makedirs(os.path.dirname(result.filepath), exist_ok=True)
 
-        with open(result.filepath, 'w') as csf_file:
-            writer = csv.DictWriter(csf_file, fieldnames=self._column_headings)
-
-            writer.writeheader()
-
-            for p in self._person_details:
-                p_star = {key: value for key, value in p.items() if key in self._column_headings}
-
-                writer.writerow(p_star)
+        file = self._faker.csv_file().get(
+            headers=self._column_headings,
+            data=self._person_details,
+        )
+        file.save(result.filepath)
         
         return result
 
 
     def _create_xlsx_file(self):
-        result = DemographicsRequestXlsx(
+        result = self._faker.demographics_request().get(
+            save=True,
             owner=self._user,
             last_updated_by_user=self._user,
             filename=self._filename,
+            extension='xslx',
             skip_pmi=self._skip_pmi,
         )
 
-        db.session.add(result)
-        db.session.commit()
-
         os.makedirs(os.path.dirname(result.filepath), exist_ok=True)
-
-        wb = Workbook()
-        ws = wb.active
-
-        ws.append(self._column_headings)
-
-        for p in self._person_details:
-            p_star = []
-
-            for h in self._column_headings:
-                if h in p.keys():
-                    p_star.append(p[h])
-                else:
-                    p_star.append('')
-            ws.append(p_star)
-
-        wb.save(filename=result.filepath)
+        wb = self._faker.xlsx_file().get(
+            headers=self._column_headings,
+            data=self._person_details,
+        )
+        wb.save(result.filepath)
 
         return result
 
 
     def _create_xls_file(self):
-        result = DemographicsRequestExcel97(
+        result = self._faker.demographics_request().get(
+            save=True,
             owner=self._user,
             last_updated_by_user=self._user,
             filename=self._filename,
+            extension='xsl',
             skip_pmi=self._skip_pmi,
         )
 
-        db.session.add(result)
-        db.session.commit()
-
         os.makedirs(os.path.dirname(result.filepath), exist_ok=True)
-
-        wb = xlwt.Workbook()
-        ws = wb.add_sheet('Test Sheet')
-        style = xlwt.XFStyle()
-        style.num_format_str = 'D-MMM-YY' # Other options: D-MMM-YY, D-MMM, MMM-YY, h:mm, h:mm:ss, h:mm, h:mm:ss, M/D/YY h:mm, mm:ss, [h]:mm:ss, mm:ss.0
-
-        row_index = 0
-        for col_index, h in enumerate(self._column_headings):
-            ws.write(row_index, col_index, h)
-
-        for row_index, p in enumerate(self._person_details, 1):
-            for col_index, h in enumerate(self._column_headings):
-                if h in p.keys():
-                    ws.write(row_index, col_index, p[h], style)
-
+        wb = self._faker.xls_file().get(
+            headers=self._column_headings,
+            data=self._person_details,
+        )
         wb.save(result.filepath)
 
         return result

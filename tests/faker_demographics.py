@@ -1,9 +1,10 @@
 from functools import cache
 import os
 from random import choice
+from typing import Optional
 from faker.providers import BaseProvider
 from lbrc_flask.pytest.faker import FakeCreator, FakeCreatorArgs
-from identity.demographics.model import DemographicsRequest
+from identity.demographics.model import DemographicsRequest, DemographicsRequestCsv, DemographicsRequestExcel97, DemographicsRequestXlsx
 
 
 class DemographicsRequestCreator(FakeCreator):
@@ -18,16 +19,15 @@ class DemographicsRequestCreator(FakeCreator):
         params = dict(
             created_datetime=args.get('created_datetime', self.faker.date_object()),
             filename=args.get('filename', self.faker.file_name(extension=extension)),
-            extension=args.get('extension', f".{extension}"),
-            submitted_datetime=args.get('submitted_datetime', self.faker.date_object()),
-            deleted_datetime=args.get('deleted_datetime', self.faker.date_object()),
-            paused_datetime=args.get('paused_datetime', self.faker.date_object()),
-            data_extracted_datetime=args.get('data_extracted_datetime', self.faker.date_object()),
-            pmi_data_pre_completed_datetime=args.get('pmi_data_pre_completed_datetime', self.faker.date_object()),
-            pmi_data_post_completed_datetime=args.get('pmi_data_post_completed_datetime', self.faker.date_object()),
-            lookup_completed_datetime=args.get('lookup_completed_datetime', self.faker.date_object()),
-            result_created_datetime=args.get('result_created_datetime', self.faker.date_object()),
-            result_downloaded_datetime=args.get('result_downloaded_datetime', self.faker.date_object()),
+            submitted_datetime=args.get('submitted_datetime'),
+            deleted_datetime=args.get('deleted_datetime'),
+            paused_datetime=args.get('paused_datetime'),
+            data_extracted_datetime=args.get('data_extracted_datetime'),
+            pmi_data_pre_completed_datetime=args.get('pmi_data_pre_completed_datetime'),
+            pmi_data_post_completed_datetime=args.get('pmi_data_post_completed_datetime'),
+            lookup_completed_datetime=args.get('lookup_completed_datetime'),
+            result_created_datetime=args.get('result_created_datetime'),
+            result_downloaded_datetime=args.get('result_downloaded_datetime'),
             error_message=args.get('error_message', self.faker.sentence()),
             last_updated_datetime=args.get('last_updated_datetime', self.faker.date_object()),
             skip_pmi=args.get('skip_pmi', self.faker.pybool())
@@ -36,12 +36,18 @@ class DemographicsRequestCreator(FakeCreator):
         args.set_params_with_object(params, 'owner', field_id_name='owner_user_id', creator=self.faker.user())
         args.set_params_with_object(params, 'last_updated_by_user', creator=self.faker.user())
 
-        return self.cls(**params)
+        match extension:
+            case 'csv':
+                return DemographicsRequestCsv(**params)
+            case 'xsl':
+                return DemographicsRequestExcel97(**params)
+            case 'xslx':
+                return DemographicsRequestXlsx(**params)
     
-    def create_file(self, demographics_request, content):
+    def create_file(self, demographics_request: DemographicsRequest, headers: Optional[list[str]] = None, data: Optional[dict[str, str]] = None):
         os.makedirs(os.path.dirname(demographics_request.filepath), exist_ok=True)
         with open(demographics_request.filepath, 'w') as f:
-            f.write(content)
+            f.write("Hello")
 
 
 class DemographicsProvider(BaseProvider):

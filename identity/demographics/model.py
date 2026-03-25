@@ -408,7 +408,6 @@ class DemographicsRequestExcel97(DemographicsRequest):
         else:
             return cell.value
 
-
     def create_result(self):
         current_app.logger.info('DemographicsRequestExcel97.create_result')
 
