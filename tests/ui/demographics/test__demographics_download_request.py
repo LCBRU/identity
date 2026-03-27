@@ -11,7 +11,14 @@ class DemographicsDownloadRequestViewTester(FlaskViewTester):
     @pytest.fixture(autouse=True)
     def a_set_fixture(self, client, faker):
         self.demographics_request = faker.demographics_request().get(save=True)
-        faker.demographics_request().create_file(self.demographics_request)
+        faker.demographics_request().create_file(
+            self.demographics_request,
+            ['col 1'],
+            [
+                {'col 1': 'orcs'},
+                {'col 1': 'ravens'},
+            ]
+        )
         self.parameters['id'] = self.demographics_request.id
 
 

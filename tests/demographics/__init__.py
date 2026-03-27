@@ -1,5 +1,4 @@
 import os
-import xlwt
 from datetime import datetime, UTC
 from io import BytesIO
 from flask import url_for
@@ -8,8 +7,6 @@ from unittest.mock import patch
 from identity.demographics import extract_data
 from time import sleep
 from identity.demographics.model import (
-    DemographicsRequestColumnDefinition,
-    DemographicsRequestData,
     DemographicsRequestPmiData,
     DemographicsRequestDataResponse,
     DemographicsRequestDataMessage,
@@ -200,13 +197,21 @@ class DemographicsTestHelper():
 
 
     def get_demographics_request__uploaded(self):
+        result = self._faker.demographics_request().get(
+            save=True,
+            owner=self._user,
+            last_updated_by_user=self._user,
+            filename=self._filename,
+            extension=self._extension,
+            skip_pmi=self._skip_pmi,
+        )
+        self._faker.demographics_request().create_file(
+            result,
+            headers=self._column_headings,
+            data=self._person_details,
+        )
 
-        if self._extension == 'csv':
-            return self._create_csv_file()
-        elif self._extension == 'xlsx':
-            return self._create_xlsx_file()
-        elif self._extension == 'xls':
-            return self._create_xls_file()
+        return result
 
 
     def get_demographics_request__awaiting_submission(self):
@@ -215,13 +220,15 @@ class DemographicsTestHelper():
         cols = {}
 
         for h in self._column_headings:
-            cols[h] = DemographicsRequestColumn(
+            cols[h] = self._faker.demographics_request_column().get(
+                save=True,
                 demographics_request=result,
                 name=h,
                 last_updated_by_user=self._user,
             )
 
-        col_def = DemographicsRequestColumnDefinition(
+        self._faker.demographics_request_column_definition().get(
+            save=True,
             demographics_request=result,
             last_updated_by_user=self._user,
             uhl_system_number_column=cols.get('uhl_system_number'),
@@ -233,9 +240,6 @@ class DemographicsTestHelper():
             postcode_column=cols.get('postcode'),
         )
 
-        db.session.add_all(cols.values())
-        db.session.add(col_def)
-        db.session.commit()
         return result
 
 
@@ -251,10 +255,9 @@ class DemographicsTestHelper():
     def get_demographics_request__pre_pmi_lookup(self):
         result = self.get_demographics_request__data_extraction()
 
-        rows = []
-
         for i, p in enumerate(self.get_input_details()):
-            rows.append(DemographicsRequestData(
+            self._faker.demographics_request_data().get(
+                save=True,
                 row_number=i,
                 demographics_request=result,
                 nhs_number=p.get('nhs_number'),
@@ -264,11 +267,10 @@ class DemographicsTestHelper():
                 gender=p.get('gender'),
                 dob=str(p.get('date_of_birth')),
                 postcode=p.get('postcode'),
-            ))
+            )
 
         result.data_extracted_datetime = datetime.now(UTC)
 
-        db.session.add_all(rows)
         db.session.add(result)
         db.session.commit()
         return result
@@ -277,11 +279,10 @@ class DemographicsTestHelper():
     def get_demographics_request__spine_lookup(self):
         result = self.get_demographics_request__pre_pmi_lookup()
 
-        rows = []
-
         if self._find_pre_pmi_details:
             for drd, p in zip(result.data, self._person_details):
-                rows.append(DemographicsRequestPmiData(
+                self._faker.demographics_request_pmi_data().get(
+                    save=True,
                     demographics_request_data=drd,
                     nhs_number=p['nhs_number'],
                     uhl_system_number=p['uhl_system_number'],
@@ -291,11 +292,10 @@ class DemographicsTestHelper():
                     date_of_birth=p['date_of_birth'],
                     date_of_death=p['date_of_death'],
                     postcode=p['postcode'],
-                ))
+                )
 
         result.pmi_data_pre_completed_datetime = datetime.now(UTC)
 
-        db.session.add_all(rows)
         db.session.add(result)
         db.session.commit()
         return result
@@ -373,66 +373,5 @@ class DemographicsTestHelper():
         result.result_created_datetime = datetime.now(UTC)
         db.session.add(result)
         db.session.commit()
-
-        return result
-
-
-    def _create_csv_file(self):
-        result = self._faker.demographics_request().get(
-            save=True,
-            owner=self._user,
-            last_updated_by_user=self._user,
-            filename=self._filename,
-            extension='csv',
-            skip_pmi=self._skip_pmi,
-        )
-
-        os.makedirs(os.path.dirname(result.filepath), exist_ok=True)
-
-        file = self._faker.csv_file().get(
-            headers=self._column_headings,
-            data=self._person_details,
-        )
-        file.save(result.filepath)
-        
-        return result
-
-
-    def _create_xlsx_file(self):
-        result = self._faker.demographics_request().get(
-            save=True,
-            owner=self._user,
-            last_updated_by_user=self._user,
-            filename=self._filename,
-            extension='xslx',
-            skip_pmi=self._skip_pmi,
-        )
-
-        os.makedirs(os.path.dirname(result.filepath), exist_ok=True)
-        wb = self._faker.xlsx_file().get(
-            headers=self._column_headings,
-            data=self._person_details,
-        )
-        wb.save(result.filepath)
-
-        return result
-
-
-    def _create_xls_file(self):
-        result = self._faker.demographics_request().get(
-            save=True,
-            owner=self._user,
-            last_updated_by_user=self._user,
-            filename=self._filename,
-            extension='xsl',
-            skip_pmi=self._skip_pmi,
-        )
-
-        os.makedirs(os.path.dirname(result.filepath), exist_ok=True)
-        wb = self._faker.xls_file().get(
-            headers=self._column_headings,
-            data=self._person_details,
-        )
-        wb.save(result.filepath)
 
         return result
