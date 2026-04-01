@@ -55,12 +55,8 @@ def do_lookup_tasks(demographics_request_id):
 
         if not dr.data_extracted:
             extract_data.delay(demographics_request_id)
-        elif not dr.pmi_data_pre_completed and not dr.skip_pmi:
+        elif not dr.pmi_data_pre_completed:
             extract_pre_pmi_details.delay(demographics_request_id)
-        elif not dr.lookup_completed:
-            process_demographics_request_data.delay(demographics_request_id)
-        elif not dr.pmi_data_post_completed and not dr.skip_pmi:
-            extract_post_pmi_details.delay(demographics_request_id)
         elif not dr.result_created_datetime:
             produce_demographics_result.delay(demographics_request_id)
 
@@ -241,44 +237,6 @@ def convert_gender_with_default(column_definition, value):
     return convert_gender(value)
 
 @celery.task()
-def process_demographics_request_data(request_id):
-    current_app.logger.info(f'process_demographics_request_data: request_id={request_id})')
-
-    try:
-        dr = db.session.get(DemographicsRequest, request_id)
-
-        if dr is None:
-            raise Exception('request not found')
-
-        q = (
-            select(DemographicsRequestData)
-            .where(DemographicsRequestData.demographics_request_id == request_id)
-            .where(DemographicsRequestData.processed_datetime.is_(None))
-        )
-
-        drd = db.session.execute(q).scalars().first()
-
-        if drd is None:
-            dr.lookup_completed_datetime = datetime.now(UTC)
-            db.session.add(dr)
-        else:
-            # if not drd.has_error:
-            spine_lookup(drd)
-    
-            drd.processed_datetime = datetime.now(UTC)
-
-            db.session.add(drd)
-
-        db.session.commit()
-
-        schedule_lookup_tasks(request_id)
-
-    except Exception as e:
-        log_exception(e)
-        save_demographics_error(request_id, e)
-
-
-@celery.task()
 def extract_data(request_id):
     current_app.logger.info(f'extract_data (request_id={request_id})')
 
@@ -396,18 +354,6 @@ def extract_pre_pmi_details(request_id):
         data_selection_condition=DemographicsRequestData.pmi_pre_processed_datetime.is_(None),
         request_completed_attribute='pmi_data_pre_completed_datetime',
         data_completed_attribute='pmi_pre_processed_datetime',
-    )
-
-
-@celery.task()
-def extract_post_pmi_details(request_id):
-    current_app.logger.info(f'extract_pre_pmi_details (request_id={request_id})')
-
-    extract_pmi_details(
-        request_id=request_id,
-        data_selection_condition=DemographicsRequestData.pmi_post_processed_datetime.is_(None),
-        request_completed_attribute='pmi_data_post_completed_datetime',
-        data_completed_attribute='pmi_post_processed_datetime',
     )
 
 

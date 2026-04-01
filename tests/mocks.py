@@ -81,12 +81,6 @@ def mock_get_spine_parameters(app):
 
 
 @pytest.fixture(scope="function")
-def mock_process_demographics_request_data(app):
-    with patch('identity.demographics.process_demographics_request_data') as mock:
-        yield mock
-
-
-@pytest.fixture(scope="function")
 def mock_extract_data(app):
     with patch('identity.demographics.extract_data') as mock:
         yield mock
@@ -101,10 +95,4 @@ def mock_produce_demographics_result(app):
 @pytest.fixture(scope="function")
 def mock_extract_pre_pmi_details(app):
     with patch('identity.demographics.extract_pre_pmi_details') as mock:
-        yield mock
-
-
-@pytest.fixture(scope="function")
-def mock_extract_post_pmi_details(app):
-    with patch('identity.demographics.extract_post_pmi_details') as mock:
         yield mock

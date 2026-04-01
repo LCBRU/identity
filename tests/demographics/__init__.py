@@ -6,11 +6,6 @@ from identity.demographics.model import DemographicsRequest, DemographicsRequest
 from unittest.mock import patch
 from identity.demographics import extract_data
 from time import sleep
-from identity.demographics.model import (
-    DemographicsRequestPmiData,
-    DemographicsRequestDataResponse,
-    DemographicsRequestDataMessage,
-)
 from lbrc_flask.database import db
 from lbrc_flask.pytest.helpers import login
 from lbrc_flask.pytest.asserts import assert__redirect
@@ -187,7 +182,7 @@ class DemographicsTestHelper():
             p['expected_message'] = self._faker.pystr(min_chars=None, max_chars=20)
             self._person_details.append(p)
 
-    def get_input_details(self):
+    def get_request_person_details(self):
         result = []
 
         for p in self._person_details:
@@ -214,7 +209,7 @@ class DemographicsTestHelper():
         return result
 
 
-    def get_demographics_request__awaiting_submission(self):
+    def get_demographics_request__columns_defined(self):
         result = self.get_demographics_request__uploaded()
 
         cols = {}
@@ -243,8 +238,8 @@ class DemographicsTestHelper():
         return result
 
 
-    def get_demographics_request__data_extraction(self):
-        result = self.get_demographics_request__awaiting_submission()
+    def get_demographics_request__submitted(self):
+        result = self.get_demographics_request__columns_defined()
 
         result.submitted_datetime = datetime.now(UTC)
         db.session.add(result)
@@ -252,10 +247,10 @@ class DemographicsTestHelper():
         return result
 
 
-    def get_demographics_request__pre_pmi_lookup(self):
-        result = self.get_demographics_request__data_extraction()
+    def get_demographics_request__request_data_extracted(self):
+        result = self.get_demographics_request__submitted()
 
-        for i, p in enumerate(self.get_input_details()):
+        for i, p in enumerate(self.get_request_person_details()):
             self._faker.demographics_request_data().get(
                 save=True,
                 row_number=i,
@@ -276,8 +271,8 @@ class DemographicsTestHelper():
         return result
 
 
-    def get_demographics_request__spine_lookup(self):
-        result = self.get_demographics_request__pre_pmi_lookup()
+    def get_demographics_request__with_pmi_details(self):
+        result = self.get_demographics_request__request_data_extracted()
 
         if self._find_pre_pmi_details:
             for drd, p in zip(result.data, self._person_details):
@@ -301,73 +296,8 @@ class DemographicsTestHelper():
         return result
 
 
-    def get_demographics_request__post_pmi_lookup(self):
-        result = self.get_demographics_request__spine_lookup()
-
-        rows = []
-
-        for drd, p in zip(result.data, self._person_details):
-            rows.append(DemographicsRequestDataResponse(
-                demographics_request_data=drd,
-                title=p['title'],
-                forename=p['given_name'],
-                middlenames=p['middle_name'],
-                lastname=p['family_name'],
-                sex=p['gender'],
-                postcode=p['postcode'],
-                address=p['address'],
-                date_of_birth=p['date_of_birth'],
-                date_of_death=p['date_of_death'],
-                is_deceased=p['is_deceased'],
-                current_gp_practice_code=p['current_gp_practice_code'],
-            ))
-
-            if self._include_data_errors:
-                rows.append(DemographicsRequestDataMessage(
-                    demographics_request_data=drd,
-                    type='error',
-                    source='TEST',
-                    scope='DATA',
-                    message=p['expected_message'],
-                ))
-
-        result.lookup_completed_datetime = datetime.now(UTC)
-
-        db.session.add_all(rows)
-        db.session.add(result)
-        db.session.commit()
-        return result
-
-
-    def get_demographics_request__create_results(self):
-        result = self.get_demographics_request__post_pmi_lookup()
-
-        rows = []
-
-        if self._find_post_pmi_details:
-            for drd, p in zip(result.data, self._person_details):
-                rows.append(DemographicsRequestPmiData(
-                    demographics_request_data=drd,
-                    nhs_number=p['nhs_number'],
-                    uhl_system_number=p['uhl_system_number'],
-                    family_name=p['family_name'],
-                    given_name=p['given_name'],
-                    gender=p['gender'],
-                    date_of_birth=p['date_of_birth'],
-                    date_of_death=p['date_of_death'],
-                    postcode=p['postcode'],
-                ))
-
-        result.pmi_data_post_completed_datetime = datetime.now(UTC)
-
-        db.session.add_all(rows)
-        db.session.add(result)
-        db.session.commit()
-        return result
-
-
     def get_demographics_request__download(self):
-        result = self.get_demographics_request__create_results()
+        result = self.get_demographics_request__with_pmi_details()
 
         result.create_result()
         result.result_created_datetime = datetime.now(UTC)

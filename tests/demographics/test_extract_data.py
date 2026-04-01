@@ -21,7 +21,7 @@ from lbrc_flask.database import db
 def test__extract_data__normal(client, faker, extension, row_count, mock_schedule_lookup_tasks, mock_log_exception):
     u = login(client, faker)
     dth = DemographicsTestHelper(faker=faker, user=u, row_count=row_count, extension=extension)
-    dr = dth.get_demographics_request__data_extraction()
+    dr = dth.get_demographics_request__submitted()
 
     extract_data(dr.id)
 
@@ -73,7 +73,7 @@ def test__extract_data__normal(client, faker, extension, row_count, mock_schedul
 def test__extract_data__missing_columns(client, faker, column_headings, extension, mock_schedule_lookup_tasks, mock_log_exception):
     u = login(client, faker)
     dth = DemographicsTestHelper(faker=faker, user=u, extension=extension, column_headings=column_headings)
-    dr = dth.get_demographics_request__data_extraction()
+    dr = dth.get_demographics_request__submitted()
 
     extract_data(dr.id)
 
@@ -86,7 +86,7 @@ def test__extract_data__missing_columns(client, faker, column_headings, extensio
     assert actual.data_extracted == True
     assert actual.data_extracted_datetime is not None
 
-    for e, a in zip(dth.get_input_details(), actual.data):
+    for e, a in zip(dth.get_request_person_details(), actual.data):
         assert e.get('uhl_system_number', '') == a.uhl_system_number
         assert e.get('nhs_number', '') == a.nhs_number
         assert e.get('family_name', '') == a.family_name
@@ -110,7 +110,7 @@ def test__extract_data__columns_not_defined(client, faker, mock_schedule_lookup_
 def test__extract_data__already_extracted(client, faker, mock_schedule_lookup_tasks, mock_log_exception):
     u = login(client, faker)
     dth = DemographicsTestHelper(faker=faker, user=u)
-    dr = dth.get_demographics_request__pre_pmi_lookup()
+    dr = dth.get_demographics_request__request_data_extracted()
 
     extract_data(dr.id)
 

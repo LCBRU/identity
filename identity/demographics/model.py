@@ -23,12 +23,10 @@ from sqlalchemy import select, func
 # 1 Uploaded
 # 2 == column definition ==> Awaiting Submission
 # 3 == submitted ==> Data Extraction
-# 4 == data extracted ==> Pre-PMI Lookup
-# 5 == pmi lookup complete ==> Spine Lookup
-# 6 == spine lookup complete ==> Post-PMI Lookup
-# 7 == pmi lookup complete ==> Create Results
-# 8 == results created ==> Ready to Download
-# 9 == downloaded ==> Completed
+# 4 == data extracted ==> PMI Lookup
+# 5 == pmi lookup complete ==> Create Results
+# 6 == results created ==> Ready to Download
+# 7 == downloaded ==> Completed
 #
 # Other Errors:
 # 
@@ -131,16 +129,8 @@ class DemographicsRequest(db.Model):
         return self.pmi_data_pre_completed_datetime is not None
 
     @property
-    def pmi_data_post_completed(self):
-        return self.pmi_data_post_completed_datetime is not None
-
-    @property
     def result_downloaded(self):
         return self.result_downloaded_datetime is not None
-
-    @property
-    def lookup_completed(self):
-        return self.lookup_completed_datetime is not None
 
     @property
     def in_error(self):
@@ -184,12 +174,8 @@ class DemographicsRequest(db.Model):
             return 'Awaiting Submission'
         elif not self.data_extracted:
             return f'Extracting Data'
-        elif not self.pmi_data_pre_completed and not self.skip_pmi:
+        elif not self.pmi_data_pre_completed:
             return f'Fetching PMI details {self.prepmi_count} of {self.data_count} before spine lookup'
-        elif not self.lookup_completed:
-            return f'Fetching Demographics {self.fetched_count} of {self.data_count}'
-        elif not self.pmi_data_post_completed and not self.skip_pmi:
-            return f'Fetching PMI details {self.postpmi_count} of {self.data_count} after spine lookup'
         elif not self.result_created:
             return 'Processing Demographics'
         elif not self.result_downloaded:
@@ -303,18 +289,6 @@ class DemographicsRequestXlsx(DemographicsRequest):
         insert_col = len(self.get_column_names()) + 1
 
         fieldnames = [
-            'spine_nhs_number',
-            'spine_title',
-            'spine_forename',
-            'spine_middlenames',
-            'spine_lastname',
-            'spine_sex',
-            'spine_postcode',
-            'spine_address',
-            'spine_date_of_birth',
-            'spine_date_of_death',
-            'spine_is_deceased',
-            'spine_current_gp_practice_code',
             'pmi_nhs_number',
             'pmi_uhl_system_number',
             'pmi_family_name',
@@ -323,8 +297,6 @@ class DemographicsRequestXlsx(DemographicsRequest):
             'pmi_dob',
             'pmi_date_of_death',
             'pmi_postcode',
-            'confidence',
-            'spine_message',
         ]
 
         for i, fn in enumerate(fieldnames[::-1]):
@@ -336,34 +308,15 @@ class DemographicsRequestXlsx(DemographicsRequest):
 
             row = d.row_number + 2
 
-            if response:
-                ws.cell(row=row, column=insert_col).value = response.nhs_number
-                ws.cell(row=row, column=insert_col + 1).value = response.title
-                ws.cell(row=row, column=insert_col + 2).value = response.forename
-                ws.cell(row=row, column=insert_col + 3).value = response.middlenames
-                ws.cell(row=row, column=insert_col + 4).value = response.lastname
-                ws.cell(row=row, column=insert_col + 5).value = response.sex
-                ws.cell(row=row, column=insert_col + 6).value = response.postcode
-                ws.cell(row=row, column=insert_col + 7).value = response.address
-                ws.cell(row=row, column=insert_col + 8).value = response.date_of_birth
-                ws.cell(row=row, column=insert_col + 9).value = response.date_of_death
-                ws.cell(row=row, column=insert_col + 10).value = 'True' if response.is_deceased else 'False'
-                ws.cell(row=row, column=insert_col + 11).value = response.current_gp_practice_code
-
-                pmi_data = d.pmi_data
-                if pmi_data is not None:
-                    ws.cell(row=row, column=insert_col + 12).value = pmi_data.nhs_number
-                    ws.cell(row=row, column=insert_col + 13).value = pmi_data.uhl_system_number
-                    ws.cell(row=row, column=insert_col + 14).value = pmi_data.family_name
-                    ws.cell(row=row, column=insert_col + 15).value = pmi_data.given_name
-                    ws.cell(row=row, column=insert_col + 16).value = pmi_data.gender
-                    ws.cell(row=row, column=insert_col + 17).value = pmi_data.date_of_birth
-                    ws.cell(row=row, column=insert_col + 18).value = pmi_data.date_of_death
-                    ws.cell(row=row, column=insert_col + 19).value = pmi_data.postcode
-
-
-            ws.cell(row=row, column=insert_col + 20).value = d.confidence
-            ws.cell(row=row, column=insert_col + 21).value = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages])
+            if d.pmi_data is not None:
+                ws.cell(row=row, column=insert_col).value = d.pmi_data.nhs_number
+                ws.cell(row=row, column=insert_col + 1).value = d.pmi_data.uhl_system_number
+                ws.cell(row=row, column=insert_col + 2).value = d.pmi_data.family_name
+                ws.cell(row=row, column=insert_col + 3).value = d.pmi_data.given_name
+                ws.cell(row=row, column=insert_col + 4).value = d.pmi_data.gender
+                ws.cell(row=row, column=insert_col + 5).value = d.pmi_data.date_of_birth
+                ws.cell(row=row, column=insert_col + 6).value = d.pmi_data.date_of_death
+                ws.cell(row=row, column=insert_col + 7).value = d.pmi_data.postcode
 
         wb.save(filename=self.result_filepath)
 
@@ -419,18 +372,6 @@ class DemographicsRequestExcel97(DemographicsRequest):
         insert_col = len(self.get_column_names())
 
         fieldnames = [
-            'spine_nhs_number',
-            'spine_title',
-            'spine_forename',
-            'spine_middlenames',
-            'spine_lastname',
-            'spine_sex',
-            'spine_postcode',
-            'spine_address',
-            'spine_date_of_birth',
-            'spine_date_of_death',
-            'spine_is_deceased',
-            'spine_current_gp_practice_code',
             'pmi_nhs_number',
             'pmi_uhl_system_number',
             'pmi_family_name',
@@ -439,8 +380,6 @@ class DemographicsRequestExcel97(DemographicsRequest):
             'pmi_dob',
             'pmi_date_of_death',
             'pmi_postcode',
-            'confidence',
-            'spine_message',
         ]
 
         for i, fn in enumerate(fieldnames, start=insert_col):
@@ -451,33 +390,15 @@ class DemographicsRequestExcel97(DemographicsRequest):
 
             row = d.row_number + 1
 
-            if response:
-                w_sheet.write(row, insert_col, response.nhs_number)
-                w_sheet.write(row, insert_col + 1, response.title)
-                w_sheet.write(row, insert_col + 2, response.forename)
-                w_sheet.write(row, insert_col + 3, response.middlenames)
-                w_sheet.write(row, insert_col + 4, response.lastname)
-                w_sheet.write(row, insert_col + 5, response.sex)
-                w_sheet.write(row, insert_col + 6, response.postcode)
-                w_sheet.write(row, insert_col + 7, response.address)
-                w_sheet.write(row, insert_col + 8, response.date_of_birth, style)
-                w_sheet.write(row, insert_col + 9, response.date_of_death, style)
-                w_sheet.write(row, insert_col + 10, 'True' if response.is_deceased else 'False')
-                w_sheet.write(row, insert_col + 11, response.current_gp_practice_code)
-
-                pmi_data = d.pmi_data
-                if pmi_data is not None:
-                    w_sheet.write(row, insert_col + 12, pmi_data.nhs_number)
-                    w_sheet.write(row, insert_col + 13, pmi_data.uhl_system_number)
-                    w_sheet.write(row, insert_col + 14, pmi_data.family_name)
-                    w_sheet.write(row, insert_col + 15, pmi_data.given_name)
-                    w_sheet.write(row, insert_col + 16, pmi_data.gender)
-                    w_sheet.write(row, insert_col + 17, pmi_data.date_of_birth, style)
-                    w_sheet.write(row, insert_col + 18, pmi_data.date_of_death, style)
-                    w_sheet.write(row, insert_col + 19, pmi_data.postcode)
-
-            w_sheet.write(row, insert_col + 20, d.confidence)
-            w_sheet.write(row, insert_col + 21, '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in d.messages]))
+            if d.pmi_data is not None:
+                w_sheet.write(row, insert_col, d.pmi_data.nhs_number)
+                w_sheet.write(row, insert_col + 1, d.pmi_data.uhl_system_number)
+                w_sheet.write(row, insert_col + 2, d.pmi_data.family_name)
+                w_sheet.write(row, insert_col + 3, d.pmi_data.given_name)
+                w_sheet.write(row, insert_col + 4, d.pmi_data.gender)
+                w_sheet.write(row, insert_col + 5, d.pmi_data.date_of_birth, style)
+                w_sheet.write(row, insert_col + 6, d.pmi_data.date_of_death, style)
+                w_sheet.write(row, insert_col + 7, d.pmi_data.postcode)
 
         w_book.save(self.result_filepath)
 
@@ -528,18 +449,6 @@ class DemographicsRequestCsv(DemographicsRequest):
 
             fieldnames = self.get_column_names()
             fieldnames.extend([
-                'spine_nhs_number',
-                'spine_title',
-                'spine_forename',
-                'spine_middlenames',
-                'spine_lastname',
-                'spine_sex',
-                'spine_postcode',
-                'spine_address',
-                'spine_date_of_birth',
-                'spine_date_of_death',
-                'spine_is_deceased',
-                'spine_current_gp_practice_code',
                 'pmi_nhs_number',
                 'pmi_uhl_system_number',
                 'pmi_family_name',
@@ -548,8 +457,6 @@ class DemographicsRequestCsv(DemographicsRequest):
                 'pmi_dob',
                 'pmi_date_of_death',
                 'pmi_postcode',
-                'confidence',
-                'spine_message',
             ])
 
             writer = csv.DictWriter(result_file, fieldnames=fieldnames)
@@ -558,33 +465,11 @@ class DemographicsRequestCsv(DemographicsRequest):
             indexed_data = {d.row_number:d for d in self.data}
 
             for i, row in enumerate(self.iter_rows()):
-
                 
                 if i in indexed_data:
-                    response = indexed_data[i].response
-                    messages = indexed_data[i].messages
                     pmi_data = indexed_data[i].pmi_data
                 else:
-                    messages = []
-                    response = None
                     pmi_data = None
-
-                if response:
-                    row['spine_nhs_number'] = response.nhs_number
-                    row['spine_title'] = response.title
-                    row['spine_forename'] = response.forename
-                    row['spine_middlenames'] = response.middlenames
-                    row['spine_lastname'] = response.lastname
-                    row['spine_sex'] = response.sex
-                    row['spine_postcode'] = response.postcode
-                    row['spine_address'] = response.address
-                    if response.date_of_birth:
-                        row['spine_date_of_birth'] = response.date_of_birth.strftime('%d-%b-%Y')
-                    if response.date_of_death:
-                        row['spine_date_of_death'] = response.date_of_death.strftime('%d-%b-%Y')
-                    row['spine_is_deceased'] = 'True' if response.is_deceased else 'False'
-                    row['spine_current_gp_practice_code'] = response.current_gp_practice_code
-                    row['confidence'] = indexed_data[i].confidence
 
                 if pmi_data is not None:
                     row['pmi_nhs_number'] = pmi_data.nhs_number
@@ -595,8 +480,6 @@ class DemographicsRequestCsv(DemographicsRequest):
                     row['pmi_dob'] = pmi_data.date_of_birth
                     row['pmi_date_of_death'] = pmi_data.date_of_death
                     row['pmi_postcode'] = pmi_data.postcode
-
-                row['spine_message'] = '; '.join(['{} {} in {}: {}'.format(m.source, m.type, m.scope, m.message) for m in messages])
 
                 writer.writerow(row)
 

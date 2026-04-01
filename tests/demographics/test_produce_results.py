@@ -32,7 +32,7 @@ def mock_email(app):
 def test__produce_demographics_result(client, faker, mock_email, row_count, extension):
     u = login(client, faker)
     dth = DemographicsTestHelper(faker=faker, user=u, row_count=row_count, extension=extension, include_data_errors=True)
-    dr = dth.get_demographics_request__create_results()
+    dr = dth.get_demographics_request__with_pmi_details()
 
     produce_demographics_result(dr.id)
 
@@ -45,18 +45,6 @@ def test__produce_demographics_result(client, faker, mock_email, row_count, exte
     assert os.path.isfile(dr.result_filepath)
 
     for row, expected in zip(dr.iter_result_rows(), dth._person_details):
-        assert row['spine_title'] == expected['title']
-        assert row['spine_forename'] == expected['given_name']
-        assert row['spine_middlenames'] == expected['middle_name']
-        assert row['spine_lastname'] == expected['family_name']
-        assert row['spine_postcode'] == expected['postcode']
-        assert row['spine_address'] == expected['address']
-        assert parse_date(row['spine_date_of_birth']) == parse_date(expected["date_of_birth"])
-        assert parse_date(row['spine_date_of_death']) == parse_date(expected["date_of_death"])
-        assert (row['spine_is_deceased'] == 'True') == expected['is_deceased']
-        assert row['spine_current_gp_practice_code'] == expected['current_gp_practice_code']
-        assert row['spine_message'] or '' == expected['expected_message']
-
         assert row['pmi_nhs_number'] == expected['nhs_number']
         assert row['pmi_uhl_system_number'] == expected['uhl_system_number']
         assert row['pmi_family_name'] == expected['family_name']
