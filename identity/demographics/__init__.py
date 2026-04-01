@@ -1,7 +1,5 @@
 import traceback
-from collections import namedtuple
 from datetime import datetime, UTC
-from dateutil.parser import parse
 from flask import url_for, current_app, render_template
 from lbrc_flask.database import db
 from identity.celery import celery
@@ -10,24 +8,11 @@ from identity.demographics.model import (
     DemographicsRequestData,
     DemographicsRequestPmiData,
     DemographicsRequestDataMessage,
-    DemographicsRequestDataResponse,
-)
-from identity.demographics.smsp import (
-    get_demographics_from_search,
-    get_demographics_from_nhs_number,
-    SmspException,
 )
 from lbrc_flask.logging import log_exception
 from lbrc_flask.emailing import email
 from identity.services.pmi import get_pmi, PmiException
-from lbrc_flask.data_conversions import (
-    convert_dob,
-    convert_gender,
-    convert_name,
-    convert_nhs_number,
-    convert_postcode,
-    convert_uhl_system_number,
-)
+from lbrc_flask.data_conversions import convert_nhs_number, convert_uhl_system_number
 from sqlalchemy import select
 
 
@@ -37,6 +22,7 @@ class ScheduleException(Exception):
 
 def schedule_lookup_tasks(demographics_request_id):
     do_lookup_tasks.delay(demographics_request_id)
+
 
 @celery.task()
 def do_lookup_tasks(demographics_request_id):
@@ -69,172 +55,6 @@ def do_lookup_tasks(demographics_request_id):
         log_exception(e)
         save_demographics_error(demographics_request_id, e)
 
-
-class SpineParameters:
-
-    Warning = namedtuple('Warning', ['scope', 'message', 'message_type', 'source'])
-
-    def __init__(self):
-        self.nhs_number = None
-        self.family_name = None
-        self.given_name = None
-        self.gender = None
-        self.dob = None
-        self.postcode = None
-        self.warnings = []
-
-    @property
-    def valid_nhs_number_lookup_parameters(self):
-        return self.nhs_number and self.dob
-
-    @property
-    def valid_search_lookup_parameters(self):
-        return self.dob and self.gender
-    
-    def add_warning(self, scope, message, message_type='warning', source='validation'):
-        self.warnings.append(SpineParameters.Warning(scope=scope, message=message, message_type=message_type, source=source))
-
-
-def spine_lookup(demographics_request_data):
-    params = get_spine_parameters(demographics_request_data)
-
-    try:
-        if params.valid_nhs_number_lookup_parameters:
-            demographics = get_demographics_from_nhs_number(
-                nhs_number=params.nhs_number,
-                dob=params.dob,
-            )
-        elif params.valid_search_lookup_parameters:
-            if not params.gender:
-                params.add_warning(scope='gender', message='Missing value')
-
-            demographics = get_demographics_from_search(
-                family_name=params.family_name,
-                given_name=params.given_name,
-                gender=params.gender,
-                dob=params.dob,
-                postcode=params.postcode,
-            )
-        else:
-            params.add_warning(message_type='error', scope='request', message='Not enough values to perform Spine lookup')
-            demographics = None
-
-        if demographics:
-            demographics_request_data.response = DemographicsRequestDataResponse(
-                nhs_number=demographics.nhs_number,
-                title=demographics.title,
-                forename=demographics.forename,
-                middlenames=demographics.middlenames,
-                lastname=demographics.lastname,
-                sex=demographics.sex,
-                postcode=demographics.postcode,
-                address=demographics.address,
-                date_of_birth=parse(demographics.date_of_birth) if demographics.date_of_birth else None,
-                date_of_death=parse(demographics.date_of_death) if demographics.date_of_death else None,
-                is_deceased=demographics.is_deceased,
-                current_gp_practice_code=demographics.current_gp_practice_code,
-            )
-
-    except SmspException as e:
-        params.add_warning(message_type='error', source='spine', scope='request', message=e.message)
-    except Exception as e:
-        params.add_warning(message_type='unknown error', source='spine', scope='request', message=str(e))
-    finally:
-        for w in params.warnings:
-            demographics_request_data.messages.append(
-                DemographicsRequestDataMessage(
-                    type=w.message_type,
-                    source=w.source,
-                    scope=w.scope,
-                    message=w.message,
-                )
-            )
-
-
-def get_spine_parameters(demographics_request_data):
-    result = SpineParameters()
-
-    error, v_nhs_number = convert_nhs_number(demographics_request_data.nhs_number)
-    if error is not None:
-        result.add_warning(scope='nhs_number', message=error)
-
-    error, v_gender = convert_gender_with_default(demographics_request_data.demographics_request.column_definition, demographics_request_data.gender)
-    if error is not None:
-        result.add_warning(scope='gender', message=error)
-
-    error, v_family_name = convert_name(demographics_request_data.family_name)
-    if error is not None:
-        result.add_warning(scope='family_name', message=error)
-
-    error, v_given_name = convert_name(demographics_request_data.given_name)
-    if error is not None:
-        result.add_warning(scope='given_name', message=error)
-
-    error, v_dob = convert_dob(demographics_request_data.dob)
-    if error is not None:
-        result.add_warning(scope='dob', message=error)
-
-    error, v_postcode = convert_postcode(demographics_request_data.postcode)
-    if error is not None:
-        result.add_warning(scope='postcode', message=error)
-
-    if demographics_request_data.pmi_data:
-        error, v_pmi_nhs_number = convert_nhs_number(demographics_request_data.pmi_data.nhs_number)
-        if error is not None:
-            result.add_warning(scope='pmi_nhs_number', message=error)
-
-        error, v_pmi_gender = convert_gender_with_default(demographics_request_data.demographics_request.column_definition, demographics_request_data.pmi_data.gender)
-        if error is not None:
-            result.add_warning(scope='pmi_gender', message=error)
-
-        error, v_pmi_family_name = convert_name(demographics_request_data.pmi_data.family_name)
-        if error is not None:
-            result.add_warning(scope='pmi_family_name', message=error)
-
-        error, v_pmi_given_name = convert_name(demographics_request_data.pmi_data.given_name)
-        if error is not None:
-            result.add_warning(scope='pmi_given_name', message=error)
-
-        error, v_pmi_dob = convert_dob(demographics_request_data.pmi_data.date_of_birth)
-        if error is not None:
-            result.add_warning(scope='pmi_date_of_birth', message=error)
-
-        error, v_pmi_postcode = convert_postcode(demographics_request_data.pmi_data.postcode)
-        if error is not None:
-            result.add_warning(scope='pmi_postcode', message=error)
-
-    else:
-        v_pmi_nhs_number = None
-        v_pmi_gender = None
-        v_pmi_family_name = None
-        v_pmi_given_name = None
-        v_pmi_dob = None
-        v_pmi_postcode = None
-
-    result.nhs_number=(v_nhs_number or v_pmi_nhs_number)
-    result.dob=(v_dob or v_pmi_dob)
-    result.family_name=(v_family_name or v_pmi_family_name)
-    result.given_name=(v_given_name or v_pmi_given_name)
-    result.gender=(v_gender or v_pmi_gender)
-    result.postcode=(v_postcode or v_pmi_postcode)
-
-    return result
-
-def convert_gender_with_default(column_definition, value):
-    value = value.lower()
-
-    gender_female_value = (column_definition.gender_female_value or '').lower()
-    gender_male_value = (column_definition.gender_male_value or '').lower()
-
-    if len(gender_female_value) > 0:
-        if value == gender_female_value:
-            value = 'f'
-
-    if len(gender_male_value) > 0:
-        if value == gender_male_value:
-            value = 'm'
-
-    return convert_gender(value)
 
 @celery.task()
 def extract_data(request_id):

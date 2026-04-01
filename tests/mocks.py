@@ -21,26 +21,8 @@ def mock_pmi_details(app):
 
 
 @pytest.fixture(scope="function")
-def mock_spine_lookup(app):
-    with patch('identity.demographics.spine_lookup') as mock:
-        yield mock
-
-
-@pytest.fixture(scope="function")
 def mock_log_exception(app):
     with patch('identity.demographics.log_exception') as mock:
-        yield mock
-
-
-@pytest.fixture(scope="function")
-def mock_get_demographics_from_search(app):
-    with patch('identity.demographics.get_demographics_from_search') as mock:
-        yield mock
-
-
-@pytest.fixture(scope="function")
-def mock_get_demographics_from_nhs_number(app):
-    with patch('identity.demographics.get_demographics_from_nhs_number') as mock:
         yield mock
 
 
@@ -71,12 +53,6 @@ def mock_convert_dob(app):
 @pytest.fixture(scope="function")
 def mock_convert_postcode(app):
     with patch('identity.demographics.convert_postcode') as mock:
-        yield mock
-
-
-@pytest.fixture(scope="function")
-def mock_get_spine_parameters(app):
-    with patch('identity.demographics.get_spine_parameters') as mock:
         yield mock
 
 
