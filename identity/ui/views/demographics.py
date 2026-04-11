@@ -72,7 +72,6 @@ class DemographicsLookupForm(FlashingForm):
         ],
         validators=[FileRequired()]
     )
-    skip_pmi = BooleanField('Skip PMI')
 
 
 class DemographicsSearchForm(SearchForm):
@@ -157,21 +156,21 @@ def demographics_upload():
                 owner=current_user,
                 last_updated_by_user=current_user,
                 filename=form.upload.data.filename,
-                skip_pmi=form.skip_pmi.data,
+                skip_pmi=False,
             )
         elif file_extension == '.xlsx':
             d = DemographicsRequestXlsx(
                 owner=current_user,
                 last_updated_by_user=current_user,
                 filename=form.upload.data.filename,
-                skip_pmi=form.skip_pmi.data,
+                skip_pmi=False,
             )
         elif file_extension == '.xls':
             d = DemographicsRequestExcel97(
                 owner=current_user,
                 last_updated_by_user=current_user,
                 filename=form.upload.data.filename,
-                skip_pmi=form.skip_pmi.data,
+                skip_pmi=False,
             )
 
         db.session.add(d)
