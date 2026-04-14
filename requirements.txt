@@ -157,7 +157,7 @@ kiwisolver==1.5.0
     # via matplotlib
 kombu==5.6.2
     # via celery
-lbrc-flask @ git+https://github.com/LCBRU/lbrc_flask.git@07838b939aa1ad23bccfe6ba024226ca505b8ee8
+lbrc-flask @ git+https://github.com/LCBRU/lbrc_flask.git@952f5f1550c5d6f328a0054c66e60f36ba211362
     # via -r requirements.in
 ldap3==2.10.2rc3
     # via lbrc-flask
