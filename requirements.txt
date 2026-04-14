@@ -47,7 +47,7 @@ cffi==2.0.0
     #   argon2-cffi-bindings
     #   cairocffi
     #   weasyprint
-chardet==7.4.1
+chardet==7.4.3
     # via lbrc-flask
 charset-normalizer==3.4.7
     # via requests
@@ -157,13 +157,13 @@ kiwisolver==1.5.0
     # via matplotlib
 kombu==5.6.2
     # via celery
-lbrc-flask @ git+https://github.com/LCBRU/lbrc_flask.git@401056d3213a3f2b33ec2585f76470c01dfda42c
+lbrc-flask @ git+https://github.com/LCBRU/lbrc_flask.git@91b5f87e46aa8d63924bc391f20ce2c22c16b891
     # via -r requirements.in
 ldap3==2.10.2rc3
     # via lbrc-flask
 libpass==1.9.3
     # via flask-security-too
-lxml==6.0.3
+lxml==6.0.4
     # via
     #   lbrc-flask
     #   zeep
@@ -271,7 +271,7 @@ requests-file==3.0.1
     # via zeep
 requests-toolbelt==1.0.0
     # via zeep
-rich==14.3.4
+rich==15.0.0
     # via lbrc-flask
 rpds-py==0.30.0
     # via
@@ -352,7 +352,7 @@ xlwt==1.3.0
     #   xlutils
 zeep==4.3.2
     # via -r requirements.common
-zipp==3.23.0
+zipp==3.23.1
     # via importlib-metadata
 zopfli==0.4.1
     # via fonttools
