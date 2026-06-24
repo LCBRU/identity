@@ -17,8 +17,8 @@ class QuerySelectMultipleFieldSet(fields.QuerySelectMultipleField):
 
 
 class UserView(AdminCustomView):
-    form_columns = ["username", "first_name", "last_name", "studies", "active", "roles"]
-    column_list = ['username', 'first_name', 'last_name', 'active', 'last_login_at', 'ldap_user']
+    form_columns = ["username", "email", "first_name", "last_name", "studies", "active", "roles"]
+    column_list = ['username', "email", 'first_name', 'last_name', 'active', 'last_login_at', 'ldap_user']
     # can_create = False
 
     # form_args and form_overrides required to allow studies and roles to be sets.

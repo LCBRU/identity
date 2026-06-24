@@ -38,9 +38,12 @@ class IdentityConfig():
         'etl_central': os.environ["ETL_CENTRAL_DB_URI"],
         'civicrm': os.environ["CIVICRM_DB_URI"],
     }
+    LBRC_UOL_LDAP_SECURITY = False
+    LBRC_FLASK_TABLE_BASED_SECURITY = False
+    SECURITY_CHANGE_EMAIL = True
 
 
-class Config(BaseConfig, IdentityConfig):
+class Config(IdentityConfig, BaseConfig):
     pass
 
 
@@ -57,6 +60,10 @@ class TestConfig(BaseTestConfig):
         'etl_central': "sqlite://",
         'civicrm': "sqlite://",
     }
+
+    LBRC_UOL_LDAP_SECURITY = False
+    LBRC_FLASK_TABLE_BASED_SECURITY = False
+    SECURITY_CHANGE_EMAIL = True
 
 
 class TestConfigCRSF(TestConfig):
